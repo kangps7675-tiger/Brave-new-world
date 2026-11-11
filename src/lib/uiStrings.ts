@@ -1200,26 +1200,6 @@ export const MODE_PICKER_CHROME: Record<
       ],
     },
   },
-  satellite: {
-    ko: {
-      title: "3D 라이브",
-      tagline: "입체 지구 · 전선 속보",
-      bullets: [
-        "위성·실사 입체 지구에서 전장을 가까이",
-        "항공기·선박 항적과 시세를 같은 자리에서",
-        "여러 전장 속보 — 큰 것만 양피지로 펼침",
-      ],
-    },
-    en: {
-      title: "3D Live",
-      tagline: "Globe · frontline flashes",
-      bullets: [
-        "Satellite / photoreal globe up close on theaters",
-        "Aircraft, ships, and tickers in one place",
-        "Multi-theater flashes — only the big ones open as parchment",
-      ],
-    },
-  },
   live: {
     ko: {
       title: "항적",

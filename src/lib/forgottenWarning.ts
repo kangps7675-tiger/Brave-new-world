@@ -55,7 +55,7 @@ export function monthDayKey(now: Date = new Date()): string {
 }
 
 function domainMatchesMode(domain: MajorEventDomain, mode: ViewerMode): boolean {
-  if (mode === "satellite" || mode === "live") return false;
+  if (mode === "live") return false;
   if (mode === "economy") {
     return domain === "economy" || domain === "logistics" || domain === "both";
   }

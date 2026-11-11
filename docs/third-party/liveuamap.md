@@ -1,5 +1,7 @@
 # Liveuamap (third-party) — 전선 속보 · 통제면
 
+> **2026-11-12 주의:** 위성(세슘) 모드와 관측 체험·페이월 코드는 세슘 제거 4단계에서 없어졌다. 이 문서의 위성·관측대·`observeAccess`·`ObservePaywallOverlay` 설명은 당시 기록이며 지금 코드와 다르다.
+
 > 상태: **서버 ingest 전용.** 클라는 `GET /api/liveuamap` 캐시를 읽고,
 > 관측 폴링 중 서버가 **UA minInterval(15분)·일 예산**을 존중해 mpts warm한다.
 > Cron `POST /api/liveuamap/sync`도 동일 ingest. Attribution: Liveuamap.

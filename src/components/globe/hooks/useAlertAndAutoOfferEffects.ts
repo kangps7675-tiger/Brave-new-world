@@ -23,7 +23,6 @@ export type UseAlertAndAutoOfferEffectsOptions = {
   showLeftPanel: boolean;
   viewerMode: ViewerMode;
   isEconomyViewer: boolean;
-  isSatelliteViewer: boolean;
   isHistoryViewer: boolean;
   layerPrefsLiveRef: MutableRefObject<LayerPrefs>;
   showModePicker: boolean;
@@ -71,7 +70,6 @@ export function useAlertAndAutoOfferEffects(opts: UseAlertAndAutoOfferEffectsOpt
     showLeftPanel,
     viewerMode,
     isEconomyViewer,
-    isSatelliteViewer,
     isHistoryViewer,
     layerPrefsLiveRef,
     showModePicker,
@@ -116,7 +114,7 @@ export function useAlertAndAutoOfferEffects(opts: UseAlertAndAutoOfferEffectsOpt
    */
   useEffect(() => {
     if (!AUTO_ENTRY_UX_ALERTS) return;
-    if (isEconomyViewer || isHistoryViewer || isSatelliteViewer) return;
+    if (isEconomyViewer || isHistoryViewer) return;
     if (isLoading || loadError || !globeReady) return;
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceDone) return;
@@ -149,7 +147,6 @@ export function useAlertAndAutoOfferEffects(opts: UseAlertAndAutoOfferEffectsOpt
     isEconomyViewer,
     isHistoryViewer,
     isLoading,
-    isSatelliteViewer,
     isUkraineTheaterFocus,
     labelLanguage,
     langChoiceDone,

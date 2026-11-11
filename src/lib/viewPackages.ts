@@ -37,7 +37,7 @@ export type ViewPackageId =
  * 상단 스위치 — 1 지정학 · 2 3D 라이브(Cesium) · 3 지경학
  * (역사는 역사지도·영토분쟁 아카이브. 주간 함선 독은 삭제.)
  */
-export type ViewerMode = "conflict" | "history" | "economy" | "satellite" | "live";
+export type ViewerMode = "conflict" | "history" | "economy" | "live";
 
 export const CONFLICT_VIEWER_PACKAGE = "frontline-live" as const;
 /** 해운 위험 — 랜딩이 약속한 첫 화면. 신규 방문 기본값 (viewerMode 는 conflict 계열) */
@@ -60,8 +60,6 @@ export function isPeaceScienceViewerMode(mode: ViewerMode): boolean {
 
 export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
   if (mode === "economy") return [ECONOMY_VIEWER_PACKAGE];
-  // 프리미엄 — Cesium + 항적(ADS-B·AIS) + 시세 연관
-  if (mode === "satellite") return [SATELLITE_VIEWER_PACKAGE, LIVE_VIEWER_PACKAGE];
   if (mode === "live") return [LIVE_VIEWER_PACKAGE];
   // conflict + history → 동일 지정학 패키지 (역사 immersion은 영토분쟁·역사지도)
   return [CONFLICT_VIEWER_PACKAGE];
@@ -69,9 +67,6 @@ export function packagesForViewerMode(mode: ViewerMode): ViewPackageId[] {
 
 export function viewerModeFromPackages(packages: ViewPackageId[]): ViewerMode {
   const ids = packages.filter((id) => id !== "custom");
-  if (ids.includes(SATELLITE_VIEWER_PACKAGE) && ids.length === 1) {
-    return "satellite";
-  }
   if (ids.includes(LIVE_VIEWER_PACKAGE) && ids.length === 1) {
     return "live";
   }
@@ -400,37 +395,6 @@ function capLayerCount(
 }
 
 export function capLayerCountForMode(layers: LayerPrefs, mode: ViewerMode): LayerPrefs {
-  if (mode === "satellite") {
-    // 프리미엄(Cesium) — 항적 + 관측 센서(전선·화재·미사일·NEPTUN·지명).
-    // MapLibre-only(showConflictEvents·warZones 등)는 끈다.
-    // showAisMilitary/Commercial을 빼면 showAis=true여도 선박 필터가 전부 탈락한다.
-    const keepOn = new Set<keyof LayerPrefs>([
-      "showAis",
-      "showAisMilitary",
-      "showAisCommercial",
-      "showAirTraffic",
-      "showMilitaryActivity",
-      "showDisguisedVessels",
-      "showNeptun",
-      "showFirmsFires",
-      "showUkraineControl",
-      "showNorthKoreaMissileTests",
-      "showCityLabels",
-      "labelLanguage",
-    ]);
-    const next = { ...layers };
-    for (const key of Object.keys(next) as Array<keyof LayerPrefs>) {
-      if (keepOn.has(key)) continue;
-      if (typeof next[key] === "boolean") {
-        (next as Record<string, boolean | string>)[key as string] = false;
-      }
-    }
-    for (const key of keepOn) {
-      if (key === "labelLanguage") continue;
-      (next as Record<string, boolean | string>)[key as string] = true;
-    }
-    return next;
-  }
   if (mode === "live") {
     // 항적 홈 — ADS-B/AIS/GPSJam만 유지, 전선·시장 잡음 컷
     const keepOn = new Set<keyof LayerPrefs>([
@@ -744,10 +708,6 @@ export function previewModeSelection(
     bullets.push("우크라이나 전선·NEPTUN 드론·미사일 궤적");
     bullets.push("GDELT 전투·외교 뉴스 · Telegram OSINT");
     bullets.push("하단: 속보 + GDELT 범례");
-  } else if (mode === "satellite") {
-    bullets.push("Cesium 글로브 · Esri / Photorealistic");
-    bullets.push("ADS-B · AIS 항적 + 주식 티커 연관");
-    bullets.push("LIVEUA 전전선 ingest · S급만 양피지 타전");
   } else if (mode === "history") {
     bullets.push("Cliopatria·한국사 영토 채움 · 연도 스크럽");
     bullets.push("지정학 하단 독「역사 영토」에서 진입");
@@ -773,7 +733,7 @@ export function previewModeSelection(
     bullets.push(`시작 시 ${economyHubLabel(economyHub)} 허브로 카메라 이동`);
   } else if (mode === "economy") {
     bullets.push("시작 시 지구본 전역 궤도 유지 (핫 허브 자동 이동 없음)");
-  } else if (mode === "live" || mode === "satellite") {
+  } else if (mode === "live") {
     bullets.push("시작 시 지구본 전역 궤도 유지");
   }
 

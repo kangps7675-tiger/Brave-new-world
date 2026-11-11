@@ -67,7 +67,6 @@ export type UseFirmsTheaterDisplayModelOptions = {
   disputes: DisputeArea[];
   visibleConflictZones: ConflictZoneFeature[];
   showUkraineControl: boolean;
-  isSatelliteViewer: boolean;
   showTzevaAdom: boolean;
   tzevaAdomActive: TzevaAdomAlert[];
   showNewfeedsIranAttacks: boolean;
@@ -107,7 +106,6 @@ export function useFirmsTheaterDisplayModel(opts: UseFirmsTheaterDisplayModelOpt
     disputes,
     visibleConflictZones,
     showUkraineControl,
-    isSatelliteViewer,
     showTzevaAdom,
     tzevaAdomActive,
     showNewfeedsIranAttacks,
@@ -219,31 +217,6 @@ export function useFirmsTheaterDisplayModel(opts: UseFirmsTheaterDisplayModelOpt
       })),
     [firmsCombatHotspots, showUkraineControl, visibleFirmsFires],
   );
-
-  /** Cesium 관측 — MapLibre 뷰포트 컬 없이 전장 FIRMS 상위 N */
-  const cesiumFirmsFires = useMemo(() => {
-    if (!showFirmsFires || !isSatelliteViewer) return [];
-    return filterFirmsToTheaters(firmsFires)
-      .slice()
-      .sort((a, b) => (b.frp ?? 0) - (a.frp ?? 0))
-      .slice(0, 80)
-      .map((fire) => ({
-        id: fire.id,
-        lat: fire.lat,
-        lng: fire.lng,
-        frp: fire.frp,
-        soundKind: classifyFirmsFireForSound(fire, {
-          ukraineFrontActive: showUkraineControl,
-          combatHotspots: firmsCombatHotspots,
-        }),
-      }));
-  }, [
-    firmsCombatHotspots,
-    firmsFires,
-    isSatelliteViewer,
-    showFirmsFires,
-    showUkraineControl,
-  ]);
 
   const tzevaAdomDisplayPoints = useMemo<TzevaAdomGlobePoint[]>(() => {
     if (!showTzevaAdom) return [];
@@ -441,7 +414,6 @@ export function useFirmsTheaterDisplayModel(opts: UseFirmsTheaterDisplayModelOpt
     firmsCombatFireIds,
     firmsBombRingPoints,
     firmsDisplayPoints,
-    cesiumFirmsFires,
     tzevaAdomDisplayPoints,
     newfeedsAttackDisplayPoints,
     firmsCombatInView,

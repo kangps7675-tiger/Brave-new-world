@@ -1891,7 +1891,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           onGoToLocation={onBreakingFlashGoToLocation}
           displayGrade={breakingFlashGrade}
           onDrill={onBreakingFlashDrill}
-          exitToDock={viewerMode === "satellite"}
         />
       ) : null}
 
@@ -2002,8 +2001,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       {!intelSheetOpen &&
       !isPhoneUi &&
       timeScrubber &&
-      viewerMode !== "history" &&
-      viewerMode !== "satellite" ? (
+      viewerMode !== "history" ? (
         <div
           className={`pointer-events-none flex flex-col items-center gap-2 cv-bottom-chrome-above-stack ${
             isCompactUi

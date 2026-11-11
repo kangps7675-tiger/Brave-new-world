@@ -13,8 +13,6 @@ export type GlobeMapCanvasProps = Omit<PausedMapGlobeProps, "ref"> & {
   loadError: string | null;
   /** globeTextures.backgroundColor — 컨테이너 div 배경 */
   containerBackgroundColor: string;
-  /** 위성 모드는 막혀 있다(`SATELLITE_ENABLED=false`). 항상 false여야 한다. */
-  satelliteMode?: boolean;
 };
 
 /**
@@ -29,7 +27,6 @@ export function GlobeMapCanvas({
   containerBackgroundColor,
   ultraLite,
   basemapMode,
-  satelliteMode = false,
   ...mapGlobeProps
 }: GlobeMapCanvasProps) {
   return (
@@ -37,7 +34,7 @@ export function GlobeMapCanvas({
       ref={containerRef}
       className="globe-shell relative z-0 isolate h-full w-full overflow-hidden"
       style={{
-        backgroundColor: satelliteMode ? "#02040a" : containerBackgroundColor,
+        backgroundColor: containerBackgroundColor,
         transform: isCompactUi
           ? undefined
           : "translateY(var(--hover-nav-base-height, 0px))",
@@ -45,7 +42,7 @@ export function GlobeMapCanvas({
       }}
     >
       <div className="absolute inset-0 z-0">
-        {!isPhoneUi && !satelliteMode ? (
+        {!isPhoneUi ? (
           <PausedMapGlobeView
             {...mapGlobeProps}
             basemapMode={basemapMode}
@@ -53,7 +50,7 @@ export function GlobeMapCanvas({
             ref={globeRef}
           />
         ) : null}
-        {loadError && !satelliteMode ? (
+        {loadError ? (
           <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-30 flex justify-center sm:inset-x-auto sm:bottom-6 sm:max-w-md">
             <LoadErrorBanner message={loadError} compact />
           </div>

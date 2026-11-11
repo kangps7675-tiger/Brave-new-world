@@ -202,8 +202,6 @@ export type UseLayerPanelCategoriesArgs = {
   isEconomyViewer: boolean;
   /** 항적 모드 — ADS-B·AIS·GPSJam 홈 */
   isLiveViewer?: boolean;
-  /** 관측(Cesium) 모드 — AIS/ADS-B 엔티티가 실제로 그려지는 유일한 모드 */
-  isSatelliteViewer?: boolean;
   showUsDfcSupplyChain: boolean;
   usDfcSupplyPaths: unknown[];
   setShowUsDfcSupplyChain: (v: boolean) => void;
@@ -254,11 +252,7 @@ export type UseLayerPanelCategoriesArgs = {
   aisVessels: unknown[];
   setShowAis: (v: boolean) => void;
   /** AIS 군함 세부 필터 — 관측 모드에서만 효과 있음 */
-  showAisMilitary: boolean;
-  setShowAisMilitary: (v: boolean) => void;
   /** AIS 상선·민간 세부 필터 — 관측 모드에서만 효과 있음 */
-  showAisCommercial: boolean;
-  setShowAisCommercial: (v: boolean) => void;
   showWeeklyShipMoves: boolean;
   weeklyShipMoveCount: number;
   setShowWeeklyShipMoves: (v: boolean) => void;
@@ -503,7 +497,6 @@ export function useLayerPanelCategories({
   setShowNuclearSites,
   isEconomyViewer,
   isLiveViewer = false,
-  isSatelliteViewer = false,
   showUsDfcSupplyChain,
   usDfcSupplyPaths,
   setShowUsDfcSupplyChain,
@@ -553,10 +546,6 @@ export function useLayerPanelCategories({
   showAis,
   aisVessels,
   setShowAis,
-  showAisMilitary,
-  setShowAisMilitary,
-  showAisCommercial,
-  setShowAisCommercial,
   showWeeklyShipMoves,
   weeklyShipMoveCount,
   setShowWeeklyShipMoves,
@@ -1750,13 +1739,9 @@ export function useLayerPanelCategories({
             id: "ais",
             label: labelLanguage === "en" ? "Vessels (AIS)" : "선박 (AIS)",
             detail: showAis
-              ? isSatelliteViewer
-                ? labelLanguage === "en"
-                  ? `${aisVessels.length.toLocaleString()} shown · Cesium 3D`
-                  : `${aisVessels.length.toLocaleString()}척 · Cesium 3D`
-                : labelLanguage === "en"
-                  ? "Turns on Observe (Cesium 3D)"
-                  : "켜면 관측(Cesium 3D)으로 전환"
+              ? labelLanguage === "en"
+                ? "Shown"
+                : "표시"
               : labelLanguage === "en"
                 ? "Off"
                 : "꺼짐",
@@ -1764,38 +1749,6 @@ export function useLayerPanelCategories({
             onChange: setShowAis,
             accent: "blue",
           },
-          ...(isSatelliteViewer && showAis
-            ? [
-                {
-                  id: "ais-military" as const,
-                  label: labelLanguage === "en" ? "└ Military vessels" : "└ 군함",
-                  detail: showAisMilitary
-                    ? labelLanguage === "en"
-                      ? "Shown"
-                      : "표시"
-                    : labelLanguage === "en"
-                      ? "Hidden"
-                      : "숨김",
-                  checked: layerPrefs.showAisMilitary,
-                  onChange: setShowAisMilitary,
-                  accent: "red" as const,
-                },
-                {
-                  id: "ais-commercial" as const,
-                  label: labelLanguage === "en" ? "└ Commercial vessels" : "└ 상선·민간",
-                  detail: showAisCommercial
-                    ? labelLanguage === "en"
-                      ? "Shown"
-                      : "표시"
-                    : labelLanguage === "en"
-                      ? "Hidden"
-                      : "숨김",
-                  checked: layerPrefs.showAisCommercial,
-                  onChange: setShowAisCommercial,
-                  accent: "emerald" as const,
-                },
-              ]
-            : []),
           ...(isEconomyViewer || isLiveViewer
             ? []
             : [
@@ -2074,11 +2027,7 @@ export function useLayerPanelCategories({
           {
             id: "military-air",
             label: "군사 항공기",
-            detail: showMilitaryActivity
-              ? isSatelliteViewer
-                ? `비행기 ${milAircraft.length.toLocaleString()}대 · ADS-B · Cesium 3D`
-                : "켜면 관측(Cesium 3D)으로 전환"
-              : "꺼짐",
+            detail: showMilitaryActivity ? "표시" : "꺼짐",
             checked: layerPrefs.showMilitaryActivity,
             onChange: setShowMilitaryActivity,
             accent: "red",
@@ -2265,11 +2214,7 @@ export function useLayerPanelCategories({
           {
             id: "air-traffic",
             label: "항공기 운항",
-            detail: showAirTraffic
-              ? isSatelliteViewer
-                ? `민항 ${civAircraft.length.toLocaleString()}대 · OpenSky/ADS-B · Cesium`
-                : "켜면 관측(Cesium 3D)으로 전환"
-              : "꺼짐 · OpenSky 전세계(자격증 있으면)",
+            detail: showAirTraffic ? "표시" : "꺼짐 · OpenSky 전세계(자격증 있으면)",
             checked: layerPrefs.showAirTraffic,
             onChange: setShowAirTraffic,
             accent: "blue",

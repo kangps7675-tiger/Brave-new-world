@@ -42,7 +42,6 @@ export function FirstVisitTour({
   const [resolvedSelector, setResolvedSelector] = useState("#map-globe-section");
   const steps = useMemo(() => {
     const hideBrief =
-      viewerMode === "satellite" ||
       viewerMode === "history" ||
       viewerMode === "live";
     return hideBrief

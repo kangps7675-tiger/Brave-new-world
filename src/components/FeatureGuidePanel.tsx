@@ -341,76 +341,6 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
   },
 ];
 
-const SATELLITE_GUIDE_SECTIONS_KO: GuideSection[] = [
-  {
-    title: "관측대란?",
-    steps: [
-      "실시간 3D 관측 창입니다. 항적·전선·화재·해상 경보를 한자리에서 봅니다.",
-      "비밀 정보가 아닙니다. 공개 소식 중 서로 맞춰진 것만 크게 보여 줍니다.",
-    ],
-  },
-  {
-    title: "오늘 볼 안건",
-    steps: [
-      "오른쪽 목록은 레이어 스위치가 아닙니다. 전황 보고서·해상 경보 중 읽을 만한 것만 모은 짧은 목록입니다.",
-      "제목을 누르면 보고서가 열립니다. 「왜?」는 왜 지금 보면 좋은지·얼마나 믿을지를 말해 줍니다.",
-      "「모으는 중」은 사라진 게 아닙니다 — 출처가 더 쌓이면 위로 올라옵니다.",
-      "관심 주제는 오늘 특히 지켜보는 창(우크라·홍해 등)과 얼마나 이어지는지입니다.",
-    ],
-  },
-  {
-    title: "전선 속보 · 누가 어디를 잡았나",
-    steps: [
-      "LiveUA 속보 양피지에서는 이전·다음으로 같은 지역의 다른 핀을 넘길 수 있습니다.",
-      "전선·통제면은 우크라만이 아닙니다. 이란·예멘·레바논·이스라엘/팔 전장도 같이 봅니다.",
-      "속보 아래 「이 소식이 건드릴 수 있는 곳」은 시세·회랑 참고용입니다. 투자 권유가 아닙니다.",
-    ],
-  },
-  {
-    title: "사건 파일 · 공습·항적",
-    steps: [
-      "「사건」탭에서 기사·좌표로 초안을 만들고, 화재·공습 이력·선박·군용기 항적을 근거로 붙일 수 있습니다.",
-      "항적·전선·화재·공중 위협 칩으로 지도 레이어를 빠르게 켜고 끕니다.",
-      "아래 시간으로 하루 중 시각을 돌려 볼 수 있습니다. 공식 경보 앱이 아니니 참고용으로만 보세요.",
-    ],
-  },
-];
-
-const SATELLITE_GUIDE_SECTIONS_EN: GuideSection[] = [
-  {
-    title: "What is the Observatory?",
-    steps: [
-      "A live 3D desk for tracks, fronts, fires, and maritime alerts.",
-      "Not secret intel — we highlight open-source items that cross-check.",
-    ],
-  },
-  {
-    title: "Today's watch items",
-    steps: [
-      "The list on the right is not a layer switch — a short reading queue of theater reports and maritime alerts.",
-      "Tap a title for the report. Why? explains why it matters now and how solid it looks.",
-      "Waiting items are not deleted — they move up when more sources arrive.",
-      "Priority topics show how an item ties to today's windows (Ukraine, Red Sea, etc.).",
-    ],
-  },
-  {
-    title: "Frontline flashes · who holds the ground",
-    steps: [
-      "On a LiveUA flash parchment, use Previous / Next to flip other pins in the same theater.",
-      "Control layers are not Ukraine-only — Iran, Yemen, Lebanon, and Israel/Palestine too.",
-      "“Where this may show up next” is market/corridor context — not investment advice.",
-    ],
-  },
-  {
-    title: "Case file · air raids · tracks",
-    steps: [
-      "In the Case tab, draft from an article or coordinates, then attach fires, air-raid history, ships, or military tracks as evidence.",
-      "Use track / front / fire / air-threat chips to toggle map layers quickly.",
-      "The day scrubber moves the clock through the day. Reference only — not an official alert app.",
-    ],
-  },
-];
-
 export function FeatureGuidePanel({
   open,
   viewerMode = "conflict",
@@ -429,13 +359,9 @@ export function FeatureGuidePanel({
       ? en
         ? ECONOMY_GUIDE_SECTIONS_EN
         : ECONOMY_GUIDE_SECTIONS_KO
-      : viewerMode === "satellite"
-        ? en
-          ? SATELLITE_GUIDE_SECTIONS_EN
-          : SATELLITE_GUIDE_SECTIONS_KO
-        : en
-          ? GUIDE_SECTIONS_EN
-          : GUIDE_SECTIONS_KO;
+      : en
+        ? GUIDE_SECTIONS_EN
+        : GUIDE_SECTIONS_KO;
   const sections = [...base, ...accountGuideSections(lang)];
 
   return (

@@ -21,24 +21,16 @@ import {
 import type { LiveuamapEvent, LiveuamapFeedPayload } from "@/lib/liveuamap/types";
 import { translateTextsBatch } from "@/lib/koreanTranslate";
 import { applyKoPatches, bodyNeedsKo, titleNeedsKo, type KoPatch } from "@/lib/liveuamap/koFallback";
-import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 
 const LIVEUA_FEED_POLL_MS = 15_000;
-const LIVEUA_PARCHMENT_AUTO_ADVANCE_MS = 12_000;
-/** 새 속보 도착 후 양피지 자동 오픈까지 짧은 유예 */
-const LIVEUA_AUTO_OPEN_MS = 1_200;
 /** 속보함·양피지 큐에 올리는 최근 구간 — 그 이전 이력은 지도 핀으로만 */
 const LIVEUA_BREAKING_WINDOW_MS = 6 * 60 * 60 * 1000;
 /** 하이브리드전 사건은 드물어 더 길게 큐에 둔다 */
 const LIVEUA_HYBRID_WINDOW_MS = 24 * 60 * 60 * 1000;
 /** 큐 상한 — 최신순으로 자른다 */
 const LIVEUA_BREAKING_MAX = 30;
-/** 접속 시점에 이미 있던 속보라도 이 안쪽이면 "방금 난 속보"로 보고 띄운다 */
-const LIVEUA_FRESH_MS = 10 * 60 * 1000;
 
 export type UseLiveuaObserveFeedOptions = {
-  isSatelliteViewer: boolean;
-  theaterSitrepRegion: TheaterSitrepRegionId | null;
   /**
    * 피드 폴링 여부. 기본은 위성 뷰어일 때만이지만, 일반 지도의 사건 스택도
    * 같은 피드를 쓰므로 호출 쪽에서 true로 켠다. 양피지 자동 오픈·순환은 위성 뷰어 전용으로 유지.
@@ -82,12 +74,10 @@ export type UseLiveuaObserveFeedResult = {
  * 속보함·양피지는 주제 구분 없이 최근 속보 — 자동 오픈은 접속 후 새로 도착한 것만.
  */
 export function useLiveuaObserveFeed({
-  isSatelliteViewer,
-  theaterSitrepRegion,
   pollFeed,
   koreanFallback = false,
 }: UseLiveuaObserveFeedOptions): UseLiveuaObserveFeedResult {
-  const shouldPoll = pollFeed ?? isSatelliteViewer;
+  const shouldPoll = pollFeed ?? false;
   const [liveuaFeed, setLiveuaFeed] = useState<LiveuamapFeedPayload | null>(null);
   const [liveuaToast, setLiveuaToast] = useState<LiveuamapEvent | null>(null);
   const [readState, setReadState] = useState<LiveuaReadState | null>(null);
@@ -193,8 +183,6 @@ export function useLiveuaObserveFeed({
   useEffect(() => {
     if (openedLiveuaId) markLiveuaRead(openedLiveuaId);
   }, [openedLiveuaId, markLiveuaRead]);
-  const liveuaCycleStepsRef = useRef(0);
-  const autoOpenedIdsRef = useRef<Set<string>>(new Set());
   /** 이 접속에서 첫 피드에 이미 들어 있던 id — 자동 오픈 대상이 아니다 */
   const baselineIdsRef = useRef<Set<string> | null>(null);
 
@@ -258,68 +246,6 @@ export function useLiveuaObserveFeed({
       window.clearInterval(timer);
     };
   }, [shouldPoll]);
-
-  /** 접속 후 새 속보가 오면 양피지 자동 오픈 (첫 피드의 기존 이력은 제외) */
-  useEffect(() => {
-    if (!isSatelliteViewer || theaterSitrepRegion) return;
-    if (liveuaParchmentIndex != null) return;
-    if (focusedLiveuaId) return;
-    if (!readState || liveuaBreakingEvents.length === 0) return;
-
-    const baseline = baselineIdsRef.current;
-    if (!baseline) return;
-    const nowMs = Date.now();
-    const unreadIdx = liveuaBreakingEvents.findIndex((e) => {
-      if (autoOpenedIdsRef.current.has(e.id)) return false;
-      if (!isLiveuaUnreadArrival(readState, e.id)) return false;
-      if (!baseline.has(e.id)) return true;
-      const at = Date.parse(e.publishedAt);
-      return Number.isFinite(at) && nowMs - at <= LIVEUA_FRESH_MS;
-    });
-    if (unreadIdx < 0) return;
-
-    const targetId = liveuaBreakingEvents[unreadIdx]!.id;
-    const timer = window.setTimeout(() => {
-      autoOpenedIdsRef.current.add(targetId);
-      liveuaCycleStepsRef.current = 0;
-      setLiveuaParchmentIndex(unreadIdx);
-    }, LIVEUA_AUTO_OPEN_MS);
-    return () => window.clearTimeout(timer);
-  }, [
-    isSatelliteViewer,
-    theaterSitrepRegion,
-    liveuaParchmentIndex,
-    focusedLiveuaId,
-    liveuaBreakingEvents,
-    readState,
-  ]);
-
-  /** 속보 큐 순환 — 한 바퀴면 닫고 속보함으로 */
-  useEffect(() => {
-    if (!isSatelliteViewer || liveuaParchmentIndex == null) return;
-    if (theaterSitrepRegion) return;
-    const n = liveuaBreakingEvents.length;
-    if (n <= 0) {
-      setLiveuaParchmentIndex(null);
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      liveuaCycleStepsRef.current += 1;
-      if (liveuaCycleStepsRef.current >= Math.max(1, n)) {
-        liveuaCycleStepsRef.current = 0;
-        setLiveuaParchmentIndex(null);
-        return;
-      }
-      const next = (liveuaParchmentIndex + 1) % n;
-      setLiveuaParchmentIndex(next);
-    }, LIVEUA_PARCHMENT_AUTO_ADVANCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [
-    isSatelliteViewer,
-    liveuaParchmentIndex,
-    liveuaBreakingEvents.length,
-    theaterSitrepRegion,
-  ]);
 
   // 속보 목록이 줄어 인덱스가 벗어나면 보정
   useEffect(() => {

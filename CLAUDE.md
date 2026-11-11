@@ -39,7 +39,7 @@
 
 새 레이어·패널·모드는 **케이스 파일(기사 확인)의 증거 또는 판정에 연결될 때만** 노출한다.
 발전소·철도·케이블·사일로·국경선처럼 속보의 원본이 아닌 지도 백과는 넣지 않는다. 그 층은 `src/lib/layerLab.ts`에서 항상 꺼 두고, 데이터 파일은 저장소에 두지 않는다. `NEXT_PUBLIC_LAB=1`로 되살리지 않는다.
-화면 모드는 지정학 하나이며, 위성(세슘)은 2026-11-06부터 막혀 있다(아래 세슘 제거 항목).
+화면 모드는 지정학 하나이며, 위성(세슘) 모드는 2026-11-06에 막고 4단계에서 코드까지 없앴다(아래 세슘 제거 항목).
 
 ## 2026-10-20 방향 번복 — 전체 버전 복원
 
@@ -63,10 +63,11 @@
 - 인프라 식별자는 바꾸지 않는다: localStorage·IndexedDB 키 `straitdesk-*`, 설정 파일 `src/config/straitdesk.config.ts`, 도메인 `straitdesk.app`, 외부 호출 User-Agent `StraitDesk/…`, npm 패키지명 `strait-desk`. 바꾸면 방문자 설정이 초기화된다.
 - 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다. 이름이 정해지면 다시 만든다.
 
-## 2026-11-06 세슘(위성) 제거 — 1단계
+## 2026-11-06 세슘(위성) 제거
 
 세슘은 뺀다. 지금 방향(근거 확인·연결·이니셔티브·시나리오·분기점)에서 세슘이 핵심인 곳이 없고, 번들·성능·유지보수 부담만 남기 때문이다.
-- 1단계(완료): `src/lib/satelliteAccess.ts`의 `SATELLITE_ENABLED = false`로 위성 진입을 전부 막았다. 「위성으로 보기」 버튼, 위성 모드 전환·부팅 복원, 진입 게이트·모드 스위처의 위성 항목이 사라진다. `NEXT_PUBLIC_LAB=1`로도 안 열린다. 빌드(predev/prebuild)에서 세슘 에셋 복사도 뺐다.
+- 1단계(완료): `SATELLITE_ENABLED = false` 스위치로 위성 진입을 전부 막았다(「위성으로 보기」 버튼, 모드 전환·부팅 복원, 진입 게이트·모드 스위처의 위성 항목). 빌드에서 세슘 에셋 복사도 뺐다. 스위치 파일(`satelliteAccess.ts`)은 4단계에서 지웠다.
 - 2단계(완료, 2026-11-12): 묶음 PR로 죽은 코드를 지웠다. A(#426) 세슘 지구본·전용 훅·`satelliteLayers`, B(#428) `cesium` 패키지·에셋 스크립트·그리기 함수.
 - 3단계(2026-11-12): 위성 전용 관측대 UI(하루 스크러버·해협 투어·리플레이·센서 칩·범례)와 녹화(`cesiumRecordClip`)를 지웠다.
-- 4단계(예정): 위성 뷰어 모드 자체를 걷어낸다. `viewerMode === "satellite"`/`isSatelliteViewer` 분기(GlobeDashboard 약 50곳과 훅 10여 개), 세슘 핸들 ref와 `satelliteHandle.ts`, `useFocusedSpaceNavigation`의 위성 비행·대기열·확인 배너, 위성 전용 폴링, `docs/`의 옛 설명. 분기가 많아 화면 확인과 함께 작은 PR로 나눈다. `next.config.mjs`의 `swcMinify: false`는 세슘 때문에 켠 설정이라 별도 검증 후 되돌린다.
+- 4단계(완료): 위성 뷰어 모드 자체를 걷어냈다. `ViewerMode`에서 `"satellite"`를 빼고(`"live"`는 lab용으로 남김), GlobeDashboard와 훅의 `isSatelliteViewer`·`viewerMode === "satellite"` 분기, 세슘 핸들(`satelliteHandle.ts`)·관측 체험/페이월(`observeAccess.ts`, `ObservePaywallOverlay`)·확인 배너(`FlyToConfirmBanner`)를 지웠다. 속보·워치보드의 「위치로 가기」(`switchToObserveAndFly`, 이름만 옛것)는 이제 모드 전환 없이 지도에서 바로 flyTo만 한다. 옛 `?mode=satellite` 링크와 저장된 위성 모드는 지정학으로 열린다. `next.config.mjs`의 `swcMinify: false`도 뺐다(Next 14 기본값 true로 복귀).
+- 4단계 뒤에 남은 것: `satellite-eye` 패키지 id(`viewPackages.ts`), 어디서도 안 쓰이는 `LiveuaFlashToast`·`LiveuaFlashParchment`·`IntelDeskTipCard`·`TheaterSitrepBook`·`LiveuaEventFocusCard` 컴포넌트와 그 상태(`theaterSitrepRegion` 등), 항상 닫히는 `incidentSpace` 사건 창, `docs/` 옛 문서의 위성 설명(문서 상단에 제거 표시를 달았다). 별도 PR로 지운다.
