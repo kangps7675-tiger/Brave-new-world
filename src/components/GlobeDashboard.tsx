@@ -160,7 +160,6 @@ import { isMostlyEnglish, translateTextToKorean } from "@/lib/koreanTranslate";
 import { LiveuaEventFocusCard } from "@/components/globe/LiveuaEventFocusCard";
 import { ObserveScopeMask } from "@/components/globe/ObserveScopeMask";
 import { TheaterSitrepBook } from "@/components/globe/TheaterSitrepBook";
-import { IntelWatchboard } from "@/components/globe/IntelWatchboard";
 import { IntelSourceDrill } from "@/components/globe/IntelSourceDrill";
 import { IntelDeskTipCard } from "@/components/globe/IntelDeskTipCard";
 import {
@@ -515,12 +514,8 @@ import { GlobeMapCanvas } from "@/components/globe/GlobeMapCanvas";
 import { useGlobeMapGlobeProps } from "@/components/globe/hooks/useGlobeMapGlobeProps";
 import { useHistoryPolityLayers } from "@/components/globe/hooks/useHistoryPolityLayers";
 import { DashboardTopChrome } from "@/components/globe/DashboardTopChrome";
-import { ObserveDeskBookmarkRail } from "@/components/globe/ObserveDeskBookmarkRail";
-import { CaseFileDeskPanel } from "@/components/globe/CaseFileDeskPanel";
 import { CaseEvidenceAttachBar } from "@/components/globe/CaseEvidenceAttachBar";
 import { FirmsFireDetailPanel } from "@/components/globe/FirmsFireDetailPanel";
-import { DeskVerifyHud } from "@/components/globe/DeskVerifyHud";
-import { readActiveCaseId } from "@/lib/caseFile/clientSession";
 import { ObservePaywallOverlay } from "@/components/ObservePaywallOverlay";
 import {
   OBSERVE_PREVIEW_MS,
@@ -578,7 +573,6 @@ import { useFirmsTheaterDisplayModel } from "@/components/globe/hooks/useFirmsTh
 import { useNewsInsightActions } from "@/components/globe/hooks/useNewsInsightActions";
 import { useSessionOfferEffects } from "@/components/globe/hooks/useSessionOfferEffects";
 import { useModeSceneHandlers } from "@/components/globe/hooks/useModeSceneHandlers";
-import { useObserveAlertModel } from "@/components/globe/hooks/useObserveAlertModel";
 import { useAlertAndAutoOfferEffects } from "@/components/globe/hooks/useAlertAndAutoOfferEffects";
 import { useLayerPanelActions } from "@/components/globe/hooks/useLayerPanelActions";
 import { useStableGlobeLayers } from "@/components/globe/hooks/useStableGlobeLayers";
@@ -995,16 +989,6 @@ export function GlobeDashboard({
   const [showGdeltAlertPanel, setShowGdeltAlertPanel] = useState(false);
   const [showDisputeLegendPanel, setShowDisputeLegendPanel] = useState(false);
   const [selected, setSelected] = useState<Selection | null>(null);
-  const [activeCaseOpen, setActiveCaseOpen] = useState(false);
-  const [incidentPickActive, setIncidentPickActive] = useState(false);
-  const [pickedIncidentPoint] = useState<{
-    lat: number;
-    lng: number;
-    seq: number;
-  } | null>(null);
-  useEffect(() => {
-    setActiveCaseOpen(Boolean(readActiveCaseId()));
-  }, []);
   const [hoveredPoint, setHoveredPoint] = useState<GlobeDisplayPoint | null>(null);
   const [hoveredNeptunThreat, setHoveredNeptunThreat] = useState<NeptunLiveThreat | null>(null);
   const [hoveredPolygon, setHoveredPolygon] = useState<PolygonLayerFeature | null>(null);
@@ -1052,9 +1036,9 @@ export function GlobeDashboard({
     PirModalityStatus[]
   >([]);
   /** 워치보드 → 세슘 스포트라이트 */
-  const [deskFocus, setDeskFocus] = useState<DeskFocus | null>(null);
+  const [, setDeskFocus] = useState<DeskFocus | null>(null);
   /** hold→active 승격 하이라이트 */
-  const [promotingItemId, setPromotingItemId] = useState<string | null>(null);
+  const [, setPromotingItemId] = useState<string | null>(null);
   const watchGradePrevRef = useRef<Map<string, DisplayGrade>>(new Map());
   const openIntelDrill = useCallback(
     (gate: GateResult, pirStatuses: PirModalityStatus[] = []) => {
@@ -1504,7 +1488,7 @@ export function GlobeDashboard({
     altitude: number;
   } | null>(null);
   /** 속보·안건·딥링크로 관측 진입 시 해협 투어가 카메라를 덮지 않게 */
-  const [observeEntryHadTarget, setObserveEntryHadTarget] = useState(false);
+  const [, setObserveEntryHadTarget] = useState(false);
 
   /** 장면 딥링크(?scene=1) — 게이트 생략 후 모드·레이어·카메라 적용 */
   const { hasPendingScene } = useSceneDeeplink({
@@ -2533,7 +2517,6 @@ export function GlobeDashboard({
     unifiedFlyTo,
     revealIncidentEnergyPipelines,
     switchToObserveAndFly,
-    focusWatchboardItem,
     acceptFlyToConfirm,
     dismissFlyToConfirm,
     flushPendingCesiumFly,
@@ -4290,10 +4273,7 @@ export function GlobeDashboard({
     if (localDisputeAlerts.length > 0) setShowLocalAlertPanel(true);
   }, [showAnyDisputeOverlay, showGdeltLayers, loadError, isLoading, localDisputeAlerts.length]);
 
-  const {
-    byChokeId: portWatchByChokeId,
-    transits: portWatchTransits,
-  } = usePortWatchObservations();
+  const { byChokeId: portWatchByChokeId } = usePortWatchObservations();
   const assetTickerSnapshot = useLogisticsAssetTickers(showLogisticsRisk && showLogisticsStress);
 
   const {
@@ -5641,52 +5621,6 @@ export function GlobeDashboard({
     closeUkmtoBriefing,
     closeNavareaBriefing,
   ]);
-
-  /**
-   * Observe 경보·워치보드·초크 스트레스·해협 오버레이 파생 데이터 묶음.
-   * useObserveAlertModel 훅으로 추출 (분리 Phase D).
-   * src/components/globe/hooks/useObserveAlertModel.ts
-   */
-  const {
-    cesiumAlerts,
-    observeWatchboardItems,
-    escalationIntel,
-    chokepointStressGate,
-    openCesiumAlert,
-  } = useObserveAlertModel({
-    isSatelliteViewer,
-    isPhoneUi,
-    setSelected,
-    newsStreamPayload,
-    deskFocus,
-    setDeskFocus,
-    setPromotingItemId,
-    watchGradePrevRef,
-    newfeedsAttacks,
-    ukmtoIncidents,
-    navareaFeatures,
-    setExerciseBriefing,
-    chokepointStressBriefing,
-    setChokepointStressBriefing,
-    disguisedVessels,
-    liveuaEvents,
-    observeEntryHadTarget,
-    labelLanguage,
-    intelDisconfirmCorpus,
-    flyTo,
-    INCIDENT_ENTRY_ALT,
-    cesiumReady,
-    unifiedFlyTo,
-    switchToObserveAndFly,
-    displayMilitaryExercises,
-    scoredEvents,
-    portWatchByChokeId,
-    portWatchTransits,
-    escalationOffer,
-    assetByChokeId,
-    openUkmtoBrief,
-    openNavareaBrief,
-  });
 
   function openIntelSheet(options?: {
     theater?: IntelTheaterFilter;
@@ -7069,66 +7003,6 @@ export function GlobeDashboard({
           </div>
         ) : null}
 
-        {isSatelliteViewer && !isPhoneUi ? (
-          <ObserveDeskBookmarkRail
-            lang={labelLanguage}
-            boardCount={observeWatchboardItems.filter((i) => i.grade !== "hold").length}
-            hasVerify={Boolean(deskFocus)}
-            autoOpenVerify={Boolean(deskFocus)}
-            hasCase={activeCaseOpen}
-            board={
-              <IntelWatchboard
-                lang={labelLanguage}
-                chrome="bare"
-                items={observeWatchboardItems}
-                promotingItemId={promotingItemId}
-                onFocusItem={focusWatchboardItem}
-                onOpenSitrep={(regionId) => {
-                  const item = observeWatchboardItems.find(
-                    (row) => row.sitrepRegion === regionId,
-                  );
-                  if (item && !canPublish("theater_sitrep", item.grade)) {
-                    openIntelDrill(item.gate, item.pirStatuses);
-                    return;
-                  }
-                  setTheaterSitrepRegion(regionId);
-                }}
-                onOpenAlert={(cesiumAlertId) => {
-                  if (theaterSitrepRegion) return;
-                  const item = cesiumAlerts.find((a) => a.id === cesiumAlertId);
-                  if (item) openCesiumAlert(item);
-                }}
-                onDrill={(item) => openIntelDrill(item.gate, item.pirStatuses)}
-                onOpenFullGuide={() => setShowFeatureGuide(true)}
-              />
-            }
-            verify={
-              deskFocus ? (
-                <DeskVerifyHud
-                  lang={labelLanguage}
-                  focus={deskFocus}
-                  onDismiss={() => setDeskFocus(null)}
-                />
-              ) : null
-            }
-            casePanel={
-              <CaseFileDeskPanel
-                lang={labelLanguage}
-                chrome="bare"
-                camera={{ lat: viewState.lat, lng: viewState.lng }}
-                captureFrame={captureFrameResolved}
-                onCaseChange={(id) => {
-                  setActiveCaseOpen(Boolean(id));
-                  if (!id) setIncidentPickActive(false);
-                }}
-                mapPickActive={incidentPickActive}
-                onToggleMapPick={setIncidentPickActive}
-                pickedPoint={pickedIncidentPoint}
-              />
-            }
-          />
-        ) : null}
-
         {isSatelliteViewer && isPhoneUi ? (
           <div
             className={`pointer-events-auto fixed left-3 ${zc("mapControl")}`}
@@ -7737,12 +7611,8 @@ export function GlobeDashboard({
               dismissBreakingFlash,
               switchToObserveAndFly,
             }),
-          escalationOffer: escalationIntel?.offer ?? null,
+          escalationOffer: null,
           onDismissEscalationOffer: dismissEscalationOffer,
-          escalationDisplayGrade: escalationIntel?.gate.grade,
-          onEscalationDrill: escalationIntel
-            ? () => openIntelDrill(escalationIntel.gate)
-            : undefined,
         })}
         {...buildOverlayHostPerimeterProps({
           adsbOffer: adsbEmergencyOffer,
@@ -7754,14 +7624,10 @@ export function GlobeDashboard({
         {...buildOverlayHostExerciseProps({
           offer: exerciseOffer,
           briefing: exerciseBriefing,
-          chokepointBriefing: chokepointStressGate ? chokepointStressBriefing : null,
-          chokepointGrade: chokepointStressGate?.grade,
+          chokepointBriefing: null,
           onDismissOffer: dismissExerciseOffer,
           onSetBriefing: setExerciseBriefing,
           onSetChokepointBriefing: setChokepointStressBriefing,
-          onChokepointDrill: chokepointStressGate
-            ? () => openIntelDrill(chokepointStressGate)
-            : undefined,
           onChokepointOpenObserve: isSatelliteViewer || !SATELLITE_ENABLED
             ? undefined
             : () => {
