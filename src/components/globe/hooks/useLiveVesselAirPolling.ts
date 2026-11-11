@@ -42,7 +42,6 @@ type UseLiveVesselAirPollingOptions = {
   isEconomyViewer: boolean;
   isConflictViewer: boolean;
   isLiveViewer: boolean;
-  isSatelliteViewer: boolean;
   showAis: boolean;
   showDisguisedVessels: boolean;
   showMilitaryActivity: boolean;
@@ -74,7 +73,6 @@ export function useLiveVesselAirPolling({
   layerCenterRef,
   isEconomyViewer,
   isConflictViewer,
-  isSatelliteViewer,
   showAis,
   showDisguisedVessels,
   showMilitaryActivity,
@@ -457,13 +455,13 @@ export function useLiveVesselAirPolling({
 
   useEffect(() => {
     // 지경학에서는 항모·항구 위치 레이어/폴링 비활성
-    if (isEconomyViewer || (!showUsCarriers && !isSatelliteViewer)) return;
+    if (isEconomyViewer || !showUsCarriers) return;
     void refreshUsCarriers();
     const timer = window.setInterval(() => {
       void refreshUsCarriers();
     }, liveUsCarriersPollMs());
     return () => window.clearInterval(timer);
-  }, [isEconomyViewer, isSatelliteViewer, refreshUsCarriers, showUsCarriers]);
+  }, [isEconomyViewer, refreshUsCarriers, showUsCarriers]);
 
   return {
     refreshAis,

@@ -25,14 +25,12 @@ import { recordInterestMode } from "@/lib/interest/recordInterest";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 import type { PeriodicBriefing } from "@/lib/news/periodicBriefing";
 import type { IntelTheaterFilter } from "@/lib/news/theaterMap";
-import { canMountFullObserve, markObserveUnlocked } from "@/lib/observeAccess";
 import { type SceneMissionId, sceneMissionApply, asLayerPatch, softZoneForMission } from "@/lib/sceneMissions";
 import type { TelegramAlert } from "@/lib/telegramAlerts";
 import { savePerfPrefs } from "@/lib/ultraLiteMode";
 import { type MergedViewConfig, type ViewPackageId, type ViewTheaterChoice, type ViewerMode, applyViewPackages, type ViewPackageUi, MARITIME_VIEWER_PACKAGE, prefersBreakingFirstScreen } from "@/lib/viewPackages";
 import { applyViewerMode } from "@/lib/viewerChrome";
 import { rememberConflictTheater, rememberEconomyHub } from "@/lib/watchFocus";
-import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 
 export type UseModeSceneHandlersOptions = {
   initialViewConfig: MergedViewConfig | null;
@@ -66,10 +64,6 @@ export type UseModeSceneHandlersOptions = {
   purposeJobDone: boolean;
   setPurposeJobDone: Dispatch<SetStateAction<boolean>>;
   setPurposeJobForced: Dispatch<SetStateAction<boolean>>;
-  observeUnlocked: boolean;
-  setObserveUnlocked: Dispatch<SetStateAction<boolean>>;
-  startObservePreview: () => void;
-  endObservePreview: () => void;
   domainThenDetailTimerRef: MutableRefObject<number | null>;
   chromeCoachStep: "nav" | null;
   showFirstVisitTour: boolean;
@@ -129,8 +123,6 @@ export type UseModeSceneHandlersOptions = {
   setFilterCenter: Dispatch<SetStateAction<{ lat: number; lng: number; }>>;
   setLayerAltitude: Dispatch<SetStateAction<number>>;
   flyTo: (lat: number, lng: number, altitude?: number | undefined, durationMs?: number | undefined, camera?: { pitch?: number | undefined; bearing?: number | undefined; } | undefined) => void;
-  pendingObserveFlyRef: MutableRefObject<{ lat: number; lng: number; altitude?: number | undefined; durationMs?: number | undefined; camera?: { pitch?: number | undefined; bearing?: number | undefined; } | undefined; subtitle: string; title: string; selection?: Selection | undefined; } | null>;
-  flushPendingCesiumFly: () => boolean;
   clearHubBriefTimer: () => void;
   clearFrictionEpisodeTimer: () => void;
   clearRegionNavSelection: () => void;
@@ -177,10 +169,6 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     purposeJobDone,
     setPurposeJobDone,
     setPurposeJobForced,
-    observeUnlocked,
-    setObserveUnlocked,
-    startObservePreview,
-    endObservePreview,
     domainThenDetailTimerRef,
     chromeCoachStep,
     showFirstVisitTour,
@@ -240,8 +228,6 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     setFilterCenter,
     setLayerAltitude,
     flyTo,
-    pendingObserveFlyRef,
-    flushPendingCesiumFly,
     clearHubBriefTimer,
     clearFrictionEpisodeTimer,
     clearRegionNavSelection,
@@ -336,26 +322,6 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
       setTelegramAlerts([]);
       setTelegramLive(false);
       setTelegramStatus("idle");
-    }
-    if (mode === "satellite") {
-      setUkraineFrontLegendEngaged(false);
-      setShowDisputeLegendPanel(false);
-      setShowLeftPanel(false);
-      setGdeltEvents([]);
-      setGdeltFetchedAt(null);
-      setGdeltError(null);
-      setTelegramAlerts([]);
-      setTelegramLive(false);
-      setTelegramStatus("idle");
-      packageTheaterFocusPlayedRef.current = true;
-      packageEconFocusPlayedRef.current = true;
-      setViewUi((prev) => ({
-        ...prev,
-        autoEnterTheaterNavId: null,
-        autoEnterEconNavId: null,
-        autoOpenIntelSheet: false,
-        openLayerPanel: false,
-      }));
     }
     if (mode === "live") {
       setUkraineFrontLegendEngaged(false);
@@ -454,22 +420,12 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
   }
 
   function handleViewerModeChange(mode: ViewerMode) {
-    if (mode === "satellite" && !SATELLITE_ENABLED) return;
     if (historyStoryLockedRef.current) return;
     if (viewerMode === mode) return;
     trackModeSwitch(mode);
     recordInterestMode(mode);
     prepareLampForModeSwitch();
-    if (mode === "satellite") {
-      if (!canMountFullObserve(observeUnlocked)) {
-        startObservePreview();
-      } else {
-        endObservePreview();
-      }
-    } else {
-      endObservePreview();
-      setDeskFocus(null);
-    }
+    setDeskFocus(null);
     handleModeApply(
       mode,
       mode === "conflict" || mode === "history" ? viewTheater : "auto",
@@ -513,41 +469,10 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
       }, 0);
       return;
     }
-    if (job === "satellite") {
-      if (!SATELLITE_ENABLED) return;
-      pendingObserveFlyRef.current = {
-        lat: orbit.lat,
-        lng: orbit.lng,
-        altitude: orbit.altitude,
-        durationMs: ENTRY_GATE.zoomOutFlyMs,
-        camera: { pitch: orbit.pitch },
-        subtitle: "",
-        title: "",
-      };
-      if (viewerMode !== "satellite") {
-        handleViewerModeChange("satellite");
-        return;
-      }
-      flushPendingCesiumFly();
-      return;
-    }
     if (job === "ask") {
       setAskLayersOpen(true);
     }
   }
-
-  const handleObserveUnlock = useCallback(() => {
-    markObserveUnlocked();
-    setObserveUnlocked(true);
-    endObservePreview();
-  }, [endObservePreview]);
-
-  const handleObservePaywallDismiss = useCallback(() => {
-    endObservePreview();
-    if (viewerMode === "satellite" && !canMountFullObserve(observeUnlocked)) {
-      handleModeApply("conflict", viewTheater, "auto");
-    }
-  }, [endObservePreview, viewerMode, observeUnlocked, viewTheater]);
 
   useEffect(() => {
     if (isLoading || loadError || !globeReady || introPlayedRef.current) return;
@@ -564,7 +489,7 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
 
     // 전역 궤도만 유지 — 핫 지역 자동 fly 금지 (선택창에서만 이동)
     // 관측(Cesium)은 해협 클로즈업이 기본 — 전역 인트로로 덮어쓰지 않음
-    if (showUkraineControl || viewerMode === "satellite") {
+    if (showUkraineControl) {
       sessionStorage.setItem(INTRO_SESSION_KEY, "1");
       return;
     }
@@ -855,8 +780,6 @@ export function useModeSceneHandlers(opts: UseModeSceneHandlersOptions) {
     handleCustomLayerApply,
     handleViewerModeChange,
     confirmPurposeJob,
-    handleObserveUnlock,
-    handleObservePaywallDismiss,
     openModePickerManual,
     openSceneMissionPicker,
     returnToEntryOrbit,

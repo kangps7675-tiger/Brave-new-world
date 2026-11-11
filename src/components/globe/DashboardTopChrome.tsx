@@ -74,7 +74,6 @@ export interface DashboardTopChromeProps {
   macroBriefingOpen?: boolean;
   onToggleMacroBriefing?: () => void;
   /** 관측대 soft unlock — ViewModeSwitcher 잠금 표시 */
-  observeUnlocked?: boolean;
   /** 검색 아래. 지정학의 전쟁 흐름 네 갈래. */
   belowNav?: ReactNode;
 }
@@ -128,7 +127,6 @@ export function DashboardTopChrome({
   leftRailSlotId = "chrome-left-rail-slot",
   macroBriefingOpen = false,
   onToggleMacroBriefing,
-  observeUnlocked = false,
   belowNav,
 }: DashboardTopChromeProps) {
   const [rightMetricsPinned, setRightMetricsPinned] = useState(false);
@@ -148,8 +146,7 @@ export function DashboardTopChrome({
   const showBriefing =
     LAB_UI &&
     Boolean(onToggleMacroBriefing) &&
-    viewerMode !== "history" &&
-    viewerMode !== "satellite";
+    viewerMode !== "history";
 
   return (
     <>
@@ -189,7 +186,7 @@ export function DashboardTopChrome({
       </HoverSideDrawer>
 
       {/* 우측 지표 — 열리면 nav 위. 역사·3D 라이브에서는 숨김 */}
-      {LAB_UI && viewerMode !== "history" && viewerMode !== "satellite" ? (
+      {LAB_UI && viewerMode !== "history" ? (
       <HoverSideDrawer
         side="right"
         peepLabel={
@@ -242,7 +239,6 @@ export function DashboardTopChrome({
             <ViewModeSwitcher
               mode={viewerMode}
               onChange={handleViewerModeChange}
-              observeUnlocked={observeUnlocked}
             />
           ) : null
         }

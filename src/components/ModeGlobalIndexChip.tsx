@@ -58,7 +58,6 @@ export function ModeGlobalIndexChip({
   onPanelOpenChange,
 }: ModeGlobalIndexChipProps) {
   const isEconomy = viewerMode === "economy";
-  const hideForSatellite = viewerMode === "satellite";
   const hideForHistory = viewerMode === "history";
   const stackRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -144,7 +143,7 @@ export function ModeGlobalIndexChip({
     return () => window.cancelAnimationFrame(id);
   }, [sesPanelOpen, explainId, publishChromeObstacles]);
 
-  if (hideForSatellite || hideForHistory) {
+  if (hideForHistory) {
     return null;
   }
 

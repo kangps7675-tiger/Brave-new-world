@@ -5,7 +5,6 @@ import { useDialog } from "@/hooks/useDialog";
 import { zc } from "@/lib/uiStack";
 import { useLocale } from "@/contexts/LocaleContext";
 import { brandName } from "@/lib/brand";
-import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 import { t } from "@/lib/uiStrings";
 import type { ViewerMode } from "@/lib/viewerChrome";
 import { loadPerfPrefs, savePerfPrefs } from "@/lib/ultraLiteMode";
@@ -117,18 +116,6 @@ export function DomainGateOverlay({
               {t("domainConflictHint", lang)}
             </span>
           </button>
-          {SATELLITE_ENABLED ? (
-          <button
-              type="button"
-              onClick={() => onSelect("satellite", ultraLite)}
-              className="flex flex-col rounded-2xl border border-teal-400/35 bg-teal-500/10 px-5 py-8 text-left transition hover:border-teal-300/55 hover:bg-teal-500/15"
-            >
-              <span className="text-lg font-semibold text-teal-50">{t("domainPremiumTitle", lang)}</span>
-              <span className="mt-3 text-sm leading-relaxed text-teal-100/75">
-                {t("domainPremiumHint", lang)}
-              </span>
-            </button>
-          ) : null}
           <button
             type="button"
             onClick={() => onSelect("economy", ultraLite)}

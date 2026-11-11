@@ -88,7 +88,7 @@ export const SHARED_RESOURCE_LAYER_ON: Partial<LayerPrefs> = {
 };
 
 export function resourceHeroLayersForMode(mode: ViewerMode): Partial<LayerPrefs> {
-  if (mode === "satellite" || mode === "live" || mode === "history") return {};
+  if (mode === "live" || mode === "history") return {};
   return mode === "economy" ? ECONOMY_RESOURCE_HERO_ON : CONFLICT_RESOURCE_HERO_ON;
 }
 
@@ -412,37 +412,6 @@ export function stripEconomyGeopoliticsPatch(
   );
 }
 
-/** 프리미엄(Cesium) — 항적 + 관측 센서 ON. MapLibre 전용 잡음·시장 키트 OFF */
-const SATELLITE_FORCE_ON: Partial<LayerPrefs> = {
-  ...FIRST_SCREEN_LIVE_ON,
-  showAis: true,
-  showAisMilitary: true,
-  showAisCommercial: true,
-  showDisguisedVessels: true,
-  /** 관측 센서 칩 기본 ON — 전선·화재·미사일·공중위협·전장사건·지명 */
-  showUkraineControl: true,
-  showFirmsFires: true,
-  showNorthKoreaMissileTests: true,
-  showNeptun: true,
-  showConflictEvents: true,
-  showCityLabels: true,
-};
-
-const SATELLITE_FORCE_OFF: Partial<LayerPrefs> = {
-  ...ECONOMY_MILITARY_BLOCK,
-  ...ECONOMY_FRONTLINE_BLOCK,
-  ...CONFLICT_FORCE_OFF,
-  ...ECONOMY_FORCE_OFF,
-  showGpsInterference: false,
-  /** FORCE_ON이 덮어씀 — CONFLICT/ECONOMY 스프레드 false 잔존 방지 */
-  showTelegramOsint: false,
-  showLogisticsStress: false,
-  showGscpiGauge: false,
-  showSesChip: false,
-  // ADS-B · AIS · 관측 센서는 FORCE_ON — 여기서 끄지 않음
-  showWeeklyShipMoves: false,
-};
-
 /** 항적 모드 — ADS-B · AIS · GPSJam만. 전선·시장 강제 OFF */
 const LIVE_FORCE_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_LIVE_ON,
@@ -561,32 +530,6 @@ export const VIEWER_CHROME: Record<ViewerMode, ViewerChromePreset> = {
       "민족·문화권별 색으로 폴리티를 구분",
     ],
     layerPanelTitle: "레이어 · 역사",
-  },
-  satellite: {
-    mode: "satellite",
-    packageId: "satellite-eye",
-    layerCategoryIds: ["map", "transport", "live", "economy"],
-    forceLayerOn: SATELLITE_FORCE_ON,
-    forceLayerOff: SATELLITE_FORCE_OFF,
-    fetchGdelt: false,
-    fetchTelegram: false,
-    bottomStack: "conflict",
-    newsTierLabels: {
-      1: { label: "공식", detail: "정부·기관 1차" },
-      2: { label: "관측", detail: "공개 OSINT · X" },
-      3: { label: "참고", detail: "미확인 · LIVEUA" },
-    },
-    navProfile: [],
-    searchPlaceholder: "좌표 · 전장 · 티커 · 항적",
-    navHeaderLabel: "프리미엄",
-    modePickerTitle: "프리미엄",
-    modePickerTagline: "Cesium · ADS-B · AIS · 시세",
-    modePickerBullets: [
-      "Google Photorealistic 3D · 국경·지명 센서",
-      "ADS-B · AIS 항적 + conflict-events 등급 핀",
-      "LIVEUA 전선 · 해상 빗금 · S급 양피지",
-    ],
-    layerPanelTitle: "프리미엄 · 항적",
   },
   live: {
     mode: "live",
@@ -708,7 +651,7 @@ export function applyViewerMode(
     ui: {
       ...mergedBase.ui,
       // 지경학 · 프리미엄(Cesium) — 시세 스트립
-      showTicker: mode === "economy" || mode === "satellite",
+      showTicker: mode === "economy",
     },
   };
 
@@ -723,17 +666,13 @@ export function resolveViewerModeFromConfig(
     savedMode === "history" ||
     savedMode === "conflict" ||
     savedMode === "economy" ||
-    savedMode === "satellite" ||
     savedMode === "live"
   ) {
-    // 상단 3토글: 지정학 · 3D 라이브 · 지경학 (역사는 역사지도·영토분쟁)
-    if (savedMode === "history") return "conflict";
-    if (savedMode === "live") return "satellite";
+    // 상단 토글: 지정학 · 지경학 (역사는 역사지도·영토분쟁, 옛 3D 라이브 저장값은 지정학으로)
+    if (savedMode === "history" || savedMode === "live") return "conflict";
     return savedMode;
   }
   const ids = packages.filter((id) => id !== "custom");
-  if (ids.length === 1 && ids[0] === "satellite-eye") return "satellite";
-  if (ids.length === 1 && ids[0] === "live-tracks") return "satellite";
   if (ids.length === 1 && ids[0] === "geo-trader") return "economy";
   return "conflict";
 }

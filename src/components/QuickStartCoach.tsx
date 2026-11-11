@@ -7,7 +7,6 @@ const QUICKSTART_KEYS: Record<ViewerMode, string> = {
   conflict: "cv-quickstart-v2-conflict",
   history: "cv-quickstart-v2-history",
   economy: "cv-quickstart-v2-economy",
-  satellite: "cv-quickstart-v2-satellite",
   live: "cv-quickstart-v2-live",
 };
 

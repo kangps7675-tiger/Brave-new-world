@@ -19,10 +19,6 @@ import {
   type UkmtoIncidentPoint,
 } from "@/lib/ukmtoHatch";
 import type { NavareaFeaturePoint } from "@/lib/navareaHatch";
-import {
-  claimMaritimeFlash,
-  withMaritimeFlashTitle,
-} from "@/lib/maritimeFlash";
 
 type FlyToFn = (
   lat: number,
@@ -56,7 +52,6 @@ type UseMaritimeAlertBriefsOptions = {
    * 위성(Cesium) — 동의 배너 대신 신속속보형 양피지 자동 타전.
    * 첫 스냅샷은 seen만 채움.
    */
-  satelliteAutoFlash?: boolean;
 };
 
 /**
@@ -77,7 +72,6 @@ export function useMaritimeAlertBriefs({
   patchLayerPrefsSoft,
   layerPrefsLiveRef,
   skipNextGlobeClickRef,
-  satelliteAutoFlash = false,
 }: UseMaritimeAlertBriefsOptions) {
   const aisVesselsRef = useRef<AisVessel[] | undefined>(aisVessels);
   aisVesselsRef.current = aisVessels;
@@ -270,33 +264,6 @@ export function useMaritimeAlertBriefs({
     for (const k of keys) seen.add(k);
     if (!fresh) return;
 
-    // 위성: 동의 배너 없이 신속속보형 양피지 즉시 타전
-    if (satelliteAutoFlash) {
-      if (!claimMaritimeFlash(fresh.key)) return;
-      maritimeOfferBusyRef.current = true;
-      if (fresh.payload.source === "ukmto" && fresh.payload.ukmto) {
-        const content = buildUkmtoBriefingContent(
-          fresh.payload.ukmto,
-          labelLanguage,
-          aisVesselsRef.current,
-        );
-        setUkmtoBriefing({
-          ...content,
-          title: withMaritimeFlashTitle(content.title, lang),
-        });
-      } else if (fresh.payload.source === "navarea" && fresh.payload.navarea) {
-        const content = buildNavareaBriefingContent(fresh.payload.navarea, labelLanguage);
-        if (content) {
-          setNavareaBriefing({
-            ...content,
-            title: withMaritimeFlashTitle(content.title, lang),
-          });
-        }
-      }
-      maritimeOfferBusyRef.current = false;
-      return;
-    }
-
     maritimeOfferBusyRef.current = true;
     maritimeOfferPayloadRef.current = fresh.payload;
     setMaritimeOffer(fresh.offer);
@@ -306,7 +273,6 @@ export function useMaritimeAlertBriefs({
     navareaBriefing,
     navareaFeatures,
     paused,
-    satelliteAutoFlash,
     showNavareaWarnings,
     showUkmtoIncidents,
     ukmtoBriefing,

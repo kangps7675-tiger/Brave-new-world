@@ -11,10 +11,8 @@
  * 상단 토글 연동:
  * - 지정학(conflict) · 역사(history) · 지경학(economy) · 항적(live)
  *   → 전부 intel (다크 벡터 워룸). 지형(terrain)은 수동 토글만.
- * - 관측(satellite) → Cesium (MapLibre basemap 없음)
  */
 
-import type { ViewerMode } from "@/lib/viewPackages";
 
 export type BasemapMode = "intel" | "terrain";
 
@@ -88,21 +86,6 @@ export function parseBasemapMode(value: unknown): BasemapMode {
   return "intel";
 }
 
-/**
- * 보기 모드 → MapLibre 베이스맵.
- * 지정학·역사·지경학·항적 전부 인텔. 관측(Cesium)은 null.
- */
-export function basemapForViewerMode(mode: ViewerMode): BasemapMode | null {
-  if (
-    mode === "conflict" ||
-    mode === "history" ||
-    mode === "economy" ||
-    mode === "live"
-  ) {
-    return "intel";
-  }
-  return null;
-}
 
 /** 모드별 MapLibre style.json URL */
 export function styleUrlForBasemapMode(mode: BasemapMode): string {

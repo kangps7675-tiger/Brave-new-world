@@ -3,12 +3,11 @@
 import { brandName } from "@/lib/brand";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useDialog } from "@/hooks/useDialog";
-import { SATELLITE_ENABLED } from "@/lib/satelliteAccess";
 import { t } from "@/lib/uiStrings";
 import { zc } from "@/lib/uiStack";
 
 /** 언어 직후 목적(Job) — ViewerMode id와 맞추되 ask/browse는 별도 */
-export type PurposeJobId = "maritime" | "conflict" | "satellite" | "economy" | "ask" | "browse";
+export type PurposeJobId = "maritime" | "conflict" | "economy" | "ask" | "browse";
 
 type PurposeJobOverlayProps = {
   lang: LabelLanguage;
@@ -21,10 +20,9 @@ type PurposeJobOverlayProps = {
 const JOBS: Array<{
   id: Exclude<PurposeJobId, "browse">;
   icon: string;
-  titleKey: "purposeJobConflict" | "purposeJobSatellite" | "purposeJobEconomy" | "purposeJobAsk";
+  titleKey: "purposeJobConflict" | "purposeJobEconomy" | "purposeJobAsk";
   hintKey:
     | "purposeJobConflictHint"
-    | "purposeJobSatelliteHint"
     | "purposeJobEconomyHint"
     | "purposeJobAskHint";
 }> = [
@@ -33,12 +31,6 @@ const JOBS: Array<{
     icon: "⚔",
     titleKey: "purposeJobConflict",
     hintKey: "purposeJobConflictHint",
-  },
-  {
-    id: "satellite",
-    icon: "🛰",
-    titleKey: "purposeJobSatellite",
-    hintKey: "purposeJobSatelliteHint",
   },
   {
     id: "economy",
@@ -119,7 +111,7 @@ export function PurposeJobOverlay({
 
         {/* LTR: 전선 → 3D → 시장 → 묻기 (grid는 좌→우·위→아래) */}
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {JOBS.filter((job) => SATELLITE_ENABLED || job.id !== "satellite").map((job) => (
+          {JOBS.map((job) => (
             <button
               key={job.id}
               type="button"
