@@ -1322,6 +1322,35 @@ export const warRiskQuotes = sqliteTable(
 export type WarRiskQuoteDbRow = typeof warRiskQuotes.$inferSelect;
 
 /**
+ * 공식 문서 자동 수집 목록 (`drizzle/0042_official_doc_feed.sql`).
+ * 각국 정부·기구 피드의 성명·공동성명·팩트시트·회담 요약 제목+링크+요약. 원문은 저장하지 않는다.
+ * 적재: workers/cron-ingest/src/officialDocsIngest.ts
+ */
+export const officialDocFeed = sqliteTable(
+  "official_doc_feed",
+  {
+    id: text("id").primaryKey(),
+    issuerId: text("issuer_id").notNull(),
+    kind: text("kind").notNull(),
+    weight: text("weight").notNull(),
+    title: text("title").notNull(),
+    url: text("url").notNull(),
+    publishedAt: text("published_at"),
+    summary: text("summary").notNull().default(""),
+    /** 쉼표로 이은 희귀 지명 태그(hormuz,gaza…) */
+    tags: text("tags").notNull().default(""),
+    feed: text("feed").notNull(),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    pubIdx: index("idx_official_doc_feed_pub").on(t.publishedAt),
+    issuerIdx: index("idx_official_doc_feed_issuer").on(t.issuerId, t.publishedAt),
+  }),
+);
+
+export type OfficialDocFeedRow = typeof officialDocFeed.$inferSelect;
+
+/**
  * 선박 신원 — aisstream 정적 메시지의 IMO·호출부호 (`drizzle/0033_vessel_identity.sql`).
  * MMSI 당 1행. 적재: workers/cron-ingest/src/vesselIdentity.ts
  */
