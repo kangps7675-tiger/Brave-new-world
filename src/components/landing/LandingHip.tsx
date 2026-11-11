@@ -5,12 +5,11 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import { pick } from "@/components/landing/landingCopy";
 import { useLandingLanguage } from "@/lib/landingLanguage";
-import { BRAND_NAME } from "@/lib/brand";
 
 /**
  * 랜딩을 "힙하게" 만드는 조각들.
  *  - Grain: 화면 전체에 깔리는 필름 노이즈 + 아주 옅은 주사선
- *  - MegaMarquee: 해협 이름이 거대한 외곽선 글자로 흐르고, 스크롤 속도에 따라 빨라지며 기운다
+ *  - MegaMarquee: 속보 확인 단계가 거대한 외곽선 글자로 흐르고, 스크롤 속도에 따라 빨라지며 기운다
  *  - Magnetic: 버튼이 커서 쪽으로 끌려온다
  *  - StraitRail: 세로 스크롤을 가로 이동으로 바꿔 해협 카드를 한 장씩 넘긴다(고정 + 가로 스크롤)
  * 모두 CSS 변수·transform만 바꾼다. 동작 줄이기 설정이면 전부 멈추거나 일반 배치로 돌아간다.
@@ -44,18 +43,18 @@ export function Grain() {
   return <div aria-hidden="true" className="landing-grain pointer-events-none fixed inset-[-12%]" />;
 }
 
-/** 랜딩 아래 해협 카드(StraitRail)와 같은 6곳 — 영문은 크게, 한글 이름은 옆에 작게 */
+/** 속보가 확인되기까지의 말들 — 영문은 크게, 한글 뜻은 옆에 작게 */
 const MEGA: { en: string; ko: string }[] = [
-  { en: "HORMUZ", ko: "호르무즈 해협" },
-  { en: "BAB EL-MANDEB", ko: "바브엘만데브 해협" },
-  { en: "SUEZ", ko: "수에즈 운하" },
-  { en: "MALACCA", ko: "말라카 해협" },
-  { en: "TAIWAN STRAIT", ko: "대만해협" },
-  { en: "BOSPORUS", ko: "튀르키예 해협 · 흑해 입구" },
+  { en: "BREAKING", ko: "속보" },
+  { en: "SOURCE", ko: "출처" },
+  { en: "CROSS-CHECK", ko: "교차검증" },
+  { en: "CONFIRMED", ko: "확인" },
+  { en: "LIKELY", ko: "유력" },
+  { en: "NO DATA", ko: "자료 없음" },
 ];
 
 /**
- * 거대한 외곽선 글자 띠 = 서비스가 지켜보는 전선 이름. 무엇인지 알 수 있게 위에 제목, 단어마다 한글 이름을 붙인다.
+ * 거대한 외곽선 글자 띠 = 속보가 확인되는 순서의 말들. 위에 한 줄 설명을 달고, 단어마다 한글 뜻을 붙인다.
  * 기본으로 천천히 흐르고, 스크롤을 빨리 할수록 빨라지며 진행 방향으로 기운다.
  */
 export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
@@ -99,8 +98,8 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
         <span className="text-[#f5c451]">●</span>{" "}
         {pick(
           lang,
-          `${BRAND_NAME.ko}가 지켜보는 전선 6곳 — ${MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}`,
-          "Six fronts on watch — Hormuz, Bab el-Mandeb, Suez, Malacca, Taiwan Strait, Bosporus",
+          "속보가 들어오면 출처를 모으고, 서로 맞춰 보고, 확인 상태를 붙입니다",
+          "An alert comes in, sources are gathered and compared, and a status is attached",
         )}
       </p>
       <div aria-hidden="true" className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
