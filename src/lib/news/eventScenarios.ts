@@ -3,6 +3,7 @@
  * 제목을 고치지 않는다. 추측·전망 문장은 갈래가 아니다.
  * 당사자 매체(tier 3)는 그 나라의 이니셔티브(성명)이지, 실행의 확인이 아니다.
  */
+import { decodeHtmlEntities } from "@/lib/htmlEntities";
 import type { NewsStreamItem } from "@/lib/news/types";
 
 export type ScenarioPath = "talks" | "force" | "pause" | "sanction";
@@ -202,7 +203,7 @@ export function buildEventScenarioBoard(items: NewsStreamItem[], now = Date.now(
     seen.add(key);
     picked.push({
       path,
-      title: row.title.trim(),
+      title: decodeHtmlEntities(row.title).trim(),
       url: row.link,
       source: (row.publisher || row.source).trim(),
       stance: row.trustTier === 3 ? "initiative" : "reported",
@@ -214,7 +215,7 @@ export function buildEventScenarioBoard(items: NewsStreamItem[], now = Date.now(
   if (picked.length === 0) return null;
 
   return {
-    eventTitle: best.anchor.title.trim(),
+    eventTitle: decodeHtmlEntities(best.anchor.title).trim(),
     eventUrl: best.anchor.link,
     eventSource: (best.anchor.publisher || best.anchor.source).trim(),
     scenarios: picked,
