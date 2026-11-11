@@ -7,6 +7,17 @@ import { INTEL_UX } from "@/lib/intelContract/uxCopy";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import type { BreakingFlashBriefing } from "@/lib/news/breakingFlash";
 import { t } from "@/lib/uiStrings";
+import {
+  flashVerdictBasis,
+  flashVerdictLabel,
+  type FlashVerdict,
+} from "@/lib/news/flashVerdict";
+
+const VERDICT_CHIP: Record<FlashVerdict, string> = {
+  confirmed: "border-emerald-800/50 bg-emerald-700/10 text-emerald-950",
+  likely: "border-sky-800/50 bg-sky-700/10 text-sky-950",
+  nodata: "border-stone-700/50 bg-stone-600/10 text-stone-900",
+};
 
 type BreakingFlashParchmentProps = {
   briefing: BreakingFlashBriefing;
@@ -76,8 +87,20 @@ export function BreakingFlashParchment({
       secondaryCtaLabel={canFly ? t("breakingFlashGoObserve", lang) : undefined}
       onSecondaryCta={canFly ? onGoToLocation : undefined}
       bodyExtra={
-        displayGrade || onDrill ? (
+        displayGrade || onDrill || briefing.verdict ? (
           <div className="mb-2 flex flex-wrap items-center gap-2">
+            {briefing.verdict ? (
+              <>
+                <span
+                  className={`rounded-sm border px-2 py-0.5 text-micro font-semibold ${VERDICT_CHIP[briefing.verdict.verdict]}`}
+                >
+                  {flashVerdictLabel(briefing.verdict.verdict, lang === "en" ? "en" : "ko")}
+                </span>
+                <span className="text-micro text-[#5c4020]/85">
+                  {flashVerdictBasis(briefing.verdict, lang === "en" ? "en" : "ko")}
+                </span>
+              </>
+            ) : null}
             {displayGrade ? (
               <IntelGradeBadge grade={displayGrade} lang={lang} />
             ) : null}

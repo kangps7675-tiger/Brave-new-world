@@ -1,4 +1,5 @@
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { translateWithProviders } from "@/lib/translateProviders";
 
 const translationCache = new Map<string, string>();
 const MAX_CACHE_ENTRIES = 1200;
@@ -76,22 +77,11 @@ async function fetchTranslationDirect(
   text: string,
   targetLang: LabelLanguage,
 ): Promise<string> {
-  const tl = targetLang === "ko" ? "ko" : "en";
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
-  const res = await fetch(url, {
-    signal: AbortSignal.timeout(8000),
-    headers: { "User-Agent": TRANSLATE_USER_AGENT },
-    cache: "no-store",
+  // 공식 API 키가 있으면 DeepL → Google Cloud 순, 없거나 실패하면 비공식 gtx. (translateProviders.ts)
+  const result = await translateWithProviders(text, targetLang, {
+    userAgent: TRANSLATE_USER_AGENT,
   });
-  if (!res.ok) return text;
-
-  const data = (await res.json()) as unknown;
-  if (!Array.isArray(data) || !Array.isArray(data[0])) return text;
-
-  const translated = (data[0] as Array<[string] | string>)
-    .map((part) => (Array.isArray(part) ? part[0] : String(part)))
-    .join("");
-  return translated.trim() || text;
+  return result?.text ?? text;
 }
 
 async function fetchTranslation(text: string, targetLang: LabelLanguage): Promise<string> {
@@ -148,6 +138,8 @@ async function translateToTarget(text: string, targetLang: LabelLanguage): Promi
 
   try {
     const translated = await fetchTranslation(trimmed, targetLang);
+    // 실패해서 원문이 그대로 돌아온 경우는 캐시하지 않는다 (다음 요청에서 다시 시도)
+    if (translated === trimmed) return translated;
     translationCache.set(key, translated);
     if (translationCache.size > MAX_CACHE_ENTRIES) {
       const oldest = translationCache.keys().next().value;

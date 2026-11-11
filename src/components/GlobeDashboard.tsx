@@ -6530,9 +6530,7 @@ export function GlobeDashboard({
         belowNav={
           viewerMode === "conflict" ? (
             <>
-              <MajorScheduleDesk lang={labelLanguage} variant="note" />
-              <BranchDesk lang={labelLanguage} items={deskNewsPool} />
-              <EventScenarioBoard lang={labelLanguage} items={deskNewsPool} />
+              <MajorScheduleDesk lang={labelLanguage} variant="note" items={deskNewsPool} />
             </>
           ) : undefined
         }

@@ -1,4 +1,5 @@
 import type { EconomyNewsGenre } from "@/lib/news/economyGenres";
+import type { FlashVerdictInfo } from "@/lib/news/flashVerdict";
 
 export type NewsTheater =
   | "middle-east"
@@ -64,6 +65,8 @@ export type HeroBreakingItem = NewsStreamItem & {
   breakingRank: BreakingUiRank;
   ageMinutes: number;
   clusterId?: string;
+  /** 확인·유력·자료 없음 — 같은 사건을 보도한 독립 매체 수로 센다 (옛 스냅샷엔 없을 수 있다) */
+  verdict?: FlashVerdictInfo;
   /** LIVEUAMAP 등 원문 타전 소스 */
   flashSource?: "rss" | "liveuamap";
   /** LIVEUAMAP 핀이 인용한 원래 출처명 (Reuters, 텔레그램 채널 등) */

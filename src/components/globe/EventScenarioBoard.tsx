@@ -1,12 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { buildEventScenarioBoard, type EventScenario, type ScenarioPath } from "@/lib/news/eventScenarios";
 import type { NewsStreamItem } from "@/lib/news/types";
 
 type Props = {
   lang: LabelLanguage;
-  items: NewsStreamItem[];
+  items: readonly NewsStreamItem[];
+  /**
+   * panel: 넓은 독립 패널(모바일 목록용).
+   * accordion: 왼쪽 양피지 안의 접이식. 접힌 채로 "교차검증 보기 (N건)"만 보이고, 한 줄 목록으로 펼친다.
+   *            갈래가 없으면 아무것도 그리지 않는다.
+   */
+  variant?: "panel" | "accordion";
 };
 
 const PATH_KO: Record<ScenarioPath, string> = {
@@ -41,9 +48,61 @@ function line(row: EventScenario, en: boolean): string {
 }
 
 /** 한 사건, 출처가 말한 갈래. 지역 네 갈래가 아니다. */
-export function EventScenarioBoard({ lang, items }: Props) {
+export function EventScenarioBoard({ lang, items, variant = "panel" }: Props) {
   const en = lang === "en";
-  const board = buildEventScenarioBoard(items);
+  const board = buildEventScenarioBoard([...items]);
+  const [open, setOpen] = useState(false);
+
+  if (variant === "accordion") {
+    if (board == null) return null;
+    const count = board.scenarios.length;
+    return (
+      <div className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/60" data-event-scenarios>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-2 px-2 py-1.5 text-left text-micro font-semibold text-[#5c4020]"
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+        >
+          <span>{en ? `Cross-check (${count})` : `교차검증 보기 (${count}건)`}</span>
+          <span aria-hidden>{open ? "▲" : "▼"}</span>
+        </button>
+        {open ? (
+          <div className="border-t border-[#6b4a22]/25 px-2 py-1.5">
+            <p className="text-micro leading-snug">
+              <span className="font-semibold">{en ? "The event. " : "이 사건. "}</span>
+              {board.eventTitle}
+              {" · "}
+              {board.eventSource}
+              {" · "}
+              <a href={board.eventUrl} target="_blank" rel="noreferrer" className="underline">
+                {en ? "Open" : "열기"}
+              </a>
+            </p>
+            <ul className="mt-1.5 grid gap-1.5">
+              {board.scenarios.map((row) => (
+                <li key={row.url} className="rounded-sm border border-[#6b4a22]/25 bg-[#f7edd4]/80 px-2 py-1.5">
+                  <p className="text-micro font-semibold">
+                    {en ? PATH_EN[row.path] : PATH_KO[row.path]}
+                    {row.stance === "initiative" ? (en ? " · their initiative" : " · 그 나라 이니셔티브") : ""}
+                  </p>
+                  <p className="mt-0.5 text-micro leading-snug">{row.title}</p>
+                  <p className="mt-0.5 text-micro leading-snug text-[#5c4020]">{line(row, en)}</p>
+                  <p className="mt-0.5 text-micro">
+                    {row.source}
+                    {" · "}
+                    <a href={row.url} target="_blank" rel="noreferrer" className="underline">
+                      {en ? "Open" : "열기"}
+                    </a>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <section
