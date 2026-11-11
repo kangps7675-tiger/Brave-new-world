@@ -3,6 +3,8 @@ import type { DocKind, DocWeight } from "@/data/officialDocs";
 /** 제목만 보고 문서 종류를 짐작한다. 확정이 아니라 후보 정렬용이고, 승인할 때 사람이 고친다. */
 export function classifyDocKind(title: string): DocKind {
   const t = title.toLowerCase();
+  // 남이 낸 공동성명을 반박·비난·논평하는 글("MOFA refutes … China-Gabon joint statement")은 합의문이 아니라 한쪽의 성명이다.
+  if (/\b(refut\w*|reject\w*|condemn\w*|respon\w+|protest\w*)\b/.test(t) && /\bjoint (statement|declaration|communiqu[eé])\b/.test(t)) return "statement";
   if (/\b(joint (statement|declaration|communiqu[eé])|communiqu[eé]|summit declaration)\b|공동성명|공동선언|공동 ?발표/.test(t)) return "joint-statement";
   if (/\bfact ?sheet\b|팩트시트/.test(t)) return "factsheet";
   if (/\b(readout|telephone conversation|phone (call|conversation)|call with|talks (with|between))\b|회담 결과|회담 요약|통화/.test(t)) return "readout";

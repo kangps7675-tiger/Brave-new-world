@@ -118,4 +118,9 @@ describe("승인 검사", () => {
     expect(validateDocMeta({ ...ok, kind: "statement", weight: "agreed" })).not.toEqual([]);
     expect(validateDocMeta({ ...ok, kind: "joint-statement", weight: "agreed", issuerIds: ["nato"] })).toEqual([]);
   });
+
+  it("남이 낸 공동성명을 반박하는 글은 합의문이 아니라 성명이다", () => {
+    expect(classifyDocKind("MOFA solemnly refutes false claims regarding ROC (Taiwan) in China-Gabon joint statement")).toBe("statement");
+    expect(classifyDocKind("Joint statement by the foreign ministers of Japan and Korea")).toBe("joint-statement");
+  });
 });
