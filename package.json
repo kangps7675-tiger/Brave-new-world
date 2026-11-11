@@ -113,6 +113,7 @@
     "korea:fetch": "node scripts/fetch-korea-macro.js",
     "gta:fetch:all": "node scripts/fetch-gta-interventions.js --all",
     "atop:draft": "node scripts/fetch-atop-alliances.js",
+    "docs:fetch": "tsx scripts/fetch-official-docs.ts",
     "icow:draft": "node scripts/fetch-territorial-claims.js",
     "peeringdb:fetch": "node scripts/fetch-peeringdb-ix.js",
     "sanctions:build": "node scripts/build-sanctions-entities.js",
