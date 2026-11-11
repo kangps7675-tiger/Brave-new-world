@@ -166,3 +166,4 @@ tmp-tailwind-out.css
 # 공식 문서 수집: 후보·초안은 임시 파일
 scripts/data/official-docs-candidates.json
 scripts/data/official-doc-draft-*.json
+scripts/data/official-docs-check-report.json
