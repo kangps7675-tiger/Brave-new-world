@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "issuerId": "us",
+    "url": "https://www.state.gov/rss-feed/press-releases/feed/",
+    "label": "미국 국무부 보도자료·성명"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.whitehouse.gov/news/feed/",
+    "label": "백악관 발표·팩트시트"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=9&Site=945&max=10",
+    "label": "미국 국방부 발표·회담 요약 (본문은 직접 입력)"
+  },
+  {
+    "issuerId": "ru",
+    "url": "http://en.kremlin.ru/events/president/news/feed",
+    "label": "크렘린 대통령 일정·발표"
+  },
+  {
+    "issuerId": "tr",
+    "url": "https://www.mfa.gov.tr/en.rss.mfa?ad9093da-8e71-4678-a1b6-05f297baadc4",
+    "label": "튀르키예 외교부 성명·공동성명"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.auswaertiges-amt.de/static/includes/rss_en/RSS_Pressemitteilungen_Reden.xml",
+    "label": "독일 외무부 보도자료·연설"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.auswaertiges-amt.de/static/includes/rss_en/RSS_Aktuelle_Artikel.xml",
+    "label": "독일 외무부 기사"
+  },
+  {
+    "issuerId": "it",
+    "url": "https://www.esteri.it/en/feed/",
+    "label": "이탈리아 외무부 발표"
+  }
+]
