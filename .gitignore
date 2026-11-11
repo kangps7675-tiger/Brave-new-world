@@ -167,3 +167,4 @@ tmp-tailwind-out.css
 scripts/data/official-docs-candidates.json
 scripts/data/official-doc-draft-*.json
 scripts/data/official-docs-check-report.json
+scripts/data/grab/
