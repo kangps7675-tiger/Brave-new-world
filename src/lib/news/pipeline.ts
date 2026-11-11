@@ -2,6 +2,7 @@
  * RSS·GDELT 뉴스 스트림 빌드.
  * Telegram OSINT는 절대 포함하지 않음 — @see src/lib/licensing/telegramOsintPolicy.ts
  */
+import { computeFlashVerdict } from "@/lib/news/flashVerdict";
 import {
   ALL_NEWS_FEEDS,
   feedsForPackages,
@@ -163,6 +164,15 @@ function pickHero(
     clusters.set(key, list);
   }
 
+  // 확인 상태는 전장·신선도 필터 앞의 전체 목록에서 같은 사건을 센다 (다른 전장 피드가 받쳐 줄 수 있다)
+  const verdictClusters = new Map<string, NewsStreamItem[]>();
+  for (const item of items) {
+    const key = clusterKey(item.title);
+    const list = verdictClusters.get(key) || [];
+    list.push(item);
+    verdictClusters.set(key, list);
+  }
+
   let best: HeroBreakingItem | null = null;
 
   for (const item of eligible) {
@@ -180,6 +190,7 @@ function pickHero(
       breakingRank: graded.rank,
       ageMinutes,
       clusterId: key,
+      verdict: computeFlashVerdict(verdictClusters.get(key) || cluster),
     };
 
     if (!best || isBetterHero(entry, best)) {
