@@ -15,6 +15,7 @@ import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { useTr } from "@/hooks/useTr";
 import type { FrontMap } from "@/lib/crossCheck/witnessFeeds";
 import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
+import { FlashEvidence } from "@/components/globe/FlashEvidence";
 import { IncidentMiniMap } from "@/components/globe/IncidentMiniMap";
 import { zc } from "@/lib/uiStack";
 
@@ -373,6 +374,13 @@ export function LiveFlashDesk({
             aircraft={aircraft}
             posts={posts}
             front={front}
+          />
+          <FlashEvidence
+            en={en}
+            text={`${item.title} ${item.liveua?.title ?? ""} ${item.liveua?.body ?? ""} ${item.detail ?? ""}`}
+            at={item.at}
+            ownUrl={item.liveua?.sourceUrl}
+            newsPool={newsPool}
           />
           {basis.length > 0 ? (
             <div className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/60 px-2 py-1.5">

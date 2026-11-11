@@ -16,7 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { ISSUERS, ISSUER_IDS, OFFICIAL_DOCS, type DocKind, type IssuerId, type OfficialDocMeta } from "../src/data/officialDocs";
 import { classifyDocKind, weightOf } from "../src/lib/officialDocs/classify";
-import { htmlToText, pickDate, pickTitle, sha256Hex } from "../src/lib/officialDocs/extract";
+import { htmlToText, pickDate, pickImage, pickTitle, sha256Hex } from "../src/lib/officialDocs/extract";
 import { parseOfficialFeed, worthKeeping, type DocCandidate } from "../src/lib/officialDocs/feed";
 import { validateDocMeta } from "../src/lib/officialDocs/validate";
 
@@ -84,6 +84,7 @@ async function snapshot(url: string): Promise<void> {
   let text: string;
   let title: string | null = null;
   let publishedAt: string | null = null;
+  let imageUrl: string | null = null;
   const textFile = arg("text-file");
   if (textFile) {
     text = fs.readFileSync(textFile, "utf8").trim();
@@ -95,6 +96,7 @@ async function snapshot(url: string): Promise<void> {
     text = htmlToText(body);
     title = pickTitle(body);
     publishedAt = pickDate(body);
+    imageUrl = pickImage(body);
   }
   if (text.length < 200) throw new Error(`본문이 너무 짧다(${text.length}자). 페이지 구조가 달라 못 뽑았을 수 있다. --text-file을 써라.`);
 
@@ -113,6 +115,7 @@ async function snapshot(url: string): Promise<void> {
     fetchedAt: today(),
     sha256: hash,
     language: arg("lang") ?? "en",
+    ...(imageUrl ? { imageUrl } : {}),
     relatedTags: (arg("tags") ?? "").split(",").filter(Boolean),
     terms: arg("terms") ?? "",
     text,
