@@ -93,6 +93,25 @@ function main() {
     }
   }
 
+  // ①-b SIPRI — 승인 조건(2026-11): 비상업. 유료화를 켠 빌드에서 SIPRI 화면이 켜져 있으면 막는다.
+  try {
+    const sipri = fs
+      .readFileSync(path.join(ROOT, "src", "lib", "licensing", "sipriPolicy.ts"), "utf8")
+      .replace(/\r\n/g, "\n");
+    const on = ["SIPRI_ARMS_LENS_ENABLED", "SIPRI_ARMS_EVIDENCE_ENABLED"].filter((k) =>
+      new RegExp(`export const ${k} = true`).test(sipri),
+    );
+    if (on.length) {
+      const msg =
+        `SIPRI 스위치 켜짐(${on.join(", ")}) — SIPRI 승인은 비상업 한정이다. ` +
+        `유료·프리미엄·후원을 켜기 전에 SIPRI 유료 라이선스를 받고, 받기 전에는 위 스위치를 false로 둘 것.`;
+      if (COMMERCIAL_ON) problems.push(msg);
+      else info.push(msg);
+    }
+  } catch (e) {
+    problems.push(`sipriPolicy.ts를 읽지 못했다: ${e.message}`);
+  }
+
   const buckets = { allowed: [], "license-required": [], prohibited: [], unknown: [] };
   for (const l of layers) {
     if (l.commercialUse && buckets[l.commercialUse]) buckets[l.commercialUse].push(l);
