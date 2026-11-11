@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { NATIONAL_CONSTITUTIONS } from "@/data/nationalConstitutions";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { nextSchedule, orderedSchedules } from "@/lib/majorSchedule";
+import { zc } from "@/lib/uiStack";
 
 type Props = {
   lang: LabelLanguage;
@@ -139,7 +140,7 @@ export function MajorScheduleDesk({ lang, now = Date.now(), variant = "inline" }
             id={windowId}
             role="dialog"
             aria-label={en ? "National political calendars" : "각국 정치일정"}
-            className="absolute left-0 top-full z-[110] mt-1 max-h-[min(70vh,40rem)] w-[min(44rem,calc(100vw-2rem))] overflow-y-auto rounded-md border border-[#6b4a22]/35 bg-[#f3e6c8]/98 p-2 text-[#2a1c0a] shadow-xl"
+            className={`absolute left-0 top-full ${zc("panel")} mt-1 max-h-[min(70vh,40rem)] w-[min(44rem,calc(100vw-2rem))] overflow-y-auto rounded-md border border-[#6b4a22]/35 bg-[#f3e6c8]/98 p-2 text-[#2a1c0a] shadow-xl`}
             data-major-schedules-window
           >
             <div className="flex items-start justify-between gap-2">
