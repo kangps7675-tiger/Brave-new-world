@@ -110,11 +110,10 @@ const MAPLIBRE_VERSION = JSON.parse(
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: { NEXT_PUBLIC_MAPLIBRE_VERSION: MAPLIBRE_VERSION },
-  // Next 14 SWC can emit invalid octal escapes in Cesium's embedded SPZ WASM.
-  // Use Terser so the production globe chunk remains valid JavaScript.
+  // 원래 Cesium(제거됨)의 내장 WASM이 SWC 압축에서 깨져 Terser를 쓰려고 켠 설정이다.
+  // 세슘이 사라졌으니 true로 돌려도 될 가능성이 크지만, 번들 크기·동작이 달라질 수 있어 따로 검증한 뒤 바꾼다.
   swcMinify: false,
   transpilePackages: [
-    "cesium",
     "@deck.gl/core",
     "@deck.gl/mapbox",
     "@deck.gl/geo-layers",

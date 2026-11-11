@@ -57,12 +57,6 @@
 - 새 레이어·패널은 위 「새 기능·레이어 추가 기준」을 그대로 따른다. 케이스 파일의 증거나 판정에 연결될 때만 노출한다.
 - 이메일: 지금 실제로 나가는 것은 매일 한 번의 해운 요약이다(`emailConsent.ts`의 동의 문구도 그 내용). 주 4회 지정학 브리핑 발송을 만들기 전에는 동의 문구와 랜딩 설명을 바꿔 쓰지 않는다.
 
-## 2026-10-21 세슘에는 선박(AIS)을 그리지 않는다
-
-세슘(위성)에는 선박 위치(AIS)를 그리지 않는다. 선박은 Datalastic·AISstream으로 보는 데이터이고, 지도(MapLibre)와 세슘에 둘 다 그리면 GPU가 무거워진다. 항공기·불꽃·해협 오버레이·라벨·사건 콜아웃 등 나머지는 세슘에도 그대로 그린다.
-- 구현: `src/lib/satelliteLayers.ts`의 `cesiumShipProps` — `GlobeMapCanvas`가 세슘에 넘기는 선박 데이터·표시 플래그 6개(`aisVessels`, `disguisedVessels`, `showAis`, `showAisMilitary`, `showAisCommercial`, `showDisguisedVessels`)를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
-- 아직 안 한 것: 위성 모드일 때 AIS·항공 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 선박을 안 그려도 AIS 폴링은 남는다.
-
 ## 서비스명 = conflict-view (임시, 2026-11-11)
 
 서비스명은 당분간 **conflict-view**다. 확정 이름이 아니므로 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)만 거쳐 쓴다. 옛 이름(Strait Desk·Brave New World·GeoWatch)은 화면에 남기지 않는다.
@@ -73,5 +67,4 @@
 
 세슘은 뺀다. 지금 방향(근거 확인·연결·이니셔티브·시나리오·분기점)에서 세슘이 핵심인 곳이 없고, 번들·성능·유지보수 부담만 남기 때문이다.
 - 1단계(완료): `src/lib/satelliteAccess.ts`의 `SATELLITE_ENABLED = false`로 위성 진입을 전부 막았다. 「위성으로 보기」 버튼, 위성 모드 전환·부팅 복원, 진입 게이트·모드 스위처의 위성 항목이 사라진다. `NEXT_PUBLIC_LAB=1`로도 안 열린다. 빌드(predev/prebuild)에서 세슘 에셋 복사도 뺐다.
-- 2단계(예정): `CesiumSatelliteGlobe`, 세슘 전용 훅, `cesiumObserveContent` 등 죽은 코드·`cesium` 패키지·테스트·문서를 묶음별 PR로 삭제한다.
-- 위의 "세슘에는 선박(AIS)을 그리지 않는다" 항목은 2단계에서 같이 정리한다.
+- 2단계(진행 중, 2026-11-11~): 죽은 코드를 묶음별 PR로 지운다. A(#426) 세슘 지구본 컴포넌트·전용 훅·`satelliteLayers`(세슘에 선박을 안 그린다는 옛 규칙은 세슘이 없어져 함께 사라짐). B `cesium` 패키지·에셋 복사 스크립트·`next.config` 항목, 뷰어 코드가 없는 `src/lib/cesium*`의 그리기 함수. 남은 것: `GlobeDashboard`의 세슘 핸들 호출부(`cesiumGlobeRef`, `satelliteHandle.ts`)와 관측 모드 UI(`CesiumDayScrubber`, 해협 투어·리플레이 등), 위성 모드 전용 폴링 훅(`isSatelliteViewer` 참조), `docs/`의 옛 설명. `next.config.mjs`의 `swcMinify: false`는 세슘 때문에 켠 설정이라 별도 검증 후 되돌린다.
