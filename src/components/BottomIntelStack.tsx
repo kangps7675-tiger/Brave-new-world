@@ -65,7 +65,10 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
 import { theaterLabel } from "@/lib/uiStrings";
 import { bindableImperativeRef } from "@/lib/imperativeRef";
-import { ECONOMY_TIER_LABELS } from "@/lib/news/mediaTiers";
+import { ECONOMY_TIER_LABELS, describeMedia } from "@/lib/news/mediaTiers";
+import { OfficialDocCard } from "@/components/globe/OfficialDocCard";
+import { OFFICIAL_DOCS } from "@/data/officialDocs";
+import { docsForFlash } from "@/lib/officialDocs/match";
 import {
   FRED_ONLY_TICKER_SYMBOLS,
   STOCK_TICKER_SYMBOLS,
@@ -2561,6 +2564,9 @@ function NewsRow({
           : "속보";
   const displayTitle = localizedTitle(item);
   const displaySummary = localizedSummary(item);
+  const mediaLabel = describeMedia(item.source, item.link).label;
+  const evidenceDocs = docsForFlash(`${item.title} ${item.summary ?? ""}`, OFFICIAL_DOCS);
+  const [docsOpen, setDocsOpen] = useState(false);
   const genre =
     economyMode && item.econGenre
       ? economyGenreLabel(item.econGenre, lang)
@@ -2655,6 +2661,9 @@ function NewsRow({
               </span>
             ) : null}
             <span className="text-meta text-slate-500">{item.source}</span>
+            {mediaLabel ? (
+              <span className="rounded px-1.5 py-0.5 text-micro text-slate-300 ring-1 ring-slate-600/60">{mediaLabel}</span>
+            ) : null}
           </span>
           <span className="line-clamp-2 text-sm font-medium leading-5 text-slate-100">
             {displayTitle}
@@ -2669,6 +2678,25 @@ function NewsRow({
           </span>
         </span>
       </a>
+      {evidenceDocs.length > 0 ? (
+        <div className="px-4 pb-2">
+          <button
+            type="button"
+            className="text-meta text-sky-300 underline"
+            aria-expanded={docsOpen}
+            onClick={() => setDocsOpen((value) => !value)}
+          >
+            {lang === "en" ? `Source documents (${evidenceDocs.length})` : `근거 문서 ${evidenceDocs.length}건`} {docsOpen ? "▲" : "▼"}
+          </button>
+          {docsOpen ? (
+            <ul className="mt-1.5 grid gap-1.5">
+              {evidenceDocs.map((doc) => (
+                <OfficialDocCard key={doc.id} doc={doc} en={lang === "en"} tone="dark" />
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
       <div className="px-4 pb-2">
         <ArticleReactions articleId={item.id} lang={lang === "en" ? "en" : "ko"} />
       </div>
