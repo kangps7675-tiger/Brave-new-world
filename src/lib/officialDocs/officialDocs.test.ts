@@ -11,6 +11,7 @@ describe("공식 문서 종류·무게", () => {
     expect(classifyDocKind("Joint Statement of the United States and Japan")).toBe("joint-statement");
     expect(classifyDocKind("NATO Summit Declaration")).toBe("joint-statement");
     expect(classifyDocKind("Readout of President's call with President X")).toBe("readout");
+    expect(classifyDocKind("Telephone conversation with President of Turkey Recep Tayyip Erdogan")).toBe("readout");
     expect(classifyDocKind("Secretary General's press conference")).toBe("remarks");
     expect(classifyDocKind("Weekly update")).toBe("press-release");
     expect(weightOf("joint-statement")).toBe("agreed");

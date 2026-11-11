@@ -94,9 +94,16 @@ export const COMMON_FEED_PATHS = ["/feed", "/feed/", "/rss", "/rss/", "/rss.xml"
  * 점검(docs:check)이 실제로 읽히는지 가려 주고, 읽히는 것만 --add-feed로 등록한다.
  */
 export const FEED_CANDIDATES: Record<string, string[]> = {
-  "https://www.state.gov": ["https://www.state.gov/rss-feed/press-releases/feed/"],
-  "https://www.whitehouse.gov": ["https://www.whitehouse.gov/news/feed/", "https://www.whitehouse.gov/briefing-room/feed/"],
+  "https://www.state.gov": ["https://www.state.gov/rss-feed/press-releases/feed/", "https://www.state.gov/rss-feed/"],
+  "https://www.whitehouse.gov": ["https://www.whitehouse.gov/news/feed/"],
   "https://www.gov.uk": ["https://www.gov.uk/search/news-and-communications.atom"],
   "https://en.kremlin.ru": ["http://en.kremlin.ru/events/president/news/feed"],
   "https://www.mid.ru/en/": ["https://www.mid.ru/en/rss/"],
+  "https://www.nato.int": ["https://www.nato.int/cps/rss/en/natohq/rssFeed.xsl/rssFeed.xml"],
+  "https://www.consilium.europa.eu": ["https://skribi.consilium.europa.eu/en/rss/pressreleases.ashx"],
+  "https://www.diplomatie.gouv.fr/en/": ["https://www.diplomatie.gouv.fr/en/backend-fd.php3"],
+  "https://www.auswaertiges-amt.de/en": [
+    "https://www.auswaertiges-amt.de/static/includes/rss_en/RSS_Pressemitteilungen_Reden.xml",
+    "https://www.auswaertiges-amt.de/static/includes/rss_en/RSS_Aktuelle_Artikel.xml",
+  ],
 };
