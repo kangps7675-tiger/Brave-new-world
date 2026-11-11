@@ -1,4 +1,4 @@
-import { AXIS_HUB_META, AXIS_NODES, AXIS_RELATION_COLORS } from "@/data/axisNetwork";
+import { AXIS_HUB_META, AXIS_RELATION_COLORS } from "@/data/axisNetwork";
 import type { AxisHubId } from "@/data/axisNetwork";
 import { greatCircleArc } from "@/lib/axisNetworkPaths";
 import {
@@ -9,6 +9,7 @@ import {
 import type { TransportPath, TransportPathPoint } from "@/data/geoTypes";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { armsCategoryLabel, armsCountryName } from "@/lib/axisArmsI18n";
+import { armsGeoCode, armsGeoNode } from "@/data/armsActors";
 
 export type AxisArmsPair = {
   supplier: string;
@@ -67,8 +68,9 @@ export function armsPairsToPaths(
 ): TransportPath[] {
   const out: TransportPath[] = [];
   for (const p of pairs) {
-    const na = AXIS_NODES[p.supplier];
-    const nb = AXIS_NODES[p.recipient];
+    // 비국가 행위자(후티 등)는 근거지 나라 자리에 호를 그린다 — 이름표는 행위자 그대로.
+    const na = armsGeoNode(p.supplier);
+    const nb = armsGeoNode(p.recipient);
     if (!na || !nb) continue;
     const peakAlt = Math.min(0.18, 0.06 + Math.log10(Math.max(1, p.tiv)) * 0.04);
     const from = armsCountryName(p.supplier, lang);
@@ -105,7 +107,7 @@ export function armsPairsToPaths(
     // 수도 간 단일 대권 호 대신 그 실제 경로(육로↔해상 다구간)를 각각 별도 feature로
     // 쓴다 — 해상 구간(카스피해 도하 등)은 meta.legMode === "sea"로 표기해 호출부에서
     // 점선("페리로 갈아탄다")으로 그리게 한다.
-    const legs = corridorLegPointsForPair(p.supplier, p.recipient, peakAlt);
+    const legs = corridorLegPointsForPair(armsGeoCode(p.supplier), armsGeoCode(p.recipient), peakAlt);
     if (!legs) {
       out.push({
         id: groupId,
