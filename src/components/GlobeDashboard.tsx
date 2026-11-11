@@ -514,15 +514,6 @@ import { GlobeMapCanvas } from "@/components/globe/GlobeMapCanvas";
 import { useGlobeMapGlobeProps } from "@/components/globe/hooks/useGlobeMapGlobeProps";
 import { useHistoryPolityLayers } from "@/components/globe/hooks/useHistoryPolityLayers";
 import { DashboardTopChrome } from "@/components/globe/DashboardTopChrome";
-import {
-  CesiumDayScrubber,
-  useCesiumDayScrubState,
-  utcHourNow,
-} from "@/components/globe/CesiumDayScrubber";
-import { ObserveSensorChips } from "@/components/globe/ObserveSensorChips";
-import { ObserveStraitTourChips } from "@/components/globe/ObserveStraitTourChips";
-import { StraitReplayHost } from "@/components/globe/replay/StraitReplayHost";
-import { ObserveLayerLegend } from "@/components/globe/ObserveLayerLegend";
 import { ObserveDeskBookmarkRail } from "@/components/globe/ObserveDeskBookmarkRail";
 import { CaseFileDeskPanel } from "@/components/globe/CaseFileDeskPanel";
 import { CaseEvidenceAttachBar } from "@/components/globe/CaseEvidenceAttachBar";
@@ -535,11 +526,6 @@ import {
   canMountFullObserve,
   readObserveUnlocked,
 } from "@/lib/observeAccess";
-import {
-  recordCesiumClip,
-  shareOrDownloadVideoBlob,
-} from "@/lib/cesiumRecordClip";
-import { brandName } from "@/lib/brand";
 import { zc } from "@/lib/uiStack";
 import { MacroBriefingPanel } from "@/components/MacroBriefingPanel";
 import type {
@@ -2832,83 +2818,12 @@ export function GlobeDashboard({
   }, [incidentSpace]);
 
   const [cesiumReady, setCesiumReady] = useState(false);
-  const { hourUtc, setHourUtc, playing, setPlaying } = useCesiumDayScrubState();
-  const [recordClipBusy, setRecordClipBusy] = useState(false);
+  const getSceneForShareResolved = getSceneForShare;
 
-  /** 위성(Cesium) 모드에서는 MapLibre POV가 없으므로 Cesium 카메라로 장면 링크를 만든다 */
-  const getSceneForShareResolved = useCallback(() => {
-    if (viewerMode === "satellite") {
-      const pov = cesiumGlobeRef.current?.pointOfView();
-      if (!pov) return null;
-      return {
-        mode: viewerMode,
-        lat: pov.lat,
-        lng: pov.lng,
-        altitude: pov.altitude ?? 0.85,
-        prefs: layerPrefsLiveRef.current,
-        asOf: null as string | null,
-      };
-    }
-    return getSceneForShare();
-  }, [viewerMode, getSceneForShare]);
-
-  const captureFrameResolved = useCallback(async () => {
-    if (viewerMode === "satellite") {
-      return (await cesiumGlobeRef.current?.captureFrame()) ?? null;
-    }
-    return (await globeRef.current?.captureFrame()) ?? null;
-  }, [viewerMode]);
-
-  const handleRecordClip = useCallback(async () => {
-    if (recordClipBusy || viewerMode !== "satellite") return;
-    const canvas = cesiumGlobeRef.current?.getCanvas();
-    if (!canvas) return;
-    setRecordClipBusy(true);
-    try {
-      const site = brandName(labelLanguage);
-      const blob = await recordCesiumClip(canvas, {
-        durationMs: 6_000,
-        fps: 24,
-        bindPresenting: (onPresent) =>
-          cesiumGlobeRef.current?.bindPresenting(onPresent) ?? (() => undefined),
-        branding: {
-          siteName: site,
-          url: typeof window !== "undefined" ? window.location.host : "",
-          badge:
-            labelLanguage === "en" ? "Live 3D · Observatory" : "실시간 3D · 관측",
-        },
-      });
-      if (!blob) return;
-      const filename = `${site.replace(/\s+/g, "-")}-clip-${Date.now()}.webm`;
-      await shareOrDownloadVideoBlob(
-        blob,
-        filename,
-        site,
-        labelLanguage === "en"
-          ? `Short clip from ${site}`
-          : `${site} 짧은 녹화`,
-      );
-    } finally {
-      setRecordClipBusy(false);
-    }
-  }, [recordClipBusy, viewerMode, labelLanguage]);
-
-  useEffect(() => {
-    if (!playing || viewerMode !== "satellite") return;
-    const id = window.setInterval(() => {
-      setHourUtc((h) => {
-        const next = (h + 0.25) % 24;
-        cesiumGlobeRef.current?.setClockHourUtc(next);
-        return next;
-      });
-    }, 280);
-    return () => window.clearInterval(id);
-  }, [playing, viewerMode, setHourUtc]);
-
-  useEffect(() => {
-    if (viewerMode === "satellite") return;
-    setPlaying(false);
-  }, [viewerMode, setPlaying]);
+  const captureFrameResolved = useCallback(
+    async () => (await globeRef.current?.captureFrame()) ?? null,
+    [],
+  );
 
   useEffect(() => {
     if (viewerMode === "satellite") {
@@ -5735,7 +5650,6 @@ export function GlobeDashboard({
     observeWatchboardItems,
     escalationIntel,
     chokepointStressGate,
-    straitTour,
     openCesiumAlert,
   } = useObserveAlertModel({
     isSatelliteViewer,
@@ -6602,8 +6516,6 @@ export function GlobeDashboard({
         globeRef={globeRef}
         getSceneForShare={getSceneForShareResolved}
         captureFrameOverride={captureFrameResolved}
-        recordClip={isSatelliteViewer ? handleRecordClip : undefined}
-        recordClipBusy={recordClipBusy}
         setChromeCoachStep={setChromeCoachStep}
         setShowFeatureGuide={setShowFeatureGuide}
         onSceneStart={openSceneMissionPicker}
@@ -7043,105 +6955,6 @@ export function GlobeDashboard({
             <p className="text-micro leading-snug text-stone-400">
               한국사 GeoJSON 조사안 우선 · 발해 전성기(≈850)는 요동·연해주 중부 해안(교과서형)
             </p>
-          </div>
-        ) : null}
-
-        {isSatelliteViewer && !isPhoneUi ? (
-          <div
-            className="pointer-events-auto cv-observe-dock flex w-[min(520px,94vw)] flex-col gap-1.5"
-            role="region"
-            aria-label={
-              labelLanguage === "en" ? "Observatory desk" : "관측대"
-            }
-          >
-            <NkMissileHistoryDock
-              lang={labelLanguage === "en" ? "en" : "ko"}
-            />
-            <ObserveSensorChips
-              lang={labelLanguage}
-              tracksOn={
-                showAis ||
-                showAirTraffic ||
-                showMilitaryActivity ||
-                showDisguisedVessels
-              }
-              frontlineOn={showUkraineControl}
-              hazardsOn={showFirmsFires || showNorthKoreaMissileTests}
-              neptunOn={showNeptun}
-              eventsOn={showConflictEvents}
-              onToggle={(id, next) => {
-                if (id === "tracks") {
-                  togglePref("showAis", next);
-                  togglePref("showAirTraffic", next);
-                  togglePref("showMilitaryActivity", next);
-                  togglePref("showDisguisedVessels", next);
-                  return;
-                }
-                if (id === "frontline") {
-                  setShowUkraineControl(next);
-                  return;
-                }
-                if (id === "hazards") {
-                  setShowFirmsFires(next);
-                  setShowNorthKoreaMissileTests(next);
-                  return;
-                }
-                if (id === "events") {
-                  setShowConflictEvents(next);
-                  return;
-                }
-                setShowNeptun(next);
-              }}
-            />
-            <ObserveStraitTourChips
-              lang={labelLanguage}
-              activeId={straitTour.activeId}
-              touring={straitTour.touring}
-              onSelect={(id) => straitTour.goToStrait(id)}
-              onToggleTour={() => {
-                if (straitTour.touring) straitTour.pauseTour();
-                else straitTour.resumeTour();
-              }}
-            />
-            <StraitReplayHost lang={labelLanguage} cesiumRef={cesiumGlobeRef} />
-            <ObserveLayerLegend
-              lang={labelLanguage}
-              tracksOn={
-                showAis ||
-                showAirTraffic ||
-                showMilitaryActivity ||
-                showDisguisedVessels
-              }
-              frontlineOn={showUkraineControl}
-              hazardsOn={showFirmsFires || showNorthKoreaMissileTests}
-              neptunOn={showNeptun}
-              eventsOn={showConflictEvents}
-            />
-            <CesiumDayScrubber
-              lang={labelLanguage}
-              hourUtc={hourUtc}
-              onChangeHour={(h) => {
-                setPlaying(false);
-                setHourUtc(h);
-                cesiumGlobeRef.current?.setClockHourUtc(h);
-              }}
-              onResetLive={() => {
-                setPlaying(false);
-                const now = utcHourNow();
-                setHourUtc(now);
-                cesiumGlobeRef.current?.resetClockLive();
-              }}
-              playing={playing}
-              onTogglePlay={() => {
-                setPlaying((p) => {
-                  const next = !p;
-                  if (!next) {
-                    cesiumGlobeRef.current?.setClockMultiplier(0);
-                  }
-                  return next;
-                });
-              }}
-            />
           </div>
         ) : null}
 

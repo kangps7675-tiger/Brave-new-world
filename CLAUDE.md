@@ -67,4 +67,6 @@
 
 세슘은 뺀다. 지금 방향(근거 확인·연결·이니셔티브·시나리오·분기점)에서 세슘이 핵심인 곳이 없고, 번들·성능·유지보수 부담만 남기 때문이다.
 - 1단계(완료): `src/lib/satelliteAccess.ts`의 `SATELLITE_ENABLED = false`로 위성 진입을 전부 막았다. 「위성으로 보기」 버튼, 위성 모드 전환·부팅 복원, 진입 게이트·모드 스위처의 위성 항목이 사라진다. `NEXT_PUBLIC_LAB=1`로도 안 열린다. 빌드(predev/prebuild)에서 세슘 에셋 복사도 뺐다.
-- 2단계(진행 중, 2026-11-11~): 죽은 코드를 묶음별 PR로 지운다. A(#426) 세슘 지구본 컴포넌트·전용 훅·`satelliteLayers`(세슘에 선박을 안 그린다는 옛 규칙은 세슘이 없어져 함께 사라짐). B `cesium` 패키지·에셋 복사 스크립트·`next.config` 항목, 뷰어 코드가 없는 `src/lib/cesium*`의 그리기 함수. 남은 것: `GlobeDashboard`의 세슘 핸들 호출부(`cesiumGlobeRef`, `satelliteHandle.ts`)와 관측 모드 UI(`CesiumDayScrubber`, 해협 투어·리플레이 등), 위성 모드 전용 폴링 훅(`isSatelliteViewer` 참조), `docs/`의 옛 설명. `next.config.mjs`의 `swcMinify: false`는 세슘 때문에 켠 설정이라 별도 검증 후 되돌린다.
+- 2단계(완료, 2026-11-12): 묶음 PR로 죽은 코드를 지웠다. A(#426) 세슘 지구본·전용 훅·`satelliteLayers`, B(#428) `cesium` 패키지·에셋 스크립트·그리기 함수.
+- 3단계(2026-11-12): 위성 전용 관측대 UI(하루 스크러버·해협 투어·리플레이·센서 칩·범례)와 녹화(`cesiumRecordClip`)를 지웠다.
+- 4단계(예정): 위성 뷰어 모드 자체를 걷어낸다. `viewerMode === "satellite"`/`isSatelliteViewer` 분기(GlobeDashboard 약 50곳과 훅 10여 개), 세슘 핸들 ref와 `satelliteHandle.ts`, `useFocusedSpaceNavigation`의 위성 비행·대기열·확인 배너, 위성 전용 폴링, `docs/`의 옛 설명. 분기가 많아 화면 확인과 함께 작은 PR로 나눈다. `next.config.mjs`의 `swcMinify: false`는 세슘 때문에 켠 설정이라 별도 검증 후 되돌린다.
