@@ -68,7 +68,7 @@ function Row({ show, tone, mark, src, line }: { show: boolean; tone: Tone; mark:
       <span className="mt-px w-4 flex-none text-center font-bold" aria-hidden="true">
         {mark}
       </span>
-      <span className="min-w-0 text-[13px] leading-snug">
+      <span className="min-w-0 text-caption leading-snug">
         <b className="text-white">{src}</b>
         <span className="text-[#d7e0e6]"> — {line}</span>
       </span>
@@ -152,14 +152,14 @@ export function CrossCheckDemo() {
                 }`}
               >
                 <span
-                  className={`mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full text-[12px] font-bold ${
+                  className={`mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full text-meta font-bold ${
                     done ? "bg-[#0f766e] text-white" : on ? "bg-[#f5c451] text-[#05080d]" : "border border-white/20 text-[#8fa3b1]"
                   }`}
                 >
                   {done ? "✓" : i + 1}
                 </span>
                 <span className="min-w-0">
-                  <span className={`block text-[16px] font-bold leading-snug ${on ? "text-white" : done ? "text-[#c9d5dd]" : "text-[#8fa3b1]"}`}>
+                  <span className={`block text-base font-bold leading-snug ${on ? "text-white" : done ? "text-[#c9d5dd]" : "text-[#8fa3b1]"}`}>
                     {pick(lang, s.t[0], s.t[1])}
                     {s.soon ? (
                       <span className="ml-2 rounded-full border border-dashed border-[#5eead4]/60 px-2 py-px align-middle text-micro font-semibold text-[#5eead4]">
@@ -168,7 +168,7 @@ export function CrossCheckDemo() {
                     ) : null}
                   </span>
                   <span
-                    className={`block overflow-hidden text-[14px] leading-relaxed text-[#a3b3bf] transition-all duration-500 ${
+                    className={`block overflow-hidden text-body leading-relaxed text-[#a3b3bf] transition-all duration-500 ${
                       on ? "mt-1 max-h-24 opacity-100" : "max-h-0 opacity-0"
                     }`}
                   >
@@ -187,9 +187,9 @@ export function CrossCheckDemo() {
             <span className="rounded-full border border-white/15 px-2.5 py-0.5 text-micro text-[#8fa3b1]">
               {pick(lang, "예시 속보 · 실제 사건 아님", "Example alert · not a real event")}
             </span>
-            <span className={`rounded-full border px-3 py-1 text-[13px] font-bold transition-colors duration-500 ${TONE[status.tone]}`}>{status.label}</span>
+            <span className={`rounded-full border px-3 py-1 text-caption font-bold transition-colors duration-500 ${TONE[status.tone]}`}>{status.label}</span>
           </div>
-          <p className="mb-0 mt-3 text-[17px] font-bold leading-snug text-white">
+          <p className="mb-0 mt-3 text-lg font-bold leading-snug text-white">
             {pick(lang, "“○○ 지역 정유시설에서 큰 폭발이 났다”는 SNS 게시물", "“A major explosion at a refinery in region ○○,” says a social media post")}
           </p>
 
@@ -239,7 +239,7 @@ export function CrossCheckDemo() {
                 ["IR", 24, "#5eead4"],
               ].map(([k, x, c]) => (
                 <div key={String(k)} className="relative h-3 rounded bg-white/8">
-                  <span className="absolute left-1 top-[-1px] text-[9px] text-[#8fa3b1]">{k}</span>
+                  <span className="absolute left-1 top-[-1px] text-micro text-[#8fa3b1]">{k}</span>
                   <span className="absolute top-0 h-3 w-3 rounded-full" style={{ left: `${x}%`, background: String(c) }} />
                 </div>
               ))}
@@ -252,7 +252,7 @@ export function CrossCheckDemo() {
               at(4) ? "max-h-24 py-2 opacity-100" : "max-h-0 border-transparent py-0 opacity-0"
             }`}
           >
-            <p className="m-0 text-[13px] leading-snug text-[#fca5a5]">
+            <p className="m-0 text-caption leading-snug text-[#fca5a5]">
               <b>{pick(lang, "어긋남", "Mismatch")}</b>{" "}
               {pick(lang, "사상자 수: A 3명 · B 12명 → 확정하지 않고 둘 다 표시", "Casualties: A says 3, B says 12 → not settled, both shown")}
             </p>
@@ -271,7 +271,7 @@ export function CrossCheckDemo() {
                 ].map(([l, sel]) => (
                   <span
                     key={String(l)}
-                    className={`rounded-full border px-3 py-1 text-[13px] ${
+                    className={`rounded-full border px-3 py-1 text-caption ${
                       sel ? "border-[#f5c451] bg-[#f5c451]/15 font-bold text-[#f5c451]" : "border-white/15 text-[#a3b3bf]"
                     }`}
                   >
@@ -283,7 +283,7 @@ export function CrossCheckDemo() {
           </div>
 
           <div className={`overflow-hidden transition-all duration-500 ${at(6) ? "mt-3 max-h-24 opacity-100" : "max-h-0 opacity-0"}`}>
-            <p className="m-0 rounded-md border border-[#0f766e]/50 bg-[#0f766e]/12 px-3 py-2 text-[13px] leading-snug text-[#5eead4]">
+            <p className="m-0 rounded-md border border-[#0f766e]/50 bg-[#0f766e]/12 px-3 py-2 text-caption leading-snug text-[#5eead4]">
               <b>{pick(lang, "같은 판정입니다.", "Same call.")}</b>{" "}
               {pick(
                 lang,

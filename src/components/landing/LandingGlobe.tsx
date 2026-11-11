@@ -535,8 +535,8 @@ export function LandingGlobe() {
         >
           <div key={h.id} className="motion-safe:animate-[landing-card_0.4s_ease-out]">
             <p className="m-0 text-caption font-semibold text-[#f87171]">{h.kind}</p>
-            <p className="m-0 mt-0.5 text-[15px] font-bold leading-snug text-[#f5c451]">{h.name}</p>
-            <p className="mb-0 mt-1 text-[13px] leading-snug text-[#d7e0e6]">{h.why}</p>
+            <p className="m-0 mt-0.5 text-base font-bold leading-snug text-[#f5c451]">{h.name}</p>
+            <p className="mb-0 mt-1 text-caption leading-snug text-[#d7e0e6]">{h.why}</p>
             <p className="mb-0 mt-1.5 text-caption leading-snug text-[#8fa3b1]">
               {pick(lang, "지구본에서 보는 것", "On the globe")} · {h.see}
             </p>

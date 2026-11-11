@@ -232,7 +232,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         <Reveal>
           <p className={EYEBROW}>{copy.flowEyebrow}</p>
           <h2 className={`${H2} max-w-[820px]`}>{copy.flowTitle}</h2>
-          <p className={`mt-4 mb-0 max-w-[720px] text-[15px] leading-[1.7] ${MUTED}`}>{copy.flowNote}</p>
+          <p className={`mt-4 mb-0 max-w-[720px] text-base leading-[1.7] ${MUTED}`}>{copy.flowNote}</p>
         </Reveal>
         <div className="mt-16">
           <CrossCheckDemo />
