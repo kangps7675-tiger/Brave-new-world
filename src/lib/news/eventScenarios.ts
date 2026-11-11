@@ -122,6 +122,11 @@ export function sameEventText(a: string, b: string): boolean {
   return sameEvent(mark(a), mark(b));
 }
 
+/** 글에서 읽힌 당사자 id(iran, russia, us…). 두 나라가 함께 나온 글을 양국 문서와 잇는 데 쓴다. */
+export function actorsOf(text: string): string[] {
+  return Array.from(mark(text).actors);
+}
+
 /** 글에서 읽힌 희귀 지명 태그(RARE의 id). 문서의 relatedTags와 맞대는 데 쓴다. */
 export function rareTagsOf(text: string): string[] {
   return Array.from(mark(text).rare);

@@ -4,7 +4,10 @@
  *
  *   npx tsx scripts/fetch-official-docs.ts                  # 피드에서 후보 수집 → scripts/data/official-docs-candidates.json
  *   npx tsx scripts/fetch-official-docs.ts --all            # 연설·일반 보도자료까지 포함
- *   npx tsx scripts/fetch-official-docs.ts --snapshot <url> --issuer us[,ru] [--kind factsheet] [--tags hormuz,gaza]
+ *   npx tsx scripts/fetch-official-docs.ts --discover <정부 사이트 주소>     # 그 사이트의 RSS·Atom 피드를 찾아 준다(전 세계 어느 정부든)
+ *   npx tsx scripts/fetch-official-docs.ts --add-feed <피드 주소> --label "이름" [--issuer kr]   # 수집 대상에 추가(src/data/officialFeeds.json)
+ *   npx tsx scripts/fetch-official-docs.ts --snapshot <url> [--issuer us,ru] [--kind factsheet] [--tags hormuz,gaza] [--keywords "new start"]
+ *     (--issuer를 생략하면 정부 도메인(gov.uk, go.kr, gouv.fr, kremlin.ru, nato.int…)으로 알아본다)
  *   npx tsx scripts/fetch-official-docs.ts --snapshot <url> --text-file 문서.txt --issuer us   # PDF 등: 텍스트를 직접 넣을 때
  *   npx tsx scripts/fetch-official-docs.ts --approve scripts/data/official-doc-draft-<id>.json
  *
@@ -14,7 +17,9 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { ISSUERS, ISSUER_IDS, OFFICIAL_DOCS, type DocKind, type IssuerId, type OfficialDocMeta } from "../src/data/officialDocs";
+import { ISSUERS, OFFICIAL_DOCS, isValidIssuerId, type DocKind, type IssuerId, type OfficialDocMeta } from "../src/data/officialDocs";
+import { discoverFeeds, officialSiteFromUrl } from "../src/lib/officialSites";
+import { issuerNameKo } from "../src/lib/countryName";
 import { classifyDocKind, weightOf } from "../src/lib/officialDocs/classify";
 import { htmlToText, pickDate, pickImage, pickTitle, sha256Hex } from "../src/lib/officialDocs/extract";
 import { parseOfficialFeed, worthKeeping, type DocCandidate } from "../src/lib/officialDocs/feed";
@@ -23,6 +28,9 @@ import { validateDocMeta } from "../src/lib/officialDocs/validate";
 const ROOT = path.join(__dirname, "..");
 const DATA_DIR = path.join(ROOT, "scripts", "data");
 const INDEX = path.join(ROOT, "src", "data", "officialDocs.index.json");
+const FEEDS = path.join(ROOT, "src", "data", "officialFeeds.json");
+type ExtraFeed = { issuerId: IssuerId; url: string; label: string };
+const readExtraFeeds = (): ExtraFeed[] => JSON.parse(fs.readFileSync(FEEDS, "utf8")) as ExtraFeed[];
 const TEXT_DIR = path.join(ROOT, "public", "official-docs");
 const UA = "StraitDesk/1.0 official-docs";
 
@@ -48,21 +56,20 @@ async function get(url: string): Promise<{ body: string; type: string }> {
 async function collect(): Promise<void> {
   const known = new Set(OFFICIAL_DOCS.map((doc) => doc.sourceUrl));
   const all: DocCandidate[] = [];
+  const feeds: Array<{ issuerId: IssuerId; name: string; url: string; label: string; verified: boolean }> = [];
   for (const issuer of ISSUERS) {
-    if (issuer.feeds.length === 0) {
-      console.log(`- ${issuer.nameKo}: 피드 없음 (수동으로 --snapshot)`);
-      continue;
-    }
-    for (const feed of issuer.feeds) {
-      if (!feed.url) continue;
-      try {
-        const { body } = await get(feed.url);
-        const rows = parseOfficialFeed(body, issuer.id);
-        console.log(`✓ ${issuer.nameKo} · ${feed.label}: ${rows.length}건${feed.verified ? "" : " (주소 미확인이었음)"}`);
-        all.push(...rows);
-      } catch (error) {
-        console.log(`✗ ${issuer.nameKo} · ${feed.label}: ${(error as Error).message}${feed.verified ? "" : " (주소 미확인 — 주소가 틀렸을 수 있다)"}`);
-      }
+    if (issuer.feeds.length === 0) console.log(`- ${issuer.nameKo}: 내장 피드 없음`);
+    for (const feed of issuer.feeds) if (feed.url) feeds.push({ issuerId: issuer.id, name: issuer.nameKo, url: feed.url, label: feed.label, verified: feed.verified });
+  }
+  for (const extra of readExtraFeeds()) feeds.push({ issuerId: extra.issuerId, name: issuerNameKo(extra.issuerId), url: extra.url, label: extra.label, verified: true });
+  for (const feed of feeds) {
+    try {
+      const { body } = await get(feed.url);
+      const rows = parseOfficialFeed(body, feed.issuerId);
+      console.log(`✓ ${feed.name} · ${feed.label}: ${rows.length}건${feed.verified ? "" : " (주소 미확인이었음)"}`);
+      all.push(...rows);
+    } catch (error) {
+      console.log(`✗ ${feed.name} · ${feed.label}: ${(error as Error).message}${feed.verified ? "" : " (주소 미확인 — 주소가 틀렸을 수 있다)"}`);
     }
   }
   const keepAll = flag("all");
@@ -77,9 +84,13 @@ async function collect(): Promise<void> {
 }
 
 async function snapshot(url: string): Promise<void> {
-  const issuerIds = (arg("issuer") ?? "").split(",").filter(Boolean) as IssuerId[];
-  const bad = issuerIds.filter((id) => !ISSUER_IDS.includes(id));
-  if (issuerIds.length === 0 || bad.length > 0) throw new Error(`--issuer 필요. 쓸 수 있는 값: ${ISSUER_IDS.join(", ")}`);
+  const inferred = officialSiteFromUrl(url)?.issuerId;
+  const issuerIds = (arg("issuer") ?? inferred ?? "").split(",").filter(Boolean) as IssuerId[];
+  const bad = issuerIds.filter((id) => !isValidIssuerId(id));
+  if (issuerIds.length === 0 || bad.length > 0) {
+    throw new Error("정부 도메인으로 낸 곳을 못 알아냈다. --issuer us 처럼 직접 적어라(나라는 ISO 2글자 소문자, 기구는 nato·eu·un·iaea).");
+  }
+  if (!arg("issuer")) console.log(`낸 곳: 주소로 ${issuerNameKo(issuerIds[0])}(으)로 알아봤다`);
 
   let text: string;
   let title: string | null = null;
@@ -116,6 +127,7 @@ async function snapshot(url: string): Promise<void> {
     sha256: hash,
     language: arg("lang") ?? "en",
     ...(imageUrl ? { imageUrl } : {}),
+    keywords: (arg("keywords") ?? "").split(",").map((v) => v.trim().toLowerCase()).filter(Boolean),
     relatedTags: (arg("tags") ?? "").split(",").filter(Boolean),
     terms: arg("terms") ?? "",
     text,
@@ -150,7 +162,41 @@ function approve(file: string): void {
   console.log(`승인: ${meta.id} → 목록과 public/official-docs/${meta.id}.txt에 넣었다`);
 }
 
+async function discover(url: string): Promise<void> {
+  const { body } = await get(url);
+  const found = discoverFeeds(body, url);
+  if (found.length === 0) {
+    console.log("이 페이지에서 RSS·Atom 링크를 못 찾았다. 사이트의 '구독/RSS' 안내 페이지 주소로 다시 해 봐라.");
+    return;
+  }
+  const issuer = officialSiteFromUrl(url)?.issuerId;
+  for (const row of found) console.log(`- ${row.title || "(제목 없음)"}\n  ${row.url}`);
+  console.log(`\n추가하려면: npm run docs:fetch -- --add-feed <위 주소> --issuer ${issuer ?? "xx"} --label "이름"`);
+}
+
+function addFeed(url: string): void {
+  const issuerId = (arg("issuer") ?? officialSiteFromUrl(url)?.issuerId ?? "") as IssuerId;
+  const label = arg("label") ?? "";
+  if (!isValidIssuerId(issuerId) || !/^https:\/\//.test(url) || !label) {
+    console.log("--issuer(나라 2글자 또는 기구), https 주소, --label이 모두 필요하다.");
+    process.exitCode = 1;
+    return;
+  }
+  const feeds = readExtraFeeds();
+  if (feeds.some((row) => row.url === url)) {
+    console.log("이미 있는 주소다.");
+    return;
+  }
+  feeds.push({ issuerId, url, label });
+  fs.writeFileSync(FEEDS, `${JSON.stringify(feeds, null, 2)}\n`, "utf8");
+  console.log(`피드 추가: ${issuerNameKo(issuerId)} · ${label}`);
+}
+
 async function main(): Promise<void> {
+  const disc = arg("discover");
+  const addUrl = arg("add-feed");
+  if (disc) return discover(disc);
+  if (addUrl) return addFeed(addUrl);
   const snap = arg("snapshot");
   const app = arg("approve");
   if (app) return approve(app);

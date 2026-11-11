@@ -14,6 +14,16 @@ describe("속보에 붙는 근거 문서", () => {
     expect(docsForFlash("Tanker attacked near the Strait of Hormuz", docs).map((d) => d.id)).toEqual(["a"]);
     expect(docsForFlash("United States announces new sanctions", docs)).toEqual([]);
   });
+  it("keywords 구절이 글에 있으면 붙는다", () => {
+    const d = { ...doc("start", []), keywords: ["new start"] };
+    expect(docsForFlash("Russia and the New START treaty: what next", [d]).map((x) => x.id)).toEqual(["start"]);
+    expect(docsForFlash("Unrelated story", [d])).toEqual([]);
+  });
+  it("둘 이상이 낸 문서는 낸 당사자가 모두 글에 나올 때만 붙는다", () => {
+    const joint = { ...doc("joint", []), issuerIds: ["us", "ru"] };
+    expect(docsForFlash("Russia and the United States trade accusations", [joint]).map((x) => x.id)).toEqual(["joint"]);
+    expect(docsForFlash("Russia strikes Kharkiv", [joint])).toEqual([]);
+  });
   it("최신 문서부터 최대 3건", () => {
     const docs = [1, 2, 3, 4].map((n) => doc(`d${n}`, ["gaza"], `2026-11-0${n}`));
     expect(docsForFlash("Strike in Gaza", docs).map((d) => d.id)).toEqual(["d4", "d3", "d2"]);
@@ -36,5 +46,6 @@ describe("속보에 붙는 관련 기사", () => {
     const out = articlesForFlash("Tanker seized in Hormuz", now, pool, "https://own.com/5");
     expect(out.map((r) => r.url)).toEqual(["https://b.com/2", "https://a.com/1"]);
     expect(out[1].tier).toBe(3);
+    expect(out[0].label).toBeNull();
   });
 });

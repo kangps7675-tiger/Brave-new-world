@@ -1,4 +1,4 @@
-import { ISSUER_IDS, type OfficialDocMeta } from "@/data/officialDocs";
+import { isValidIssuerId, type OfficialDocMeta } from "@/data/officialDocs";
 
 const KINDS = ["factsheet", "joint-statement", "readout", "statement", "press-release", "remarks", "treaty"];
 const WEIGHTS = ["agreed", "unilateral", "remarks"];
@@ -8,7 +8,7 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 export function validateDocMeta(doc: Partial<OfficialDocMeta>): string[] {
   const problems: string[] = [];
   if (!doc.id || !/^[a-z0-9][a-z0-9-]{2,80}$/.test(doc.id)) problems.push("id는 영소문자·숫자·하이픈 3~81자");
-  if (!doc.issuerIds || doc.issuerIds.length === 0 || doc.issuerIds.some((id) => !ISSUER_IDS.includes(id))) problems.push("issuerIds가 비었거나 목록에 없는 곳이 있다");
+  if (!doc.issuerIds || doc.issuerIds.length === 0 || doc.issuerIds.some((id) => !isValidIssuerId(id))) problems.push("issuerIds가 비었거나 목록에 없는 곳이 있다");
   if (!doc.kind || !KINDS.includes(doc.kind)) problems.push("kind가 올바르지 않다");
   if (!doc.weight || !WEIGHTS.includes(doc.weight)) problems.push("weight가 올바르지 않다");
   if (!doc.title?.trim()) problems.push("title이 없다");

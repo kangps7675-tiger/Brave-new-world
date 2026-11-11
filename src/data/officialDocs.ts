@@ -7,11 +7,17 @@
  */
 import index from "./officialDocs.index.json";
 
-export type IssuerId =
-  | "us" | "cn" | "ru" | "jp" | "kr" | "tw" | "in" | "ir" | "tr" | "ua" | "au"
-  | "gb" | "fr" | "de" | "it"
-  | "nato" | "eu";
+/**
+ * 문서를 낸 곳. 나라는 ISO 3166-1 alpha-2 소문자("us", "kr"…), 기구는 "nato"·"eu"·"un"·"iaea".
+ * 전 세계 어느 정부든 쓸 수 있다. 아래 ISSUERS는 피드 주소를 미리 알고 있는 곳의 목록일 뿐이다.
+ */
+export type IssuerId = string;
 
+export function isValidIssuerId(id: string): boolean {
+  return /^[a-z]{2}$/.test(id) || id === "nato" || id === "eu" || id === "un" || id === "iaea";
+}
+
+/** 1차 범위(피드·이름을 미리 정리해 둔 곳) */
 export const ISSUER_IDS: readonly IssuerId[] = [
   "us", "cn", "ru", "jp", "kr", "tw", "in", "ir", "tr", "ua", "au", "gb", "fr", "de", "it", "nato", "eu",
 ];
@@ -89,6 +95,8 @@ export type OfficialDocMeta = {
   sha256: string;
   /** 원문 언어(BCP-47) */
   language: string;
+  /** 속보 글에서 이 말이 보이면 근거로 붙일 구절(소문자). 예: "new start". 지명 태그로 못 잡는 문서용. */
+  keywords?: string[];
   /** 이 문서를 붙일 사건·지역 태그(eventScenarios의 RARE id와 같은 말을 쓴다). */
   relatedTags: string[];
   /** 원문 페이지의 대표 이미지(있을 때만). 권리는 발행 기관에 있다. */
