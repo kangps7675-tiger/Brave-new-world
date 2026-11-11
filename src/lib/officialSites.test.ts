@@ -12,6 +12,8 @@ describe("정부 사이트 알아보기", () => {
     ["www.mofa.go.jp", "jp", "government"],
     ["www.diplomatie.gouv.fr", "fr", "government"],
     ["www.gob.mx", "mx", "government"],
+    ["www.esteri.it", "it", "government"],
+    ["en.mfa.ir", "ir", "government"],
     ["www.govt.nz", "nz", "government"],
     ["www.mfa.gov.cn", "cn", "government"],
     ["en.kremlin.ru", "ru", "government"],

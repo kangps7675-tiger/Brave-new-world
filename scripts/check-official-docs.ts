@@ -19,7 +19,8 @@ import { issuerNameKo } from "../src/lib/countryName";
 import { classifyDocKind } from "../src/lib/officialDocs/classify";
 import { htmlToText, pickDate, pickTitle } from "../src/lib/officialDocs/extract";
 import { parseOfficialFeed } from "../src/lib/officialDocs/feed";
-import { discoverFeeds, officialSiteFromUrl } from "../src/lib/officialSites";
+import { getPage } from "../src/lib/officialDocs/http";
+import { COMMON_FEED_PATHS, FEED_CANDIDATES, discoverFeeds, officialSiteFromUrl } from "../src/lib/officialSites";
 
 const DEFAULT_TARGETS = [
   "https://www.state.gov",
@@ -43,19 +44,10 @@ const DEFAULT_TARGETS = [
   "https://www.esteri.it/en/",
 ];
 
-const UA = "StraitDesk/1.0 official-docs-check";
 const BOILERPLATE = /(enable javascript|cookies? (policy|settings|consent)|access denied|just a moment|captcha|403 forbidden|404 not found)/i;
 
 async function get(url: string): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20_000);
-  try {
-    const res = await fetch(url, { signal: controller.signal, headers: { "User-Agent": UA }, redirect: "follow" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.text();
-  } finally {
-    clearTimeout(timer);
-  }
+  return (await getPage(url)).body;
 }
 
 type FeedReport = {
@@ -69,7 +61,7 @@ type FeedReport = {
   sample: Array<{ title: string; kind: string; date: string | null; url: string }>;
   deep?: Array<{ url: string; titleFound: boolean; dateFound: boolean; textChars: number; boilerplate: boolean; head: string; error?: string }>;
 };
-type SiteReport = { target: string; issuer: string | null; reachable: boolean; error?: string; feedsFound: number; feeds: FeedReport[] };
+type SiteReport = { target: string; issuer: string | null; reachable: boolean; error?: string; feedsFound: number; feeds: FeedReport[]; via?: string };
 
 async function checkFeed(url: string, issuer: string, deep: boolean): Promise<FeedReport> {
   try {
@@ -113,14 +105,28 @@ async function checkFeed(url: string, issuer: string, deep: boolean): Promise<Fe
 
 async function checkSite(target: string, deep: boolean): Promise<SiteReport> {
   const issuer = officialSiteFromUrl(target)?.issuerId ?? null;
+  let urls: string[] = [];
+  let error: string | undefined;
+  let reachable = true;
   try {
-    const feeds = discoverFeeds(await get(target), target).slice(0, 3);
-    const reports: FeedReport[] = [];
-    for (const feed of feeds) reports.push(await checkFeed(feed.url, issuer ?? "xx", deep));
-    return { target, issuer, reachable: true, feedsFound: feeds.length, feeds: reports };
-  } catch (error) {
-    return { target, issuer, reachable: false, error: (error as Error).message, feedsFound: 0, feeds: [] };
+    urls = discoverFeeds(await get(target), target).map((f) => f.url);
+  } catch (e) {
+    reachable = false;
+    error = (e as Error).message;
   }
+  // 첫 페이지에서 못 찾았거나 접속이 안 될 때: 알려진 후보와 흔한 경로를 두드려 본다.
+  const guesses = urls.length > 0 ? [] : [...(FEED_CANDIDATES[target] ?? []), ...(reachable ? COMMON_FEED_PATHS.map((p) => new URL(p, target).toString()) : [])];
+  const reports: FeedReport[] = [];
+  for (const url of urls.slice(0, 3)) reports.push(await checkFeed(url, issuer ?? "xx", deep));
+  for (const url of guesses) {
+    const r = await checkFeed(url, issuer ?? "xx", deep);
+    if (r.ok) {
+      reports.push(r);
+      if (reports.length >= 3) break;
+    }
+  }
+  const found = reports.length;
+  return { target, issuer, reachable: reachable || found > 0, error, feedsFound: found, feeds: reports, via: urls.length > 0 ? "발견" : found > 0 ? "후보·흔한 경로" : "-" } as SiteReport;
 }
 
 async function main(): Promise<void> {
@@ -132,12 +138,13 @@ async function main(): Promise<void> {
   for (const target of list) {
     const r = await checkSite(target, deep);
     reports.push(r);
-    const who = r.issuer ? issuerNameKo(r.issuer) : "?";
+    const who = r.issuer ? issuerNameKo(r.issuer) : "알 수 없음";
     if (!r.reachable) {
       console.log(`✗ ${who} ${target}: 접속 실패 (${r.error})`);
       continue;
     }
-    console.log(`${r.feedsFound > 0 ? "✓" : "–"} ${who} ${target}: 피드 ${r.feedsFound}개 발견`);
+    if (r.error) console.log(`  (첫 페이지는 실패: ${r.error} — 피드 주소로는 읽힘)`);
+    console.log(`${r.feedsFound > 0 ? "✓" : "–"} ${who} ${target}: 피드 ${r.feedsFound}개 (${r.via})`);
     for (const f of r.feeds) {
       console.log(
         `    ${f.ok ? "·" : "✗"} ${f.url}  항목 ${f.items} · 날짜 ${(f.dateRate * 100).toFixed(0)}% · https ${(f.httpsRate * 100).toFixed(0)}% · 종류 ${JSON.stringify(f.kinds)}${f.error ? ` · ${f.error}` : ""}`,
