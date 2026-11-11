@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { officialFeedSources, rowsFromOfficialFeed } from "../../../workers/cron-ingest/src/officialDocsIngest";
+import { officialFeedSources, rowsFromOfficialFeed } from "./ingestRows";
 
 const RSS = `<rss><channel>
 <item><title>Joint Statement on the Strait of Hormuz</title><link>https://example.gov/a</link><pubDate>Wed, 11 Nov 2026 10:00:00 GMT</pubDate><description>Ministers discussed Hormuz shipping.</description></item>

@@ -10,73 +10,10 @@
  */
 
 import type { IngestEnv } from "./env";
-import feedsJson from "../../../src/data/officialFeeds.json";
-import { ISSUERS } from "../../../src/data/officialDocs";
-import { parseOfficialFeed, worthKeeping, type DocCandidate } from "../../../src/lib/officialDocs/feed";
-import { rareTagsOf } from "../../../src/lib/news/eventScenarios";
+import { rowsFromOfficialFeed, officialFeedSources, type OfficialDocFeedWriteRow } from "../../../src/lib/officialDocs/ingestRows";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
-const MAX_NEW_PER_FEED = 60;
-
-export type OfficialDocFeedSource = { issuerId: string; url: string; label: string };
-
-export function officialFeedSources(): OfficialDocFeedSource[] {
-  const out: OfficialDocFeedSource[] = [];
-  const seen = new Set<string>();
-  const add = (s: OfficialDocFeedSource) => {
-    if (seen.has(s.url)) return;
-    seen.add(s.url);
-    out.push(s);
-  };
-  for (const f of feedsJson as OfficialDocFeedSource[]) add(f);
-  for (const issuer of ISSUERS) {
-    for (const f of issuer.feeds) if (f.url) add({ issuerId: issuer.id, url: f.url, label: f.label });
-  }
-  return out;
-}
-
-export type OfficialDocFeedWriteRow = {
-  id: string;
-  issuer_id: string;
-  kind: string;
-  weight: string;
-  title: string;
-  url: string;
-  published_at: string | null;
-  summary: string;
-  tags: string;
-  feed: string;
-};
-
-async function sha1Hex(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 20);
-}
-
-/** 피드 XML → 저장할 행 (테스트용으로 export) */
-export async function rowsFromOfficialFeed(xml: string, source: OfficialDocFeedSource): Promise<OfficialDocFeedWriteRow[]> {
-  const rows: OfficialDocFeedWriteRow[] = [];
-  const candidates: DocCandidate[] = parseOfficialFeed(xml, source.issuerId).filter(worthKeeping);
-  for (const c of candidates.slice(0, MAX_NEW_PER_FEED)) {
-    rows.push({
-      id: await sha1Hex(c.url),
-      issuer_id: c.issuerId,
-      kind: c.kind,
-      weight: c.weight,
-      title: c.title.slice(0, 300),
-      url: c.url,
-      published_at: c.publishedAt,
-      summary: c.summary,
-      tags: rareTagsOf(`${c.title}. ${c.summary}`).join(","),
-      feed: source.label,
-    });
-  }
-  return rows;
-}
 
 async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<boolean> {
   try {
