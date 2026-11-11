@@ -7451,7 +7451,6 @@ export function GlobeDashboard({
                 unifiedFlyTo(it.lat, it.lng, 0.5);
               }}
               onViewSatellite={SATELLITE_ENABLED ? viewStackItemInSatellite : undefined}
-              vessels={aisVessels}
             />
             <WarRiskStrip lang={labelLanguage} compact={isPhoneUi} />
             {feedDrawerActive ? (
