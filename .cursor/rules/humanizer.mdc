@@ -1,0 +1,23 @@
+---
+description: Apply Humanizer (blader/humanizer) to user-facing prose — strip AI writing tells without changing claims
+alwaysApply: true
+---
+
+# Humanizer
+
+Source of truth: `.cursor/skills/humanizer/SKILL.md` (also `.agents/skills/humanizer/SKILL.md`).
+When writing or editing user-facing prose (UI copy, docs, README, commit/PR body, landing text, briefs), follow that skill end to end.
+
+## Must
+
+1. Read the skill before rewriting prose. Do not invent a shorter private checklist.
+2. Keep every supported fact, name, number, date, quote, and claim.
+3. Act on §1–§5 on one sighting. Weak-alone patterns need company in the same passage.
+4. Change prose only. Leave code, commands, paths, YAML/frontmatter, data, and link targets alone.
+5. Korean UI/brief prose still follows `korean-prose.mdc` / `koreanProseRules.ts`. Humanizer does not override josa or 종결 규칙.
+
+## Do not
+
+- Pad significance ("pivotal", "landscape", "testament", "delve").
+- Use not-X-but-Y, one-line closers, staged openers, or chatbot wrappers.
+- Em-dash / en-dash as the default connector unless a writing sample uses them.
