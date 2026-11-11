@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "predev": "node scripts/copy-maplibre-worker.mjs",
-    "cesium:assets": "node scripts/copy-cesium-assets.mjs",
     "osm:tiles:ensure": "node scripts/osm-tiles/ensure-planetiler.mjs",
     "osm:tiles:bake": "node scripts/osm-tiles/bake-osm-pmtiles.mjs",
     "osm:tiles:bake:antarctica": "node scripts/osm-tiles/bake-osm-pmtiles.mjs --only=antarctica",
@@ -190,7 +189,6 @@
     "@streamparser/json": "^0.0.26",
     "@vercel/analytics": "^2.0.1",
     "adm-zip": "0.6.1",
-    "cesium": "1.145.0",
     "d3-geo": "^3.1.1",
     "drizzle-orm": "^0.45.2",
     "fast-uri": "4.2.3",
