@@ -1,5 +1,6 @@
 "use client";
 
+import { flashVerdictBasis, flashVerdictLabel } from "@/lib/news/flashVerdict";
 import {
   createContext,
   forwardRef,
@@ -271,7 +272,10 @@ function heroStatusLabel(
   status: HeroBreakingItem["heroStatus"],
   lang: LabelLanguage,
   economy = false,
+  verdict?: HeroBreakingItem["verdict"],
 ): string {
+  // 지정학 속보는 확인·유력·자료 없음(독립 매체 수)로 말한다. 시장 뉴스는 기존 표기 유지.
+  if (!economy && verdict) return flashVerdictLabel(verdict.verdict, lang === "en" ? "en" : "ko");
   const map = economy ? ECONOMY_HERO_STATUS_LABELS : HERO_STATUS_LABELS;
   return lang === "en" ? map[status].en : map[status].ko;
 }
@@ -659,7 +663,7 @@ function HeroHeadlineBanner({
 }) {
   const { lang, t } = useLocale();
   const { localizedTitle } = useNewsStreamContext();
-  const statusText = heroStatusLabel(hero.heroStatus, lang, economy);
+  const statusText = heroStatusLabel(hero.heroStatus, lang, economy, hero.verdict);
   const title = localizedTitle(hero);
   return (
     <div
@@ -690,6 +694,11 @@ function HeroHeadlineBanner({
             </span>
           )}
           <span
+            title={
+              !economy && hero.verdict
+                ? flashVerdictBasis(hero.verdict, lang === "en" ? "en" : "ko")
+                : undefined
+            }
             className={`shrink-0 rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wide ${heroBadgeClass(hero.heroStatus, economy)}`}
           >
             {statusText}
@@ -2231,7 +2240,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                       <span
                         className={`rounded-full border px-2 py-0.5 text-micro font-semibold ${heroBadgeClass(hero!.heroStatus, preferEconomyNews)}`}
                       >
-                        {heroStatusLabel(hero!.heroStatus, lang, preferEconomyNews)}
+                        {heroStatusLabel(hero!.heroStatus, lang, preferEconomyNews, hero!.verdict)}
                       </span>
                       <span className="text-meta text-slate-400">
                         {newsStreamTheaterLabel(hero!.theater, lang)}
@@ -2241,6 +2250,11 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-50">
                       {localizedTitle(hero!)}
                     </p>
+                    {!preferEconomyNews && hero!.verdict ? (
+                      <p className="mt-1 text-meta leading-snug text-slate-400">
+                        {flashVerdictBasis(hero!.verdict, lang === "en" ? "en" : "ko")}
+                      </p>
+                    ) : null}
                     <ArticleReactions articleId={hero!.id} lang={lang === "en" ? "en" : "ko"} />
                   </div>
                   {(() => {
