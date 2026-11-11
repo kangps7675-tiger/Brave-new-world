@@ -1,6 +1,7 @@
 "use client";
 
 import { OfficialDocCard } from "@/components/globe/OfficialDocCard";
+import { SipriArmsRecord } from "@/components/globe/SipriArmsRecord";
 import { OFFICIAL_DOCS } from "@/data/officialDocs";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import type { NewsStreamItem } from "@/lib/news/types";
@@ -18,10 +19,10 @@ type Props = {
 export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const docs = docsForFlash(text, OFFICIAL_DOCS);
   const articles = articlesForFlash(text, at, newsPool, ownUrl);
-  if (docs.length === 0 && articles.length === 0) return null;
 
   return (
-    <div className="space-y-2" data-flash-evidence>
+    <div className="space-y-2 empty:hidden" data-flash-evidence>
+      <SipriArmsRecord text={text} en={en} />
       {docs.length > 0 ? (
         <section>
           <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{en ? "Source documents" : "근거 문서"}</p>

@@ -22,10 +22,12 @@ import {
   VIINA_POLICY,
 } from "@/lib/licensing/viinaPolicy";
 import {
+  SIPRI_ARMS_EVIDENCE_ENABLED,
   SIPRI_ARMS_LENS_ENABLED,
   SIPRI_ATTRIBUTION_EN,
   SIPRI_ATTRIBUTION_KO,
   SIPRI_POLICY,
+  SIPRI_URL,
 } from "@/lib/licensing/sipriPolicy";
 import {
   VDEM_ATTRIBUTION_EN,
@@ -613,7 +615,7 @@ export function MethodologySourcesPanel({
             </ul>
           </section>
 
-          {SIPRI_ARMS_LENS_ENABLED ? (
+          {SIPRI_ARMS_LENS_ENABLED || SIPRI_ARMS_EVIDENCE_ENABLED ? (
             <section className="rounded-xl border border-orange-900/35 bg-orange-950/15 p-3">
               <h3 className="text-sm font-medium text-orange-100">
                 SIPRI — 재래식 무기이전 ({SIPRI_POLICY.product})
@@ -628,9 +630,17 @@ export function MethodologySourcesPanel({
                 {SIPRI_POLICY.fullName} · {SIPRI_POLICY.licenseNote}
               </p>
               <p className="mt-2 text-meta leading-5 text-sky-100/65">
-                별도 공식 딥링크를 UI에 고정하지 않습니다. SIPRI 웹사이트에서 Arms Transfers
-                Database / Trade Register 문서를 직접 검색·인용해 주십시오. 화면의 호·목록은
-                축 허브 필터가 적용된 요약이며, 연구·보도 인용 시 원자료를 확인하십시오.
+                원본은{" "}
+                <a
+                  href={SIPRI_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  SIPRI Arms Transfers Database
+                </a>
+                에서 확인하십시오. 화면의 기록은 허브 필터가 적용된 요약이며, 연 단위 인도 기록이라
+                속보의 사실 여부를 가르는 근거가 아니라 배경 자료입니다.
               </p>
             </section>
           ) : null}

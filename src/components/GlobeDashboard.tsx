@@ -344,6 +344,7 @@ import {
 } from "@/lib/corridorSelection";
 import { trackEvent } from "@/lib/trackClient";
 import { SIPRI_ARMS_LENS_ENABLED } from "@/lib/licensing/sipriPolicy";
+import { useSipriHubArms } from "@/hooks/useSipriHubArms";
 import {
   altitudeFromEpisodeZoom,
   episodeLat,
@@ -3294,11 +3295,9 @@ export function GlobeDashboard({
     [clearEconInsightTimer],
   );
 
-  const parseAxisArms = useCallback((raw: unknown) => raw as AxisArmsPayload, []);
-  const { data: axisArmsPayload } = useLazyJsonObject<AxisArmsPayload>(
-    "axis-arms.json",
+  const { data: axisArmsPayload } = useSipriHubArms(
+    activeHubId,
     Boolean(SIPRI_ARMS_LENS_ENABLED && activeHubId && hubFocusMode === "arms"),
-    parseAxisArms,
   );
   const parseAxisHubCountries = useCallback(
     (raw: unknown) => raw as FeatureCollection,
