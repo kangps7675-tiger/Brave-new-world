@@ -1,5 +1,6 @@
 "use client";
 
+import type { FlashNeonPoint } from "@/lib/flashNeon";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import {
   forwardRef,
@@ -314,6 +315,7 @@ const INTERACTIVE_LAYERS = [
   "map-rings-sea",
   "firms-flame",
   "liveua-strikes",
+  "flash-neon",
   "ukraine-macro-fill",
   "ukraine-micro-fill",
   "ukraine-micro-defense",
@@ -1151,6 +1153,22 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     }),
     [liveuaStrikesData],
   );
+  const flashNeonData = useMemo(
+    () => (props.flashNeonData as FlashNeonPoint[] | undefined) ?? [],
+    [props.flashNeonData],
+  );
+  const flashNeonGeoJson = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: flashNeonData.map((p, index) => ({
+        type: "Feature" as const,
+        properties: { index, color: p.color, fresh: p.fresh, selected: p.selected },
+        geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+      })),
+    }),
+    [flashNeonData],
+  );
+  const onFlashNeonClick = props.onFlashNeonClick as ((id: string) => void) | undefined;
   const onLiveuaStrikeClick = props.onLiveuaStrikeClick as ((item: LiveuaStrikeMapItem) => void) | undefined;
   const eventCallout = (props.eventCallout as EventCallout | null | undefined) ?? null;
   const onDismissEventCallout = props.onDismissEventCallout as (() => void) | undefined;
@@ -1386,6 +1404,33 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const handleContextRetry = useCallback(() => {
     window.location.reload();
   }, []);
+
+  /** 속보 네온 깜빡임 — fresh 후광만 천천히 숨 쉬듯. 움직이는 중·숨김 탭·모션 줄이기에선 멈춘다 */
+  useEffect(() => {
+    if (!mapLoaded || flashNeonData.length === 0 || prefersReducedMotion()) return;
+    let raf = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      raf = window.requestAnimationFrame(tick);
+      if (now - last < 120 || movingRef.current || document.hidden) return;
+      last = now;
+      const map = mapRef.current?.getMap();
+      if (!map?.getLayer("flash-neon-glow")) return;
+      const breath = 0.5 + 0.5 * Math.sin(now / 1000 * 3.1);
+      try {
+        map.setPaintProperty("flash-neon-glow", "circle-opacity", [
+          "case",
+          ["==", ["get", "fresh"], 1],
+          0.35 + 0.35 * breath,
+          0.16,
+        ]);
+      } catch {
+        /* style swap mid-frame */
+      }
+    };
+    raf = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(raf);
+  }, [flashNeonData.length, mapLoaded]);
 
   useEffect(() => {
     if (!mapLoaded) return;
@@ -1740,6 +1785,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (layerId === "liveua-strikes") {
         return liveuaStrikesData[index] ?? null;
       }
+      if (layerId === "flash-neon") {
+        return flashNeonData[index] ?? null;
+      }
       if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
       if (layerId === "map-polygons-fill") return polygonsData[index] ?? null;
       if (layerId === "map-rings" || layerId === "map-rings-sea") return ringsData[index] ?? null;
@@ -1756,6 +1804,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       aisSymbolModel,
       deferredPathsData,
       firmsFiresData,
+      flashNeonData,
       liveuaStrikesData,
       pointsData,
       polygonsData,
@@ -1792,6 +1841,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         if (!item) continue;
         if (layerId === "liveua-strikes") {
           onLiveuaStrikeClick?.(item as LiveuaStrikeMapItem);
+          return;
+        }
+        if (layerId === "flash-neon") {
+          onFlashNeonClick?.((item as FlashNeonPoint).id);
           return;
         }
         if (
@@ -3614,6 +3667,47 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                   0,
                   0.9,
                 ],
+              }}
+            />
+          </Source>
+        ) : null}
+
+        {flashNeonGeoJson.features.length > 0 ? (
+          <Source id="flash-neon-source" type="geojson" data={flashNeonGeoJson}>
+            {/* 속보 지점 네온 — 범주 색 후광 + 밝은 점. 최근 6시간(fresh)은 크고 밝게 깜빡이고, 오래된 건 작고 흐리게 남는다. */}
+            <Layer
+              id="flash-neon-glow"
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": ["case", ["==", ["get", "fresh"], 1], 15, 9],
+                "circle-blur": 1,
+                "circle-opacity": ["case", ["==", ["get", "fresh"], 1], 0.55, 0.16],
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
+            <Layer
+              id="flash-neon-selected"
+              type="circle"
+              filter={["==", ["get", "selected"], 1]}
+              paint={{
+                "circle-color": "rgba(0,0,0,0)",
+                "circle-radius": 12,
+                "circle-stroke-color": "rgba(255,255,255,0.95)",
+                "circle-stroke-width": 1.8,
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
+            <Layer
+              id="flash-neon"
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": ["case", ["==", ["get", "fresh"], 1], 5, 3.2],
+                "circle-stroke-color": "rgba(255,255,255,0.85)",
+                "circle-stroke-width": ["case", ["==", ["get", "fresh"], 1], 1.2, 0.6],
+                "circle-opacity": ["case", ["==", ["get", "fresh"], 1], 1, 0.5],
+                "circle-pitch-alignment": "viewport",
               }}
             />
           </Source>
