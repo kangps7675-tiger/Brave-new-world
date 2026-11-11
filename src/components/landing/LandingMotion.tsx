@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { pick } from "@/components/landing/landingCopy";
-import { orderedSchedules } from "@/lib/majorSchedule";
 import { useLandingLanguage } from "@/lib/landingLanguage";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -403,32 +402,42 @@ export function TiltCard({ children, className = "" }: { children: ReactNode; cl
   );
 }
 
-type TickerItem = { id: string; text: string };
+type TickerItem = { id: string; tone: "ok" | "warn" | "bad"; status: [string, string]; text: [string, string] };
 
-/** 가까운 공식 일정을 흐르는 띠로 보여 준다. */
+const TICKER_TONE = {
+  ok: "border-[#0f766e]/60 bg-[#0f766e]/12 text-[#5eead4]",
+  warn: "border-[#a16207]/60 bg-[#a16207]/14 text-[#fcd34d]",
+  bad: "border-[#b91c1c]/60 bg-[#b91c1c]/14 text-[#fca5a5]",
+};
+
+/** 가상의 예시 속보. 소식마다 확인 상태가 붙는 모양을 흐르는 띠로 보여 준다. */
+const TICKER_ITEMS: TickerItem[] = [
+  { id: "a", tone: "ok", status: ["확인", "Confirmed"], text: ["○○ 지역 정유시설 폭발 — 공식 발표와 현장 영상이 일치", "Refinery blast in ○○ — official statement and footage match"] },
+  { id: "b", tone: "warn", status: ["유력", "Likely"], text: ["○○ 해협 상선 피격 — 당시 근처 선박 1척으로 좁혀짐", "Merchant ship hit near ○○ strait — narrowed to one vessel nearby"] },
+  { id: "c", tone: "bad", status: ["자료 없음", "No data"], text: ["○○ 상공 드론 격추 주장 — 확인할 자료가 없음", "Drone shoot-down claimed over ○○ — nothing to verify it with"] },
+  { id: "d", tone: "ok", status: ["확인", "Confirmed"], text: ["○○ 국경 검문소 폐쇄 — 두 나라 정부가 모두 인정", "Border crossing at ○○ closed — both governments acknowledge it"] },
+  { id: "e", tone: "warn", status: ["유력", "Likely"], text: ["○○ 항구 인근 폭발음 — 출처 두 곳이 같은 시각을 가리킴", "Explosions near ○○ port — two sources point to the same time"] },
+];
+
+/** 예시 속보와 확인 상태가 흐르는 띠. 실제 속보가 아니라 모양을 보여 주는 연출이다. */
 export function LiveTicker() {
   const lang = useLandingLanguage();
-  const list: TickerItem[] = orderedSchedules(Date.now()).map((row) => ({
-    id: row.id,
-    text: lang === "en" ? `${row.countryEn} · ${row.titleEn}` : `${row.countryKo} · ${row.titleKo}`,
-  }));
+  const label = pick(lang, "속보마다 확인 상태가 붙습니다 · 가상 예시", "Every alert carries a status · invented examples");
   return (
-    <div
-      className="relative overflow-hidden border-y border-white/10 bg-[#070d14] py-3"
-      aria-label={pick(lang, "다음 공식 일정", "Next official dates")}
-    >
+    <div className="relative overflow-hidden border-y border-white/10 bg-[#070d14] py-3" aria-label={label}>
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#070d14] to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#070d14] to-transparent" />
-      <div className="flex w-max motion-safe:animate-[landing-marquee_48s_linear_infinite] hover:[animation-play-state:paused]">
+      <div className="flex w-max motion-safe:animate-[landing-marquee_60s_linear_infinite] hover:[animation-play-state:paused]">
         {[0, 1].map((dup) => (
           <ul key={dup} aria-hidden={dup === 1 ? "true" : undefined} className="m-0 flex list-none items-center gap-10 p-0 pr-10">
             <li className="flex items-center gap-2 text-sm font-bold text-[#f87171]">
               <span className="inline-block h-2 w-2 rounded-full bg-[#f87171] motion-safe:animate-pulse" />
-              {pick(lang, "다음 공식 일정", "Next official dates")}
+              {label}
             </li>
-            {list.map((it) => (
-              <li key={`${dup}-${it.id}`} className="whitespace-nowrap text-sm text-[#c9d5dd]">
-                {it.text}
+            {TICKER_ITEMS.map((it) => (
+              <li key={`${dup}-${it.id}`} className="flex items-center gap-2 whitespace-nowrap text-sm text-[#c9d5dd]">
+                <span className={`rounded-full border px-2 py-0.5 text-caption font-bold ${TICKER_TONE[it.tone]}`}>{lang === "en" ? it.status[1] : it.status[0]}</span>
+                {lang === "en" ? it.text[1] : it.text[0]}
               </li>
             ))}
           </ul>

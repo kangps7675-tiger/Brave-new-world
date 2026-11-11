@@ -47,7 +47,7 @@ export function landingCopy(lang: LabelLanguage) {
     threatEyebrow: t("전선에서 지금 쓰이는 것", "What the fronts are using"),
     threatTitle: t("드론, 미사일, 기뢰가 전선에서 쓰입니다.", "Drones, missiles, and mines are in use on the fronts."),
     stats: [
-      { n: 6, s: t("곳", "places"), label: t("지켜보는 길목", "Passages on watch") },
+      { n: 3, s: t("가지", "labels"), label: t("소식마다 붙는 확인 상태 — 확인·유력·자료 없음", "Status on every alert: confirmed, likely, no data") },
       { n: 8, s: t("종", "sources"), label: t("서로 맞춰 보는 공개 출처", "Public sources checked against each other") },
       { n: 6, s: t("시간", "hours"), label: t("마다 새로 고르는 사진 뉴스", "Between each photo-news pick") },
       { n: 9, s: t("개", "tools"), label: t("핵심 화면 밖 상세 기능", "Tools beyond the main screen") },
@@ -85,10 +85,14 @@ export function landingCopy(lang: LabelLanguage) {
         ),
       },
     ],
-    flowEyebrow: t("경보가 뜨면", "When an alert hits"),
+    flowEyebrow: t("교차검증 과정", "The cross-check"),
     flowTitle: t(
-      "전선 속보 한 건이 지구본에서 어떻게 펼쳐지는지, 내려 가며 보세요.",
-      "Scroll to see how one front-line alert unfolds on the globe.",
+      "속보 하나를 직접 확인하는 과정을, 한 단계씩 보세요.",
+      "Watch one alert get checked, one step at a time.",
+    ),
+    flowNote: t(
+      "예시 속보로 보여 드립니다. 단계를 누르면 그 장면으로 가고, 마우스를 올리면 멈춰요. 6·7단계(직접 판정)는 준비 중입니다.",
+      "Shown with an example alert. Click a step to jump to it; hover to pause. Steps 6 and 7 (judging it yourself) are in preparation.",
     ),
     frontEyebrow: t("이메일로 받게 될 모양", "What the email will look like"),
     frontTitle: t("오늘의 지정학 1면, 이런 지면으로 옵니다.", "Today’s geopolitics front page. This is the shape it arrives in."),
@@ -371,8 +375,8 @@ export function landingCopy(lang: LabelLanguage) {
         ),
       },
     ],
-    straitsEyebrow: t("길목별로 보기", "Passage by passage"),
-    straitsTitle: t("전선이 맞닿는 길목, 하나씩 넘겨 보세요.", "The passages where fronts meet. Move through them one by one."),
+    straitsEyebrow: t("해운 연재 · 첫 주제", "Shipping series · first topic"),
+    straitsTitle: t("첫 연재는 바닷길입니다. 길목을 하나씩 넘겨 보세요.", "The first series is about sea lanes. Move through the passages one by one."),
     straitOpen: t("전선 안내 열기", "Open the front brief"),
     straits: [
       { slug: "strait-of-hormuz", name: t("호르무즈 해협", "Strait of Hormuz"), en: "STRAIT OF HORMUZ", stat: t("이란 앞바다. 다음 선거일은 아직 없음", "Off Iran. The next polling day is not set"), what: t("걸프 전선이 모이는 좁은 바다. 의회·대통령 선거를 2028년에 치른다는 말만 있습니다.", "The narrow water where the Gulf front gathers. Officials have only said the parliamentary and presidential votes fall in 2028.") },

@@ -13,6 +13,7 @@ import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
   FIRST_SCREEN_LIVE_ON,
+  FIRST_SCREEN_BREAKING_ON,
   FIRST_SCREEN_MARITIME_ON,
 } from "@/lib/firstScreenLayers";
 
@@ -93,9 +94,14 @@ const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
 };
 
-/** 해운 위험 첫 화면 — 랜딩이 약속한 화면 (UKMTO·항행경보·AIS·항모·군용기·불꽃) */
+/** 해운 연재 화면 — 「무엇을 볼까요 → 해운 위험」을 고른 사람 (UKMTO·항행경보·AIS·항모·군용기·불꽃) */
 const MARITIME_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_MARITIME_ON,
+};
+
+/** 속보 중심 첫 화면 — 랜딩이 약속한 화면 (속보 핀·불꽃·붉은 면·빛나는 선·항모·군용기) */
+const BREAKING_HERO_ON: Partial<LayerPrefs> = {
+  ...FIRST_SCREEN_BREAKING_ON,
 };
 
 /** 항적 첫 화면 — ADS-B · AIS · GPSJam */
@@ -117,6 +123,8 @@ export function buildDomainOverviewPrefs(
     ultraLite?: boolean;
     /** 지정학(conflict) 모드지만 해운 위험 첫 화면으로 — 신규 방문·해운 패키지 사용자 */
     maritime?: boolean;
+    /** 지정학(conflict) 모드지만 속보 중심 첫 화면으로 — 신규 방문 */
+    breaking?: boolean;
   },
 ): LayerPrefs {
   const labelLanguage = options?.labelLanguage ?? DEFAULT_LAYER_PREFS.labelLanguage;
@@ -125,6 +133,8 @@ export function buildDomainOverviewPrefs(
   const hero =
     mode === "conflict" && options?.maritime
       ? MARITIME_HERO_ON
+      : mode === "conflict" && options?.breaking
+      ? BREAKING_HERO_ON
       : mode === "conflict"
       ? CONFLICT_HERO_ON
       : mode === "economy"
