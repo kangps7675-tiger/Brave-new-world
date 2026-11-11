@@ -40,6 +40,7 @@ import { runSeaWeatherNow } from "./seaWeatherNow";
 import { runStrikeNames } from "./strikeNames";
 import { fetchAndReplaceNavarea } from "./navarea";
 import { fetchAndUpsertWarRisk } from "./warRisk";
+import { fetchAndUpsertOfficialDocs } from "./officialDocsIngest";
 import { fetchAndUpsertMarineWeather } from "./marineWeather";
 import { videoCaption } from "../../../src/lib/telegramVideo";
 import { EMAIL_DIGEST_CRON, handleEmailRequest, runDailyEmailDigest } from "./emailSub";
@@ -502,6 +503,17 @@ async function runIngest(env: IngestEnv): Promise<IngestResult> {
       }
     } catch (error) {
       console.warn("[war-risk] skipped:", error instanceof Error ? error.message : error);
+    }
+    try {
+      const od = await fetchAndUpsertOfficialDocs(env);
+      if (!od.skipped) {
+        console.log(
+          `[official-docs] feeds ok=${od.feedsOk} failed=${od.feedsFailed} stored=${od.stored}` +
+            (od.errors.length > 0 ? ` errors=${od.errors.join(" | ")}` : ""),
+        );
+      }
+    } catch (error) {
+      console.warn("[official-docs] skipped:", error instanceof Error ? error.message : error);
     }
     try {
       const mw = await fetchAndUpsertMarineWeather(env);
