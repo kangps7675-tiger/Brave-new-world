@@ -5,6 +5,7 @@
  * 출처는 하단 고정 표기.
  */
 
+import type { FlashVerdictInfo } from "@/lib/news/flashVerdict";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 import { isMostlyEnglish } from "@/lib/koreanTranslate";
 import {
@@ -73,6 +74,8 @@ export type BreakingFlashBriefing = {
   /** liveuamap이면 피드 좌표를 그대로 쓴다 */
   flashSource?: "rss" | "liveuamap";
   verbatim?: boolean;
+  /** 확인·유력·자료 없음 — 같은 사건을 보도한 독립 매체 수 (신속속보 양피지에 표시) */
+  verdict?: FlashVerdictInfo;
 };
 
 /** 신속 속보 — 이보다 오래된 기사는 타전하지 않음 */
@@ -947,6 +950,7 @@ export function buildBreakingFlashBriefing(
     coords,
     flashSource: liveua ? "liveuamap" : "rss",
     verbatim,
+    verdict: economy ? undefined : hero.verdict,
   };
 }
 
