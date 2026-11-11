@@ -144,41 +144,42 @@ function AlertVisual({ shown, reduced }: { shown: number; reduced: boolean }) {
           {/* 해안선: 왼쪽 아프리카, 오른쪽 아라비아 */}
           <path d="M0 0 L150 0 C140 60 120 110 128 160 C136 210 110 250 92 300 L0 300 Z" fill="#1f3d52" stroke="#3b6378" />
           <path d="M300 0 L480 0 L480 300 L360 300 C350 250 372 210 356 170 C340 130 320 70 300 0 Z" fill="#1f3d52" stroke="#3b6378" />
-          <text x="20" y="40" fill="#6d8797" fontSize="12">{pick(lang, "에리트레아", "Eritrea")}</text>
-          <text x="400" y="40" fill="#6d8797" fontSize="12">{pick(lang, "예멘", "Yemen")}</text>
+          <text x="20" y="280" fill="#6d8797" fontSize="12">{pick(lang, "에리트레아", "Eritrea")}</text>
+          <text x="420" y="28" fill="#6d8797" fontSize="12">{pick(lang, "예멘", "Yemen")}</text>
 
           {/* 3: 항행경보 구역 */}
           <g style={{ opacity: at(2) ? 1 : 0, transition: reduced ? "none" : "opacity .6s" }}>
             <path d="M190 90 L300 80 L320 200 L200 215 Z" fill="url(#demo-hatch)" stroke="#ff6b6f" strokeDasharray="4 3" />
             <text x="198" y="108" fill="#ff9a9d" fontSize="11">{pick(lang, "항행경보 구역", "Nav warning")}</text>
+            <text x="338" y="182" fill="#ffd25a" fontSize="10">{pick(lang, "항구·정유소 타격", "Port or refinery hit")}</text>
             <circle cx="368" cy="150" r="16" fill="url(#demo-fire)" />
             <path d="M368 138 C369.3 142 373 144.6 373 149.4 C373 152.8 370.8 155.4 368 155.4 C365.2 155.4 363 152.8 363 149.4 C363 146.4 365.4 144.6 366.4 142 C367 143.2 367.4 143.4 367.8 142.9 C368.1 141.5 368 139.7 368 138 Z" fill="#ffd25a" />
           </g>
 
-          {/* 2: 주변 배 */}
-          <g style={{ opacity: at(1) ? 1 : 0, transition: reduced ? "none" : "opacity .6s" }} fill="#93c5fd">
-            {[
-              [205, 70, 160],
-              [232, 230, 340],
-              [290, 120, 200],
-              [180, 180, 20],
-              [270, 265, 330],
-            ].map(([x, y, r]) => (
-              <path key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${r})`} d="M0 -7 L4 4 L0 2 L-4 4 Z" />
-            ))}
+          {/* 2: 그 땅을 누가 쥐는지 — 무장세력 통제 구역(예시) */}
+          <g style={{ opacity: at(1) ? 1 : 0, transition: reduced ? "none" : "opacity .6s" }}>
+            <path
+              d="M312 44 L480 44 L480 222 L362 216 C352 190 350 160 340 130 C330 100 322 72 312 44 Z"
+              fill="#e5484d"
+              fillOpacity="0.24"
+              stroke="#ff6b6f"
+              strokeDasharray="5 3"
+            />
+            <text x="372" y="84" fill="#ffb4b6" fontSize="11">{pick(lang, "무장세력 통제 구역", "Armed-group control")}</text>
+            <text x="372" y="99" fill="#d9a3a5" fontSize="9">{pick(lang, "예시 · 경계는 단순화", "example · simplified edge")}</text>
           </g>
 
           {/* 1: 경보 위치 */}
           <g style={{ opacity: at(0) ? 1 : 0, transition: reduced ? "none" : "opacity .4s" }}>
             <circle cx="252" cy="160" r="34" fill="none" stroke="#f87171" strokeWidth="1.6" strokeDasharray="4 4" />
             <circle cx="252" cy="160" r="5" fill="#f87171" />
-            <path transform="translate(252 160)" d="M-9 -2 L9 -2 L6 3 L-6 3 Z M-4 -2 L-4 -8 L3 -8 L5 -2" fill="#fff" />
+            <circle cx="252" cy="160" r="12" fill="none" stroke="#fca5a5" strokeWidth="1.2" strokeOpacity="0.8" />
           </g>
         </svg>
 
         {/* 1: 전선 속보 카드 */}
         <div
-          className={`absolute right-3 top-3 w-[min(56%,230px)] rounded-md border border-[#f87171]/50 bg-[#05080d]/90 px-3 py-2 transition-all duration-500 ${
+          className={`absolute left-3 top-3 w-[min(46%,210px)] rounded-md border border-[#f87171]/50 bg-[#05080d]/90 px-3 py-2 transition-all duration-500 ${
             at(0) ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
           }`}
         >
@@ -196,10 +197,10 @@ function AlertVisual({ shown, reduced }: { shown: number; reduced: boolean }) {
         >
           <p className="m-0 text-caption text-[#d7e0e6]">
             <b className="text-white">{pick(lang, "다음 공식 일정", "Next official date")}</b>{" "}
-            {pick(lang, "대만 지방선거", "Taiwan local elections")} <span className="text-[#f5c451]">{pick(lang, "11월 28일", "28 Nov")}</span>
+            {pick(lang, "예멘", "Yemen")} <span className="text-[#f5c451]">{pick(lang, "확인된 공식 일정 없음 · 자료 없음", "no confirmed official date · no data")}</span>
           </p>
           <p className="mb-0 mt-0.5 text-micro text-[#8fa3b1]">
-            {pick(lang, "출처: 그 나라 공식 글", "Source: that country’s official text")}
+            {pick(lang, "공식 글에서 날짜를 찾지 못하면 지어내지 않고 이렇게 적습니다. 예시 화면", "If no official text gives a date, it says so instead of guessing. Example screen")}
           </p>
         </div>
       </div>
