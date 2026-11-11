@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, type MutableRefObject, type RefObject } from "react";
-import type { CesiumGlobeHandle } from "@/components/globe/CesiumSatelliteGlobe";
+import type { CesiumGlobeHandle } from "@/components/globe/satelliteHandle";
 import type { Selection } from "@/components/globe/types";
 import type { FlyToConfirmOffer } from "@/components/FlyToConfirmBanner";
 import {
