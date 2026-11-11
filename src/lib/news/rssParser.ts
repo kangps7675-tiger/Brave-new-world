@@ -1,3 +1,4 @@
+import { decodeHtmlEntities } from "@/lib/htmlEntities";
 export type RawRssItem = {
   title: string;
   link: string;
@@ -11,15 +12,7 @@ export type RawRssItem = {
 };
 
 function decodeEntities(text: string): string {
-  return text
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .trim();
+  return decodeHtmlEntities(text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")).trim();
 }
 
 function tagContent(block: string, tag: string): string {

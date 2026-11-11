@@ -16,6 +16,7 @@ import { useTr } from "@/hooks/useTr";
 import type { FrontMap } from "@/lib/crossCheck/witnessFeeds";
 import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
 import { FlashEvidence } from "@/components/globe/FlashEvidence";
+import { EventScenarioBoard } from "@/components/globe/EventScenarioBoard";
 import { IncidentMiniMap } from "@/components/globe/IncidentMiniMap";
 import { zc } from "@/lib/uiStack";
 
@@ -382,6 +383,7 @@ export function LiveFlashDesk({
             ownUrl={item.liveua?.sourceUrl}
             newsPool={newsPool}
           />
+          <EventScenarioBoard variant="accordion" lang={en ? "en" : "ko"} items={newsPool} />
           {basis.length > 0 ? (
             <div className="rounded-sm border border-[#6b4a22]/30 bg-[#efe0bc]/60 px-2 py-1.5">
               <p className="text-micro font-semibold text-[#5c4020]/90">

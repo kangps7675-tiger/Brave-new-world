@@ -158,9 +158,24 @@ function normalizeKey(value: string): string {
   return value.toLowerCase().trim();
 }
 
+/**
+ * 짧은 이름("rt", "dod", "pti", "efe"…)은 부분 문자열로 찾으면 주소 안의 "report", "option",
+ * "reference" 같은 단어에 걸려 멀쩡한 매체가 국영(3등급)·와이어(1등급)로 잘못 분류된다.
+ * 그래서 4글자 이하 이름은 단어 경계로만 맞춘다.
+ */
+const SHORT_NEEDLE_MAX = 4;
+
+function escapeRe(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function matchesAny(haystack: string, needles: string[]): boolean {
   const key = normalizeKey(haystack);
-  return needles.some((needle) => key.includes(normalizeKey(needle)));
+  return needles.some((needle) => {
+    const n = normalizeKey(needle);
+    if (n.length > SHORT_NEEDLE_MAX) return key.includes(n);
+    return new RegExp(`(?:^|[^a-z0-9])${escapeRe(n)}(?:$|[^a-z0-9])`).test(key);
+  });
 }
 
 export function extractHostname(link: string): string {

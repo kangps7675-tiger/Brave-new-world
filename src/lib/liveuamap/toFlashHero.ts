@@ -1,3 +1,4 @@
+import { computeFlashVerdict } from "@/lib/news/flashVerdict";
 import { classifyLiveuaOrigin } from "@/lib/liveuamap/originSource";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import type { HeroBreakingItem } from "@/lib/news/types";
@@ -62,5 +63,12 @@ export function liveuamapEventToFlashHero(
     lat: event.lat,
     lng: event.lng,
     verbatim: lang === "en",
+    // 출처가 매체로 밝혀진 경우만 독립 보도로 센다. 출처 없는 핀·당사자 채널은 자료 없음.
+    verdict: computeFlashVerdict([
+      {
+        source: origin.kind === "none" ? "Liveuamap" : origin.label,
+        trustTier: origin.kind === "media" ? origin.tier : 3,
+      },
+    ]),
   };
 }
