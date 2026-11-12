@@ -190,6 +190,15 @@ describe("목록 페이지 읽기", () => {
     expect(rows[1].publishedAt).toBe("2026-11-01");
   });
 
+  it("카타르 외교부: news-list-item의 제목 링크와 날짜를 읽고, 성명 목록은 성명으로 분류한다", () => {
+    const item = (href: string, title: string, date: string) => `<div class="col-12 col-md-6 news-list-item"><div class="news-img-wrp"><img class="news-img" src="x.png"></div><div class="news-title-wrp"><a href="${href}"><h4 class="news-title">${title}</h4></a></div><p class="news-publication-date">${date}</p></div>`;
+    const html = item("https://mofa.gov.qa/en/latest-articles/statements/qatar-condemns-shooting-in-poland", "Qatar Condemns Shooting in Poland", "Sunday, November 08, 2026") + item("/en/latest-articles/statements/qatar-strongly-condemns-armed-attack-in-southern-egypt", "Qatar Strongly Condemns Armed Attack in Southern Egypt", "Saturday, November 07, 2026");
+    const rows = parseListPage(html, "https://mofa.gov.qa/en/latest-articles/statements", "qa");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://mofa.gov.qa/en/latest-articles/statements/qatar-condemns-shooting-in-poland", publishedAt: "2026-11-08", kind: "statement" });
+    expect(rows[1]).toMatchObject({ url: "https://mofa.gov.qa/en/latest-articles/statements/qatar-strongly-condemns-armed-attack-in-southern-egypt", publishedAt: "2026-11-07" });
+  });
+
   it("일본 외무성: 날짜 제목 아래 링크를 읽고, 연도 없는 날짜는 오늘 기준으로 정한다", () => {
     const html = `<dl class="title-list"><dt class="list-title">November 12</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02843.html">Dinner hosted by State Minister</a></li></ul></dd>
 <dt class="list-title">November 11</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02842.html">Courtesy Call on Vice-Minister</a></li><li><a href="/press/release/pressite_000001_02841.html">Reception for Italy anniversary</a></li></ul></dd>

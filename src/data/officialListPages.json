@@ -108,5 +108,15 @@
     "issuerId": "pk",
     "url": "https://mofa.gov.pk/press-releases",
     "label": "파키스탄 외교부 보도자료·대변인 브리핑"
+  },
+  {
+    "issuerId": "qa",
+    "url": "https://mofa.gov.qa/en/latest-articles/statements",
+    "label": "카타르 외교부 성명"
+  },
+  {
+    "issuerId": "qa",
+    "url": "https://mofa.gov.qa/en/all-mofa-news",
+    "label": "카타르 외교부 소식(총리 겸 외교장관 면담·회담)"
   }
 ]

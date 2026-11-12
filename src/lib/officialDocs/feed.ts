@@ -88,6 +88,8 @@ export function worthKeeping(row: DocCandidate): boolean {
   if (row.issuerId === "sa" && /(^|\.)mofa\.gov\.sa\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   // 파키스탄 외교부 보도자료는 성명·방문 안내·대변인 브리핑이라 모두 남긴다
   if (row.issuerId === "pk" && /(^|\.)mofa\.gov\.pk\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
+  // 카타르 외교부 성명·소식은 총리 겸 외교장관의 중재·면담과 규탄 성명이라 모두 남긴다
+  if (row.issuerId === "qa" && /(^|\.)mofa\.gov\.qa\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   // 대만: 국방부(중국 군 활동 일일 발표·보도자료)와 총통부는 속보 근거로 직접적이라 모두 남긴다(외교부는 기존 규칙)
   if (row.issuerId === "tw" && /(^|\.)(mnd\.gov\.tw|president\.gov\.tw)\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   return row.kind !== "remarks" && row.kind !== "press-release";

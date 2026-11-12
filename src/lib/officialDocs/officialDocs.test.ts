@@ -24,9 +24,9 @@ describe("공식 문서 종류·무게", () => {
   });
 
   it("17곳이 모두 있고 id가 겹치지 않는다", () => {
-    expect(ISSUERS).toHaveLength(23);
-    expect(new Set(ISSUERS.map((row) => row.id)).size).toBe(23);
-    expect(ISSUER_IDS).toHaveLength(23);
+    expect(ISSUERS).toHaveLength(24);
+    expect(new Set(ISSUERS.map((row) => row.id)).size).toBe(24);
+    expect(ISSUER_IDS).toHaveLength(24);
     expect(ISSUERS.find((row) => row.id === "nato")?.kind).toBe("organization");
   });
 });
