@@ -11,6 +11,8 @@ import { analysisForFlash } from "@/lib/analysis/match";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import { polledDocsForFlash } from "@/lib/officialDocs/matchPolled";
 import { useAutoMissileRanges } from "@/hooks/useAutoMissileRanges";
+import { useJmodLaunches } from "@/hooks/useJmodLaunches";
+import { jmodReportForFlash } from "@/lib/jmodLaunch";
 import { impactClaimsOf } from "@/lib/missileRangeAuto";
 import { compareFlight, flightFiguresOf, formatRangeKm, missileRangeForText } from "@/lib/missileRange";
 import type { NewsStreamItem } from "@/lib/news/types";
@@ -31,7 +33,15 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const autoRanges = useAutoMissileRanges();
   const missile = missileRangeForText(text, autoRanges);
   const impact = missile ? impactClaimsOf(text) : [];
-  const figures = flightFiguresOf(text);
+  const jmodReports = useJmodLaunches();
+  const jmod = missile ? jmodReportForFlash(text, at, jmodReports) : null;
+  const textFigures = flightFiguresOf(text);
+  // 속보 본문에 수치가 없으면 같은 발사에 대한 일본 방위성 발표의 수치를 쓴다(아래에 출처를 밝힌다)
+  const figures = {
+    distanceKm: textFigures.distanceKm ?? jmod?.distanceKm,
+    apogeeKm: textFigures.apogeeKm ?? jmod?.apogeeKm,
+  };
+  const fromJmod = jmod != null && (textFigures.distanceKm == null || textFigures.apogeeKm == null);
   const cmp = missile ? compareFlight(missile.spec, figures) : null;
   const analysisItems = useAnalysisItems();
   const analysisMatches = analysisForFlash(text, at, analysisItems);
@@ -60,14 +70,25 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
             </p>
             {figures.distanceKm != null ? (
               <p className="mt-0.5 text-micro leading-snug">
-                {en ? "Reported flight" : "이번 발표"}: {en ? "distance" : "비행거리"} {en ? "about " : "약 "}{figures.distanceKm.toLocaleString("en-US")}km
+                {en ? "Reported flight" : "이번 발표"}: {en ? "distance" : "비행거리"} {jmod?.distanceAtLeast && textFigures.distanceKm == null ? (en ? "over " : "최소 ") : en ? "about " : "약 "}{figures.distanceKm.toLocaleString("en-US")}km
                 {cmp?.percentOfMax != null ? (en ? ` (${cmp.percentOfMax}% of the max range)` : ` (최대 사거리의 약 ${cmp.percentOfMax}%)`) : ""}
                 {figures.apogeeKm != null ? (en ? ` · apogee about ${figures.apogeeKm.toLocaleString("en-US")}km` : ` · 정점 고도 약 ${figures.apogeeKm.toLocaleString("en-US")}km`) : ""}
                 {cmp?.lofted ? (en ? " · apogee is higher than the distance flown, which reads as a lofted launch" : " · 정점이 비행거리보다 높아 고각 발사로 읽힘") : ""}
                 {cmp?.exceedsMax ? (en ? " · reported distance exceeds this source's max range" : " · 발표 비행거리가 이 출처의 최대 사거리보다 김(수치 확인 필요)") : ""}
               </p>
             ) : null}
-            {impact.length > 0 ? (
+            {jmod ? (
+              <p className="mt-0.5 text-micro leading-snug">
+                <a href={jmod.url} target="_blank" rel="noopener noreferrer" className="underline">
+                  {en ? "Japan Ministry of Defense report" : "일본 방위성 발표"}
+                </a>
+                {jmod.launchPlace ? `: ${en ? "launched from" : "발사"} ${jmod.launchPlace}` : ""}
+                {jmod.landing ? ` · ${en ? "landing" : "낙하"}: ${jmod.landing}` : ""}
+                {fromJmod ? (en ? " · flight figures above come from this report" : " · 위 비행 수치는 이 발표에서 가져옴") : ""}
+                {en ? " (the report gives areas, not coordinates, so nothing is plotted)" : " (발표에 좌표가 없고 영역만 있어 지도에는 찍지 않음)"}
+              </p>
+            ) : null}
+            {impact.length > 0 && !jmod ? (
               <p className="mt-0.5 text-micro leading-snug">
                 {en ? "Landing, as the report words it" : "발표문의 낙하 서술"}: {impact.join(" / ")}
                 {en ? " (not plotted: the text gives no coordinates)" : " (좌표가 없어 지도에는 찍지 않음)"}
