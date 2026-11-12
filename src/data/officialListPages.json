@@ -33,5 +33,10 @@
     "issuerId": "cn",
     "url": "https://www.fmprc.gov.cn/eng/xw/zyxw/",
     "label": "중국 외교부 주요 소식(Top Stories)"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://en.mfa.ir/portal/newsarchive/699",
+    "label": "이란 외무부 성명(Statements) 보관함"
   }
 ]

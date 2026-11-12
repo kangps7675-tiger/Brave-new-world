@@ -62,6 +62,8 @@ const DEFAULT_TARGETS = [
   "https://mofa.gov.pk",
   "https://www.mod.go.jp/en/",
   "https://president.ir/en",
+  "https://www.mid.ru/en/rss.php",
+  "https://en.mfa.ir/portal/newsarchive/699",
 ];
 
 const BOILERPLATE = /(enable javascript|cookies? (policy|settings|consent)|access denied|just a moment|captcha|403 forbidden|404 not found)/i;

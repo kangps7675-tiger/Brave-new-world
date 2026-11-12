@@ -215,5 +215,10 @@
     "issuerId": "de",
     "url": "https://www.bundesregierung.de/service/rss/breg-de/1151244/feed.xml",
     "label": "독일 연방정부 · 보도자료"
+  },
+  {
+    "issuerId": "ru",
+    "url": "https://www.mid.ru/en/rss.php",
+    "label": "러시아 외무부 영문 Atom 피드"
   }
 ]

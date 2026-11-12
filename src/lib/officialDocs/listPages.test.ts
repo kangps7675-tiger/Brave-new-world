@@ -85,4 +85,16 @@ describe("목록 페이지 읽기", () => {
     expect(rows[1].url).toBe("https://www.fmprc.gov.cn/eng/xw/zyxw/202611/t20261110_12056514.html");
     expect(rows[1].publishedAt).toBe("2026-11-10");
   });
+
+  it("이란 외무부: 항목별 제목 링크와 2026/11/11 날짜를 읽는다", () => {
+    const item = (id: number, title: string, date: string) => `<div class="news-arch-item"><div class="news-img-arch"><div class="news-item-img"><a id="x" href="../newsview/${id}"></a></div></div>
+<div class="news-content-arch"><div class="news-item-title"><h2><a id="y" class="hTitle" href="../newsview/${id}">${title}</a></h2></div>
+<div class="news-item-lead"><a class="hLeadText" href="../newsview/${id}">.</a></div>
+<div class="bottom-details"><div class="dateNews"><i class="fa fa-calendar"></i> ${date} </div></div></div></div>`;
+    const html = item(797561, "Iran FM: US delusions lead to failure of its policies", "2026/11/11") + item(797510, "Iran declares Argentine Navy Air Force terrorist organizations", "2026/11/10");
+    const rows = parseListPage(html, "https://en.mfa.ir/portal/newsarchive/699", "ir");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://en.mfa.ir/portal/newsview/797561", publishedAt: "2026-11-11" });
+    expect(rows[1].publishedAt).toBe("2026-11-10");
+  });
 });

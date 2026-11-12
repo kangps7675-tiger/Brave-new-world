@@ -8,7 +8,7 @@ import type { DocCandidate } from "@/lib/officialDocs/feed";
  * 2026-11-12 `npm run docs:grab`으로 저장한 실제 페이지 구조를 기준으로 했다. 구조가 바뀌면 0건이 나오니,
  * 수집이 조용히 멈추지 않게 호출한 쪽이 0건을 실패로 기록한다.
  *
- * 읽지 못하는 곳: 인도 MEA·러시아 외교부(목록이 자바스크립트로 뜬다), 중국(대변인 브리핑만 있다).
+ * 읽지 못하는 곳: 인도 MEA(목록이 자바스크립트로 뜬다), 중국(대변인 브리핑만 있다). 러시아 외교부는 Atom 피드가 있어 officialFeeds.json에 있다.
  */
 
 const MONTHS: Record<string, string> = {
@@ -177,6 +177,25 @@ function chinaMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandida
   return out;
 }
 
+/**
+ * 이란 외무부 영문 뉴스 보관함(/portal/newsarchive/699, "Statements" 분류): 항목마다 `news-item-title` 안의 링크가 제목이고
+ * 주소는 ../newsview/<번호>, 날짜는 같은 항목의 `dateNews`에 2026/11/11 꼴로 있다(2026-11-12 실제 페이지 확인).
+ * 요약 칸(news-item-lead)은 "."만 있는 경우가 많아 쓰지 않는다. 이란 외무부는 RSS가 없다.
+ */
+function iranMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const block of html.split(/class="news-arch-item"/i).slice(1)) {
+    const t = /class="hTitle"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i.exec(block) ?? /href="([^"]*newsview\/\d+)"[^>]*class="hTitle"[^>]*>([\s\S]*?)<\/a>/i.exec(block);
+    if (!t) continue;
+    const url = absolute(t[1], pageUrl);
+    const title = clean(t[2]);
+    if (!url || !title) continue;
+    const d = /class="dateNews"[\s\S]*?(\d{4})\/(\d{2})\/(\d{2})/i.exec(block);
+    out.push(candidate(issuerId, title, url, d ? `${d[1]}-${d[2]}-${d[3]}` : null, "statement"));
+  }
+  return out;
+}
+
 const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId) => DocCandidate[]]> = [
   [/(^|\.)nato\.int$/i, natoOfficialTexts],
   [/(^|\.)mofa\.gov\.tw$/i, taiwanMofa],
@@ -185,6 +204,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
   [/(^|\.)elysee\.fr$/i, elysee],
   [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],
+  [/(^|\.)mfa\.ir$/i, iranMfa],
 ];
 
 /** 이 주소의 목록 페이지를 읽는 함수가 있는가 */
