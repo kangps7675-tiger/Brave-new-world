@@ -43,6 +43,8 @@ export type RelatedArticle = {
   tier: 1 | 2 | 3;
   /** "러시아 국영", "미국 정부 발표"처럼 매체의 성격. 알 수 없으면 null. */
   label: string | null;
+  /** 본문 요약(통신사 표기를 찾는 데만 쓴다. 화면에 싣지 않는다) */
+  summary?: string;
 };
 
 /** 같은 사건을 다룬 최근 기사. 매체 등급을 같이 준다. 속보 자체와 같은 주소는 뺀다. */
@@ -67,6 +69,7 @@ export function articlesForFlash(
       at: rowAt,
       tier: row.trustTier,
       label: describeMedia(row.source, row.link).label,
+      summary: row.summary,
     });
   }
   return out.sort((a, b) => a.tier - b.tier || b.at - a.at).slice(0, MAX_ARTICLES);

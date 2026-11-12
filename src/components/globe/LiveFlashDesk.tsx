@@ -17,7 +17,13 @@ import type { FrontMap } from "@/lib/crossCheck/witnessFeeds";
 import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
 import { FlashEvidence } from "@/components/globe/FlashEvidence";
 import { nearbyItems } from "@/lib/flashNeon";
-import { computeFlashVerdict, flashVerdictBasis, flashVerdictLabel, type FlashVerdict } from "@/lib/news/flashVerdict";
+import {
+  computeFlashVerdict,
+  flashVerdictBasis,
+  flashVerdictLabel,
+  flashVerdictNote,
+  type FlashVerdict,
+} from "@/lib/news/flashVerdict";
 import { OFFICIAL_DOCS } from "@/data/officialDocs";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import { EventScenarioBoard } from "@/components/globe/EventScenarioBoard";
@@ -206,6 +212,17 @@ export function LiveFlashDesk({
     title = tr(title);
   }
   const photos = own.length > 0 ? own : related ? [related.imageUrl] : shipPhotos;
+  // 원 보도의 사진이 아닌 것은 사진 위에 직접 적는다. 캡션만으로는 현장 사진으로 읽히기 쉽다.
+  const photoNotice =
+    own.length === 0 && photos.length > 0
+      ? related
+        ? en
+          ? "Related article photo · not verified as on-scene"
+          : "관련 기사 사진 · 현장 확인 안 됨"
+        : en
+          ? "Reference photo of the vessel · not from the incident"
+          : "선박 참고 사진 · 사건 현장 아님"
+      : null;
   const cat = deskCategory(item, shipIds.has(item.id));
   const strike = ev ? isMajorConfirmedStrike(ev) : null;
   const posture = ev ? classifyRegionalPosture(ev) : null;
@@ -223,7 +240,13 @@ export function LiveFlashDesk({
   const evidenceArticles = articlesForFlash(flashText, item.at, newsPool, item.liveua?.sourceUrl);
   const evidenceDocCount = docsForFlash(flashText, OFFICIAL_DOCS).length;
   const verdictInfo = computeFlashVerdict(
-    evidenceArticles.map((r) => ({ publisher: r.source, source: r.source, trustTier: r.tier })),
+    evidenceArticles.map((r) => ({
+      publisher: r.source,
+      source: r.source,
+      trustTier: r.tier,
+      title: r.title,
+      summary: r.summary,
+    })),
   );
   const verdictShown = evidenceDocCount > 0 && verdictInfo.verdict === "nodata" ? { ...verdictInfo, partyOnly: true } : verdictInfo;
   const nearby = nearbyItems(item, sorted, now);
@@ -324,7 +347,10 @@ export function LiveFlashDesk({
         </header>
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
           <div className="flex flex-wrap items-center gap-2" data-flash-verdict={verdictShown.verdict}>
-            <span className={`rounded-sm px-1.5 py-0.5 text-micro font-semibold text-white ${VERDICT_CLS[verdictShown.verdict]}`}>
+            <span
+              className={`rounded-sm px-1.5 py-0.5 text-micro font-semibold text-white ${VERDICT_CLS[verdictShown.verdict]}`}
+              title={flashVerdictNote(en ? "en" : "ko")}
+            >
               {flashVerdictLabel(verdictShown.verdict, en ? "en" : "ko")}
             </span>
             <span className="text-micro text-[#5c4020]">
@@ -336,6 +362,9 @@ export function LiveFlashDesk({
                 : ""}
             </span>
           </div>
+          <p className="-mt-2 text-micro text-[#5c4020]/70" data-flash-verdict-note>
+            {flashVerdictNote(en ? "en" : "ko")}
+          </p>
           {ev?.videoUrl ? (
             <video
               className="aspect-[16/9] w-full rounded-sm bg-black object-contain"
@@ -348,8 +377,18 @@ export function LiveFlashDesk({
             />
           ) : shownPhoto ? (
             <div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={shownPhoto} alt="" className="max-h-72 w-full rounded-sm bg-black/80 object-contain" />
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={shownPhoto} alt="" className="max-h-72 w-full rounded-sm bg-black/80 object-contain" />
+                {photoNotice ? (
+                  <span
+                    className="absolute left-1.5 top-1.5 rounded-sm bg-black/75 px-1.5 py-0.5 text-micro font-semibold text-amber-100"
+                    data-flash-photo-notice
+                  >
+                    {photoNotice}
+                  </span>
+                ) : null}
+              </div>
               {photos.length > 1 ? (
                 <div className="mt-1 flex gap-1 overflow-x-auto">
                   {photos.map((src, i) => (
@@ -371,7 +410,7 @@ export function LiveFlashDesk({
                     <a href={related.articleUrl} target="_blank" rel="noopener noreferrer" className="underline">
                       {related.outlet}: {tr(related.articleTitle)}
                     </a>
-                    {en ? " (not from the scene itself)" : " (사건 현장 사진이 아닐 수 있음)"}
+                    {en ? " (not verified as a photo of the scene)" : " (이 사건의 현장 사진으로 확인되지 않음)"}
                   </>
                 ) : ev
                   ? en

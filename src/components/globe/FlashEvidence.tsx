@@ -61,6 +61,13 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
           </ul>
         </section>
       ) : null}
+      {docs.length === 0 && polledMatches.length === 0 ? (
+        <p className="px-0.5 text-micro text-[#5c4020]/70" data-flash-no-doc>
+          {en
+            ? "No government source document is linked to this flash yet."
+            : "이 속보에 연결된 정부 원문은 아직 없습니다."}
+        </p>
+      ) : null}
       {missile ? (
         <section data-missile-range>
           <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{missile.spec.auto ? (en ? "Missile range (auto-extracted from news · not reviewed)" : "미사일 사거리 (뉴스에서 자동 추출 · 검수 전)") : en ? "Missile range (open-source estimate)" : "미사일 사거리 (공개 추정)"}</p>
