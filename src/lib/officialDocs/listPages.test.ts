@@ -41,6 +41,15 @@ const CN_MOD = `<li><a href="http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/1649207
 
 const IN_MEA = `<div class="pressReleaseList"> <div class="pressRelesastBox"> <div class="d-flex"> <span class="date">12 November, 2026</span> </div> <h3 class="pressTitle"> <a href="/press-releases?dtl/41942/12th_round_of_India__South_Africa_Foreign_Office_Consultations"> 12th round of India - South Africa Foreign Office Consultations </a> </h3> <div class="d-flex tags"></div></div>`;
 
+const AU_DEF = `<div class="dod-card-item"> <a href="/news-events/releases/2026-11-09/aukus-partners-demonstrate-autonomous-systems-scale" class="card dod-card"> <div class="card-body"> <div class="row"><div class="col"><h6 class="dod-card-topic">Media release</h6></div></div> <h3>AUKUS partners demonstrate autonomous systems at scale</h3> </div> </a> </div>`;
+
+describe("호주 국방부 목록", () => {
+  it("보도자료: 제목·주소의 날짜", () => {
+    const r = parseListPage(AU_DEF, "https://www.defence.gov.au/news-events/releases", "au");
+    expect(r[0]).toMatchObject({ title: "AUKUS partners demonstrate autonomous systems at scale", publishedAt: "2026-11-09", url: "https://www.defence.gov.au/news-events/releases/2026-11-09/aukus-partners-demonstrate-autonomous-systems-scale" });
+  });
+});
+
 describe("인도 외교부 목록", () => {
   it("자바스크립트가 부르는 목록 조각에서 제목·날짜·주소", () => {
     const r = parseListPage(IN_MEA, "https://www.mea.gov.in/FrontEnd/FetchPublicationListingData?publicationId=51", "in");

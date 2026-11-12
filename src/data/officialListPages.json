@@ -88,5 +88,10 @@
     "issuerId": "in",
     "url": "https://www.mea.gov.in/FrontEnd/FetchPublicationListingData?publicationId=51&KeywordName=&SortBy=new&page=1&PageSize=20&DateRange=&IsInternalMEA=false&PLngId=1",
     "label": "인도 외교부(MEA) 보도자료"
+  },
+  {
+    "issuerId": "au",
+    "url": "https://www.defence.gov.au/news-events/releases",
+    "label": "호주 국방부 보도자료"
   }
 ]

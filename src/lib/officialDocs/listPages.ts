@@ -221,6 +221,21 @@ function indiaMea(html: string, pageUrl: string, issuerId: IssuerId): DocCandida
   return out;
 }
 
+/**
+ * 호주 국방부 보도자료(/news-events/releases): `<a href="/news-events/releases/2026-11-11/remembrance-day-2026"> … <h3>제목</h3>`.
+ * 날짜는 주소에 들어 있다(2026-11-12 실제 페이지 확인). 같은 사이트의 /news-events/news는 인물·행사 기사라 읽지 않는다.
+ */
+function australiaDefence(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(/<a\s+href="(\/news-events\/releases\/(\d{4}-\d{2}-\d{2})\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const t = m[3].match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+    const url = absolute(m[1], pageUrl);
+    const title = t ? clean(t[1]) : "";
+    if (url && title) out.push(candidate(issuerId, title, url, m[2]));
+  }
+  return out;
+}
+
 /** 일본 총리관저 영문 첫 화면: /statement/·/speech/ 글만. 날짜는 주소(202611/1111statement.html = 11월 11일)에서 읽는다. */
 function japanKantei(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
   const re = new RegExp(
@@ -350,6 +365,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mnd\.gov\.tw$/i, taiwanMnd],
   [/(^|\.)jcs\.mil\.kr$/i, koreaJcs],
   [/(^|\.)mea\.gov\.in$/i, indiaMea],
+  [/(^|\.)defence\.gov\.au$/i, australiaDefence],
   [/(^|\.)mod\.gov\.cn$/i, chinaMod],
   [/(^|\.)mod\.go\.jp$/i, japanMod],
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
