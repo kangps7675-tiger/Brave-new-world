@@ -1,5 +1,6 @@
 "use client";
 
+import type { MissileRangeFeatureCollection } from "@/lib/missileRange";
 import type { FlashNeonPoint } from "@/lib/flashNeon";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import {
@@ -226,6 +227,8 @@ export interface MapGlobeViewProps {
   interactiveLayerIds?: readonly string[];
   /** 중국 도련선 · 미군 방어선 · 대만 펄스 */
   showIslandChains?: boolean;
+  /** 열린 속보의 미사일 사거리 도형(칠한 면 + 점선 경계) */
+  missileRangeFc?: MissileRangeFeatureCollection | null;
   /** 인텔(다크 벡터) / 지형(MapLibre OSM 벡터+DEM) — mapStyleUrl 교체로 전환 */
   basemapMode?: BasemapMode;
   /** 도시명 레이어 체크박스 — OFF면 베이스맵 city/capital 라벨도 숨김 */
@@ -423,6 +426,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     mapStyleUrl: mapStyleUrlProp,
     backgroundColor = "#02040a",
     showIslandChains = false,
+    missileRangeFc = null,
   } = props;
   /** index signature로 unknown이 되므로 명시 파싱 */
   const mapStyleUrl =
@@ -2192,6 +2196,25 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     [activeIslandBaseId],
   );
 
+  /** 미사일 사거리 점선 흐름 — 도련선과 같은 dasharray 시퀀스. 움직임을 줄인 설정이면 정지한 점선 */
+  useEffect(() => {
+    if (!mapLoaded || !missileRangeFc || prefersReducedMotion()) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    let step = 0;
+    const id = window.setInterval(() => {
+      if (movingRef.current || document.hidden) return;
+      if (!map.getLayer("missile-range-line")) return;
+      step = (step + 1) % CHINA_DASH_SEQUENCE.length;
+      try {
+        map.setPaintProperty("missile-range-line", "line-dasharray", CHINA_DASH_SEQUENCE[step]!);
+      } catch {
+        /* 스타일 전환 중 */
+      }
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [mapLoaded, missileRangeFc]);
+
   /** 중국 도련선 점선 흐름 + 대만 펄스 — 100ms (내장 GPU 친화) */
   useEffect(() => {
     if (!mapLoaded || !showIslandChains) return;
@@ -3851,6 +3874,23 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "circle-stroke-width": 1,
                 "circle-stroke-color": ["get", "color"],
               }}
+            />
+          </Source>
+        ) : null}
+
+        {missileRangeFc ? (
+          <Source id="missile-range-source" type="geojson" data={missileRangeFc as unknown as GeoJSON.FeatureCollection}>
+            <Layer
+              id="missile-range-fill"
+              type="fill"
+              filter={["==", ["get", "part"], "fill"]}
+              paint={{ "fill-color": "#ef4444", "fill-opacity": 0.2 }}
+            />
+            <Layer
+              id="missile-range-line"
+              type="line"
+              filter={["==", ["get", "part"], "line"]}
+              paint={{ "line-color": "#ef4444", "line-width": 2, "line-opacity": 0.9, "line-dasharray": [0, 4, 3] }}
             />
           </Source>
         ) : null}

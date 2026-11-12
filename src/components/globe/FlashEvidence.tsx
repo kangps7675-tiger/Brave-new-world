@@ -7,6 +7,7 @@ import { OFFICIAL_DOCS } from "@/data/officialDocs";
 import { usePolledOfficialDocs } from "@/hooks/usePolledOfficialDocs";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import { polledDocsForFlash } from "@/lib/officialDocs/matchPolled";
+import { formatRangeKm, missileRangeForText } from "@/lib/missileRange";
 import type { NewsStreamItem } from "@/lib/news/types";
 
 type Props = {
@@ -22,6 +23,7 @@ type Props = {
 export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const docs = docsForFlash(text, OFFICIAL_DOCS);
   const articles = articlesForFlash(text, at, newsPool, ownUrl);
+  const missile = missileRangeForText(text);
   const polled = usePolledOfficialDocs();
   const polledMatches = polledDocsForFlash(text, at, polled, { excludeUrls: new Set(docs.map((d) => d.sourceUrl)) });
 
@@ -36,6 +38,25 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
               <OfficialDocCard key={doc.id} doc={doc} en={en} />
             ))}
           </ul>
+        </section>
+      ) : null}
+      {missile ? (
+        <section data-missile-range>
+          <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{en ? "Missile range (open-source estimate)" : "미사일 사거리 (공개 추정)"}</p>
+          <div className="mt-1 rounded-sm border border-[#6b4a22]/20 bg-[#f7edd4]/70 px-2 py-1">
+            <p className="text-micro leading-snug">
+              {missile.spec.name} · {formatRangeKm(missile.spec)}
+            </p>
+            <p className="mt-0.5 text-micro text-[#5c4020]">
+              {missile.spec.note ? `${missile.spec.note}. ` : ""}
+              {en
+                ? "The red area on the globe is the maximum range drawn from this report's location, treated as the launch point. Estimates differ by source."
+                : "지구본의 붉은 면은 이 속보의 위치를 발사 지점으로 보고 최대 사거리로 그린 것입니다. 출처마다 추정이 다릅니다."}{" "}
+              <a href={missile.spec.source.url} target="_blank" rel="noopener noreferrer" className="underline">
+                {missile.spec.source.name}
+              </a>
+            </p>
+          </div>
         </section>
       ) : null}
       <PolledDocsSection matches={polledMatches} en={en} />
