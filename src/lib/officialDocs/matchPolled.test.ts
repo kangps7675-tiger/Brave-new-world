@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { rareTagsOf } from "@/lib/news/eventScenarios";
-import { polledDocsForFlash, type PolledDoc } from "./matchPolled";
+import { groupBySide, polledDocsForFlash, splitRivalSides, type PolledDoc } from "./matchPolled";
 
 const AT = Date.parse("2026-11-12T00:00:00Z");
 
@@ -40,10 +40,10 @@ describe("polledDocsForFlash", () => {
     expect(polledDocsForFlash("Attack near Hormuz", AT, [old, future, none])).toEqual([]);
   });
 
-  it("이미 승인 문서로 보이는 주소는 제외하고, 최대 3건만 점수순으로", () => {
+  it("이미 승인 문서로 보이는 주소는 제외하고, 한 나라에서는 2건만 점수순으로", () => {
     const rows = [1, 2, 3, 4].map((i) => doc({ id: String(i), url: `https://example.gov/${i}`, tags: "hormuz", publishedAt: `2026-11-0${i + 4}` }));
     const out = polledDocsForFlash("Attack near Hormuz", AT, rows, { excludeUrls: new Set(["https://example.gov/4"]) });
-    expect(out.map((r) => r.doc.id)).toEqual(["3", "2", "1"]);
+    expect(out.map((r) => r.doc.id)).toEqual(["3", "2"]);
   });
 
   it("일본어·중국어·러시아어·우크라이나어 제목에서도 희귀 지명이 읽혀 영어 속보에 붙는다", () => {
@@ -62,5 +62,55 @@ describe("polledDocsForFlash", () => {
     const rows = polledDocsForFlash("US imposes sanctions on Rosneft shipping network, Ukraine says", AT, [ua]);
     expect(rows).toHaveLength(1);
     expect(rows[0].reasons.terms).toEqual(expect.arrayContaining(["rosneft"]));
+  });
+
+  it("한 나라가 자리를 독차지하지 않아 당사국 양쪽이 같이 붙고, 나라별로 묶인다", () => {
+    const us = [1, 2, 3].map((i) => doc({ id: `us${i}`, issuerId: "us", url: `https://us.gov/${i}`, tags: "hormuz", publishedAt: `2026-11-0${i + 5}` }));
+    const cn = doc({ id: "cn1", issuerId: "cn", url: "https://cn.gov/1", tags: "hormuz", publishedAt: "2026-11-05" });
+    const out = polledDocsForFlash("Attack near Hormuz", AT, [...us, cn]);
+    expect(out.map((r) => r.doc.id)).toEqual(["us3", "us2", "cn1"]);
+    const groups = groupBySide(out);
+    expect(groups.map((g) => g.issuerId)).toEqual(["us", "cn"]);
+    expect(groups[0].matches).toHaveLength(2);
+  });
+
+  describe("맞서는 당사국 쌍", () => {
+    const flash = "US adds Chinese firms to export control entity list, China vows countermeasures";
+    // 당사자(1) + 겹치는 단어 하나(1) = 2점. 평소엔 안 붙지만 두 맞수가 함께 나온 속보에서는 붙는다.
+    const cnReply = (over: Partial<PolledDoc> = {}) => doc({ id: "cn1", issuerId: "cn", url: "https://cn.gov/1", title: "Spokesperson on countermeasures against unilateral bullying", ...over });
+    const usList = (i: number) => doc({ id: `us${i}`, issuerId: "us", url: `https://us.gov/${i}`, tags: "topic:export-control", title: `Entity list additions ${i} export control`, publishedAt: `2026-11-1${i}` });
+
+    it("두 맞수가 함께 나온 속보에서는 상대 쪽 반응 문서가 낮은 기준으로도 붙고 표시가 남는다", () => {
+      const rows = polledDocsForFlash(flash, AT, [cnReply()]);
+      expect(rows).toHaveLength(1);
+      expect(rows[0].reasons.rival).toBe(true);
+    });
+
+    it("한쪽만 나온 속보에서는 느슨하게 받지 않는다", () => {
+      expect(polledDocsForFlash("China vows countermeasures", AT, [cnReply()])).toEqual([]);
+    });
+
+    it("맞수가 아닌 나라 문서는 느슨하게 받지 않는다", () => {
+      const de = doc({ id: "de1", issuerId: "de", url: "https://de.gov/1", title: "Spokesperson on countermeasures against unilateral bullying" });
+      expect(polledDocsForFlash(flash, AT, [de])).toEqual([]);
+    });
+
+    it("한쪽 점수가 훨씬 높아도 상대 쪽이 한 건 이상 같이 뽑힌다", () => {
+      const out = polledDocsForFlash(flash, AT, [usList(1), usList(2), cnReply()]);
+      expect(out.map((r) => r.doc.issuerId).sort()).toEqual(["cn", "us", "us"]);
+    });
+
+    it("splitRivalSides는 맞서는 쌍을 쌍에 적힌 순서(미국→중국)대로 왼쪽·오른쪽에 놓고 나머지를 따로 둔다", () => {
+      const eu = doc({ id: "eu1", issuerId: "eu", url: "https://eu.gov/1", tags: "hormuz" });
+      const groups = groupBySide([
+        { doc: cnReply(), score: 5, reasons: { places: [], topics: [], terms: [], actor: true } },
+        { doc: eu, score: 4, reasons: { places: [], topics: [], terms: [], actor: false } },
+        { doc: usList(1), score: 4, reasons: { places: [], topics: [], terms: [], actor: true } },
+      ]);
+      const { pair, rest } = splitRivalSides(groups);
+      expect(pair?.map((g) => g.issuerId)).toEqual(["us", "cn"]);
+      expect(rest.map((g) => g.issuerId)).toEqual(["eu"]);
+      expect(splitRivalSides(groups.filter((g) => g.issuerId !== "cn")).pair).toBeNull();
+    });
   });
 });
