@@ -77,15 +77,24 @@ export function parseJmodReport(html: string, item: JmodListItem): JmodReport | 
 
 const KP_LAUNCH = /(north korea|dprk|pyongyang|북한|조선|北朝鮮)/i;
 
-/** 속보가 북한 발사 글이면, 발사 시각이 속보 12시간 전~2시간 후인 방위성 발표 중 가장 가까운 것 */
+/** 후보 둘이 이 시간보다 가깝게 붙어 있으면 어느 쪽 속보인지 가를 수 없다고 본다 */
+const AMBIGUOUS_GAP_MS = 3 * 3600_000;
+
+/**
+ * 속보가 북한 발사 글이면, 발사 시각이 속보 12시간 전~2시간 후인 방위성 발표 중 가장 가까운 것.
+ * 창 안에 발표가 둘 이상이고 가장 가까운 것과 그다음의 차이가 3시간 미만이면(같은 날 두 번 쏜 경우),
+ * 잘못 붙이느니 붙이지 않는다 — 비행거리·낙하 해역이 다른 발사의 것으로 바뀌어 보이면 안 된다.
+ */
 export function jmodReportForFlash(text: string, at: number, reports: readonly JmodReport[]): JmodReport | null {
   if (!KP_LAUNCH.test(text) || !/(launch|fired|fire|test|발사|ミサイル)/i.test(text) || !Number.isFinite(at)) return null;
-  let best: { r: JmodReport; gap: number } | null = null;
+  const inWindow: { r: JmodReport; gap: number }[] = [];
   for (const r of reports) {
     const l = r.launchAt ? Date.parse(r.launchAt) : NaN;
     if (!Number.isFinite(l) || l < at - 12 * 3600_000 || l > at + 2 * 3600_000) continue;
-    const gap = Math.abs(l - at);
-    if (!best || gap < best.gap) best = { r, gap };
+    inWindow.push({ r, gap: Math.abs(l - at) });
   }
-  return best?.r ?? null;
+  inWindow.sort((a, b) => a.gap - b.gap);
+  if (inWindow.length === 0) return null;
+  if (inWindow.length > 1 && inWindow[1].gap - inWindow[0].gap < AMBIGUOUS_GAP_MS) return null;
+  return inWindow[0].r;
 }

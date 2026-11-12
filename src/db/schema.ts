@@ -1342,6 +1342,12 @@ export const officialDocFeed = sqliteTable(
     feed: text("feed").notNull(),
     /** 문서를 낸 기관(`drizzle/0043`). 한 목록에 여러 기관이 섞인 소스(연방관보)용. */
     agency: text("agency").notNull().default(""),
+    /** 제목·요약의 한국어/영어 번역(`drizzle/0044`). 빈 문자열이면 아직 없음. 번역 시도는 translate_tries로 3번까지만. */
+    titleKo: text("title_ko").notNull().default(""),
+    titleEn: text("title_en").notNull().default(""),
+    summaryKo: text("summary_ko").notNull().default(""),
+    summaryEn: text("summary_en").notNull().default(""),
+    translateTries: integer("translate_tries").notNull().default(0),
     ingestedAt: text("ingested_at").notNull(),
   },
   (t) => ({

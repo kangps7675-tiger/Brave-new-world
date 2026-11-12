@@ -24,9 +24,9 @@ describe("공식 문서 종류·무게", () => {
   });
 
   it("17곳이 모두 있고 id가 겹치지 않는다", () => {
-    expect(ISSUERS).toHaveLength(23);
-    expect(new Set(ISSUERS.map((row) => row.id)).size).toBe(23);
-    expect(ISSUER_IDS).toHaveLength(23);
+    expect(ISSUERS).toHaveLength(27);
+    expect(new Set(ISSUERS.map((row) => row.id)).size).toBe(27);
+    expect(ISSUER_IDS).toHaveLength(27);
     expect(ISSUERS.find((row) => row.id === "nato")?.kind).toBe("organization");
   });
 });
@@ -46,6 +46,17 @@ describe("피드 읽기", () => {
     expect(rows[0].url).toBe("https://www.gov.uk/government/news/joint-statement-uk-japan");
     expect(worthKeeping(rows[0])).toBe(true);
     expect(worthKeeping(rows[1])).toBe(false);
+  });
+
+  it("러시아 외무부 문서는 보도자료·브리핑·장관 발언도 모두 남긴다", () => {
+    const row = (issuerId: string, title: string) => {
+      const kind = classifyDocKind(title);
+      return { issuerId, title, url: "u", publishedAt: null, kind, weight: weightOf(kind), summary: "" } as Parameters<typeof worthKeeping>[0];
+    };
+    expect(worthKeeping(row("ru", "Press release on summoning the Ambassador of Moldova to the Foreign Ministry"))).toBe(true);
+    expect(worthKeeping(row("ru", "Briefing by Foreign Ministry Spokeswoman Maria Zakharova, Moscow, November 11, 2026"))).toBe(true);
+    expect(worthKeeping(row("ru", "Foreign Minister Sergey Lavrov’s remarks at a Joint Meeting of the Council"))).toBe(true);
+    expect(worthKeeping(row("fr", "Press release on summoning the Ambassador"))).toBe(false);
   });
 
   it("RSS와 HTML 오류 페이지를 구분한다", () => {
@@ -124,3 +135,26 @@ describe("승인 검사", () => {
     expect(classifyDocKind("Joint statement by the foreign ministers of Japan and Korea")).toBe("joint-statement");
   });
 });
+
+describe("러시아 외무부 Atom 피드(2026-11-12 실제 응답 모양)", () => {
+  it("self-closing link와 published 날짜를 읽는다", () => {
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title type="html">The Ministry of Foreign Affairs of the Russian Federation</title>
+  <link rel="alternate" href="http://mid.ru/en/rss.php"/>
+  <updated>11/12/2026</updated>
+  <entry>
+    <title type="html">Briefing by Foreign Ministry Spokeswoman Maria Zakharova, Moscow, November 11, 2026</title>
+    <link href="http://mid.ru/en/foreign_policy/news/2162475/"/>
+    <summary type="html"/>
+    <id>http://mid.ru/en/foreign_policy/news/2162475/</id>
+    <published>2026-11-11T19:22:00+03:00</published>
+  </entry>
+</feed>`;
+    const rows = parseOfficialFeed(xml, "ru");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ url: "http://mid.ru/en/foreign_policy/news/2162475/", publishedAt: "2026-11-11" });
+    expect(worthKeeping(rows[0])).toBe(true);
+  });
+});
+

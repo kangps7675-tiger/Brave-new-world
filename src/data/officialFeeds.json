@@ -82,16 +82,6 @@
     "format": "federal-register"
   },
   {
-    "issuerId": "kr",
-    "url": "https://www.korea.kr/rss/pressrelease.xml",
-    "label": "한국 정책브리핑 · 전 부처 보도자료"
-  },
-  {
-    "issuerId": "kr",
-    "url": "https://www.korea.kr/rss/policy.xml",
-    "label": "한국 정책브리핑 · 정책 뉴스"
-  },
-  {
     "issuerId": "in",
     "url": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3",
     "label": "인도 PIB · 전 부처 보도자료"
@@ -220,5 +210,35 @@
     "issuerId": "ru",
     "url": "https://www.mid.ru/en/rss.php",
     "label": "러시아 외무부 영문 Atom 피드"
+  },
+  {
+    "issuerId": "au",
+    "url": "https://www.foreignminister.gov.au/rss.xml",
+    "label": "호주 외교장관(페니 웡) 보도자료"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://president.ir/en/rss/all",
+    "label": "이란 대통령실 소식(영문)"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://en.irna.ir/rss",
+    "label": "이란 국영통신 IRNA(영문, 국영 매체 보도)"
+  },
+  {
+    "issuerId": "lv",
+    "url": "https://www.mfa.gov.lv/en/rss/articles",
+    "label": "라트비아 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "fi",
+    "url": "https://um.fi/o/rss?dctype=asset&lang=en_US&aid=gc654PySnjTX&plid=709011",
+    "label": "핀란드 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "md",
+    "url": "https://mfa.gov.md/en/press/feed.xml",
+    "label": "몰도바 외교부 보도자료(영문)"
   }
 ]

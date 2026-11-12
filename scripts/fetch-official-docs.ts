@@ -49,6 +49,11 @@ async function get(url: string): Promise<{ body: string; type: string }> {
   return { body, type };
 }
 
+/** 응답 앞부분을 한 줄로(막힌 응답이 '확인 중입니다' 같은 HTML인지 알아보려고) */
+function headOf(body: string): string {
+  return `${body.length}자 · ${body.replace(/\s+/g, " ").slice(0, 120)}`;
+}
+
 async function collect(): Promise<void> {
   const known = new Set(OFFICIAL_DOCS.map((doc) => doc.sourceUrl));
   const all: DocCandidate[] = [];
@@ -62,6 +67,11 @@ async function collect(): Promise<void> {
     try {
       const { body } = await get(feed.url);
       const rows = candidatesOfBody(body, { issuerId: feed.issuerId, url: feed.url, label: feed.label, format: feed.format });
+      // 워커와 같은 기준: 연방관보 주제 검색이 아닌데 한 건도 못 읽었으면 성공이 아니다(막힌 응답이나 형식이 다른 응답)
+      if (rows.length === 0 && feed.format !== "federal-register") {
+        console.log(`✗ ${feed.name} · ${feed.label}: 0건 — 받은 응답: ${headOf(body)}`);
+        continue;
+      }
       console.log(`✓ ${feed.name} · ${feed.label}: ${rows.length}건${feed.verified ? "" : " (주소 미확인이었음)"}`);
       all.push(...rows);
     } catch (error) {
@@ -74,7 +84,7 @@ async function collect(): Promise<void> {
     try {
       const { body } = await get(page.url);
       const rows = parseListPage(body, page.url, page.issuerId);
-      console.log(rows.length > 0 ? `✓ ${issuerNameKo(page.issuerId)} · ${page.label}: ${rows.length}건 (목록 페이지)` : `✗ ${issuerNameKo(page.issuerId)} · ${page.label}: 0건 — 페이지 구조가 바뀌었을 수 있다`);
+      console.log(rows.length > 0 ? `✓ ${issuerNameKo(page.issuerId)} · ${page.label}: ${rows.length}건 (목록 페이지)` : `✗ ${issuerNameKo(page.issuerId)} · ${page.label}: 0건 — 구조가 바뀌었거나 막힌 응답. 받은 응답: ${headOf(body)}`);
       all.push(...rows);
     } catch (error) {
       console.log(`✗ ${issuerNameKo(page.issuerId)} · ${page.label}: ${(error as Error).message}`);

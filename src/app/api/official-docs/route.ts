@@ -1,9 +1,10 @@
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { officialDocFeed, officialDocPoll } from "@/db/schema";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { isValidIssuerId } from "@/data/officialDocs";
+import { buildFeedStatus } from "@/lib/officialDocs/health";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,10 +27,25 @@ export async function GET(request: Request) {
   if (url.searchParams.get("status")) {
     try {
       const db = await getDb();
-      const feeds = await db.select().from(officialDocPoll).orderBy(desc(officialDocPoll.checkedAt));
-      return NextResponse.json({ feeds, ok: feeds.filter((f) => f.ok === 1).length, failed: feeds.filter((f) => f.ok !== 1).length }, { headers: { "Cache-Control": "no-store" } });
+      const polls = await db.select().from(officialDocPoll).orderBy(desc(officialDocPoll.checkedAt));
+      const stored = await db
+        .select({ feed: officialDocFeed.feed, count: sql<number>`count(*)`, newestPublishedAt: sql<string | null>`max(${officialDocFeed.publishedAt})` })
+        .from(officialDocFeed)
+        .groupBy(officialDocFeed.feed);
+      // 수집 성공 여부만이 아니라, 실제로 문서가 쌓이는지까지 겹쳐 본다(조용히 0건이 된 소스를 가려내려고)
+      const health = buildFeedStatus(polls, stored);
+      return NextResponse.json(
+        {
+          feeds: health.feeds,
+          ok: polls.filter((f) => f.ok === 1).length,
+          failed: polls.filter((f) => f.ok !== 1).length,
+          counts: health.counts,
+          needsAttention: health.needsAttention.map((f) => ({ feed: f.feed, health: f.health, reason: f.reason, error: f.error })),
+        },
+        { headers: { "Cache-Control": "no-store" } },
+      );
     } catch {
-      return NextResponse.json({ feeds: [], ok: 0, failed: 0 });
+      return NextResponse.json({ feeds: [], ok: 0, failed: 0, counts: {}, needsAttention: [] });
     }
   }
 
@@ -38,7 +54,22 @@ export async function GET(request: Request) {
     const where = issuer
       ? and(eq(officialDocFeed.issuerId, issuer), gte(officialDocFeed.publishedAt, since))
       : gte(officialDocFeed.publishedAt, since);
-    const rows = await db.select().from(officialDocFeed).where(where).orderBy(desc(officialDocFeed.publishedAt)).limit(150);
+    let rows: Array<Record<string, unknown>>;
+    try {
+      rows = await db.select().from(officialDocFeed).where(where).orderBy(desc(officialDocFeed.publishedAt)).limit(150);
+    } catch {
+      // 0044(번역 칸) 마이그레이션 전이면 옛 칸만 읽는다 — 번역이 없어도 문서 목록은 계속 나와야 한다
+      rows = await db
+        .select({
+          id: officialDocFeed.id, issuerId: officialDocFeed.issuerId, kind: officialDocFeed.kind, weight: officialDocFeed.weight,
+          title: officialDocFeed.title, url: officialDocFeed.url, publishedAt: officialDocFeed.publishedAt, summary: officialDocFeed.summary,
+          tags: officialDocFeed.tags, feed: officialDocFeed.feed, agency: officialDocFeed.agency, ingestedAt: officialDocFeed.ingestedAt,
+        })
+        .from(officialDocFeed)
+        .where(where)
+        .orderBy(desc(officialDocFeed.publishedAt))
+        .limit(150);
+    }
     return NextResponse.json(
       { docs: rows, fetchedAt: new Date().toISOString() },
       { headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800" } },
