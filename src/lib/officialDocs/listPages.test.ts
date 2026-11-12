@@ -39,6 +39,15 @@ const JMOD = `<div class="news__item"><dt class="date">10/29</dt><dd class="news
 
 const CN_MOD = `<li><a href="http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/16492077.html" target="_blank"> 国防部新闻发言人陈曦就赖清德发表所谓“双十”讲话答记者问</a> <p> </p> <span class="time">2026-10-11 11:19</span><span class="qrcode">手机阅读</span> </li>`;
 
+const IN_MEA = `<div class="pressReleaseList"> <div class="pressRelesastBox"> <div class="d-flex"> <span class="date">12 November, 2026</span> </div> <h3 class="pressTitle"> <a href="/press-releases?dtl/41942/12th_round_of_India__South_Africa_Foreign_Office_Consultations"> 12th round of India - South Africa Foreign Office Consultations </a> </h3> <div class="d-flex tags"></div></div>`;
+
+describe("인도 외교부 목록", () => {
+  it("자바스크립트가 부르는 목록 조각에서 제목·날짜·주소", () => {
+    const r = parseListPage(IN_MEA, "https://www.mea.gov.in/FrontEnd/FetchPublicationListingData?publicationId=51", "in");
+    expect(r[0]).toMatchObject({ title: "12th round of India - South Africa Foreign Office Consultations", publishedAt: "2026-11-12", url: "https://www.mea.gov.in/press-releases?dtl/41942/12th_round_of_India__South_Africa_Foreign_Office_Consultations" });
+  });
+});
+
 describe("중국 국방부 목록", () => {
   it("대변인 답변: 제목·날짜·주소", () => {
     const r = parseListPage(CN_MOD, "http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/index.html", "cn");
@@ -116,9 +125,9 @@ describe("목록 페이지 읽기", () => {
   });
 
   it("읽는 함수가 없는 호스트는 빈 목록", () => {
-    expect(parseListPage("<a href='x'>x</a>", "https://www.mea.gov.in/press-releases", "in")).toEqual([]);
+    expect(parseListPage("<a href='x'>x</a>", "https://pib.gov.in/allRel.aspx", "in")).toEqual([]);
     expect(hasListPageReader("https://www.nato.int/x")).toBe(true);
-    expect(hasListPageReader("https://www.mea.gov.in/")).toBe(false);
+    expect(hasListPageReader("https://pib.gov.in/")).toBe(false);
   });
 
   it("프랑스 대통령실: 앞의 날짜·유형을 떼고 주소에서 날짜를 읽는다", () => {

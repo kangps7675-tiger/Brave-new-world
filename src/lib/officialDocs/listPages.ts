@@ -201,6 +201,26 @@ function chinaMod(html: string, pageUrl: string, issuerId: IssuerId): DocCandida
   return out;
 }
 
+/**
+ * 인도 외교부(MEA) 보도자료. 화면(/press-releases)의 목록은 자바스크립트가 불러오는 것이라 서버가 받는 HTML에는 없다.
+ * 그 자바스크립트가 부르는 주소(/FrontEnd/FetchPublicationListingData?publicationId=51…)는 목록 조각을 HTML로 돌려주므로 그 주소를 목록으로 쓴다.
+ * 조각 구조: `<div class="pressRelesastBox"><span class="date">12 November, 2026</span><h3 class="pressTitle"><a href="/press-releases?dtl/41942/…">제목</a>`(2026-11-12 확인).
+ */
+function indiaMea(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const box of html.split(/<div class="pressRelesastBox"/i).slice(1)) {
+    const d = box.match(/<span class="date">\s*(\d{1,2})\s+([A-Za-z]+),?\s+(\d{4})\s*<\/span>/i);
+    const a = box.match(/<h3 class="pressTitle">\s*<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
+    if (!a) continue;
+    const month = d ? MONTHS[d[2].toLowerCase()] : undefined;
+    const date = d && month ? `${d[3]}-${month}-${pad(d[1])}` : null;
+    const url = absolute(a[1], pageUrl);
+    const title = clean(a[2]);
+    if (url && title) out.push(candidate(issuerId, title, url, date));
+  }
+  return out;
+}
+
 /** 일본 총리관저 영문 첫 화면: /statement/·/speech/ 글만. 날짜는 주소(202611/1111statement.html = 11월 11일)에서 읽는다. */
 function japanKantei(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
   const re = new RegExp(
@@ -329,6 +349,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mnd\.go\.kr$/i, koreaMnd],
   [/(^|\.)mnd\.gov\.tw$/i, taiwanMnd],
   [/(^|\.)jcs\.mil\.kr$/i, koreaJcs],
+  [/(^|\.)mea\.gov\.in$/i, indiaMea],
   [/(^|\.)mod\.gov\.cn$/i, chinaMod],
   [/(^|\.)mod\.go\.jp$/i, japanMod],
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],

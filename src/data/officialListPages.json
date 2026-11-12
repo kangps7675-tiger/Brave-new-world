@@ -83,5 +83,10 @@
     "issuerId": "cn",
     "url": "https://www.mfa.gov.cn/eng/xw/fyrbt/lxjzh/",
     "label": "중국 외교부 정례 브리핑(Regular Press Conferences)"
+  },
+  {
+    "issuerId": "in",
+    "url": "https://www.mea.gov.in/FrontEnd/FetchPublicationListingData?publicationId=51&KeywordName=&SortBy=new&page=1&PageSize=20&DateRange=&IsInternalMEA=false&PLngId=1",
+    "label": "인도 외교부(MEA) 보도자료"
   }
 ]
