@@ -1,6 +1,8 @@
 import feedsJson from "@/data/officialFeeds.json";
+import listPagesJson from "@/data/officialListPages.json";
 import { ISSUERS } from "@/data/officialDocs";
 import { parseOfficialFeed, worthKeeping, type DocCandidate } from "@/lib/officialDocs/feed";
+import { parseListPage } from "@/lib/officialDocs/listPages";
 import { rareTagsOf } from "@/lib/news/eventScenarios";
 
 /**
@@ -10,7 +12,8 @@ import { rareTagsOf } from "@/lib/news/eventScenarios";
 
 const MAX_NEW_PER_FEED = 60;
 
-export type OfficialDocFeedSource = { issuerId: string; url: string; label: string };
+/** page = RSS가 없어 목록 페이지를 직접 읽는 곳(listPages.ts) */
+export type OfficialDocFeedSource = { issuerId: string; url: string; label: string; page?: boolean };
 
 export function officialFeedSources(): OfficialDocFeedSource[] {
   const out: OfficialDocFeedSource[] = [];
@@ -21,6 +24,7 @@ export function officialFeedSources(): OfficialDocFeedSource[] {
     out.push(s);
   };
   for (const f of feedsJson as OfficialDocFeedSource[]) add(f);
+  for (const f of listPagesJson as OfficialDocFeedSource[]) add({ ...f, page: true });
   for (const issuer of ISSUERS) {
     for (const f of issuer.feeds) if (f.url) add({ issuerId: issuer.id, url: f.url, label: f.label });
   }
@@ -51,7 +55,8 @@ async function sha1Hex(s: string): Promise<string> {
 /** 피드 XML → 저장할 행 (테스트용으로 export) */
 export async function rowsFromOfficialFeed(xml: string, source: OfficialDocFeedSource): Promise<OfficialDocFeedWriteRow[]> {
   const rows: OfficialDocFeedWriteRow[] = [];
-  const candidates: DocCandidate[] = parseOfficialFeed(xml, source.issuerId).filter(worthKeeping);
+  const parsed = source.page ? parseListPage(xml, source.url, source.issuerId) : parseOfficialFeed(xml, source.issuerId);
+  const candidates: DocCandidate[] = parsed.filter(worthKeeping);
   for (const c of candidates.slice(0, MAX_NEW_PER_FEED)) {
     rows.push({
       id: await sha1Hex(c.url),

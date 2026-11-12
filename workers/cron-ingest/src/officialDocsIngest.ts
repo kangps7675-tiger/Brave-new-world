@@ -2,6 +2,7 @@
  * 각국 정부·기구의 공식 문서 새 글 → D1 `official_doc_feed`.
  *
  *  - 소스: `src/data/officialFeeds.json`(등록한 피드) + ISSUERS에 내장된 피드(영국·EU)
+ *    + `src/data/officialListPages.json`(RSS 없는 사이트의 목록 페이지: 나토·대만·프랑스·한국·일본 총리관저)
  *  - 합의문·팩트시트·회담 요약·성명·조약만 남긴다(`worthKeeping`). 연설·일반 보도자료는 버린다.
  *  - 원문은 저장하지 않는다. 제목 + 링크 + 요약 280자 + 읽힌 지명 태그만(이용 조건이 사이트마다 다르다).
  *  - 30분 최소 간격 자체 스로틀. 피드별 성공·실패를 `official_doc_poll`에 남긴다
@@ -11,6 +12,7 @@
 
 import type { IngestEnv } from "./env";
 import { rowsFromOfficialFeed, officialFeedSources, type OfficialDocFeedWriteRow } from "../../../src/lib/officialDocs/ingestRows";
+import { parseListPage } from "../../../src/lib/officialDocs/listPages";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
@@ -83,7 +85,12 @@ export async function fetchAndUpsertOfficialDocs(env: IngestEnv): Promise<{
           redirect: "follow",
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const rows = await rowsFromOfficialFeed(await res.text(), source);
+        const body = await res.text();
+        const rows = await rowsFromOfficialFeed(body, source);
+        // 목록 페이지는 구조가 바뀌면 0건이 되므로, 읽는 함수가 아무것도 못 읽었을 때를 실패로 남긴다
+        if (source.page && parseListPage(body, source.url, source.issuerId).length === 0) {
+          throw new Error("목록 페이지에서 0건 — 구조가 바뀌었거나 막힌 응답");
+        }
         await recordPoll(env.DB, source.label, true, rows.length, null).catch(() => undefined);
         return rows;
       } catch (e) {
