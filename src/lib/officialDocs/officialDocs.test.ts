@@ -48,14 +48,14 @@ describe("피드 읽기", () => {
     expect(worthKeeping(rows[1])).toBe(false);
   });
 
-  it("러시아 외무부의 \"Press release on …\"은 남기고 브리핑·장관 발언은 버린다", () => {
+  it("러시아 외무부 문서는 보도자료·브리핑·장관 발언도 모두 남긴다", () => {
     const row = (issuerId: string, title: string) => {
       const kind = classifyDocKind(title);
       return { issuerId, title, url: "u", publishedAt: null, kind, weight: weightOf(kind), summary: "" } as Parameters<typeof worthKeeping>[0];
     };
     expect(worthKeeping(row("ru", "Press release on summoning the Ambassador of Moldova to the Foreign Ministry"))).toBe(true);
-    expect(worthKeeping(row("ru", "Briefing by Foreign Ministry Spokeswoman Maria Zakharova, Moscow, November 11, 2026"))).toBe(false);
-    expect(worthKeeping(row("ru", "Foreign Minister Sergey Lavrov’s remarks at a Joint Meeting of the Council"))).toBe(false);
+    expect(worthKeeping(row("ru", "Briefing by Foreign Ministry Spokeswoman Maria Zakharova, Moscow, November 11, 2026"))).toBe(true);
+    expect(worthKeeping(row("ru", "Foreign Minister Sergey Lavrov’s remarks at a Joint Meeting of the Council"))).toBe(true);
     expect(worthKeeping(row("fr", "Press release on summoning the Ambassador"))).toBe(false);
   });
 

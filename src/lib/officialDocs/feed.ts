@@ -68,10 +68,10 @@ export function parseOfficialFeed(xml: string, issuerId: IssuerId): DocCandidate
 
 /**
  * 합의문·팩트시트·회담 요약·성명·조약만 남긴다. 연설·기자회견과 일반 보도자료는 --all일 때만.
- * 예외: 러시아 외무부는 사건이 생기면 "Press release on summoning the Ambassador of …"처럼 보도자료로 입장을 내므로,
- * 러시아의 "Press release on …"은 남긴다(대변인 브리핑·장관 발언은 그대로 버린다).
+ * 예외: 러시아 외무부는 사건이 생기면 보도자료("Press release on summoning the Ambassador of …")·대변인 브리핑·
+ * 장관 발언으로 입장을 내므로, 러시아 문서는 종류와 상관없이 모두 남긴다.
  */
 export function worthKeeping(row: DocCandidate): boolean {
-  if (row.issuerId === "ru" && row.kind === "press-release" && /^press release on\b/i.test(row.title.trim())) return true;
+  if (row.issuerId === "ru") return true;
   return row.kind !== "remarks" && row.kind !== "press-release";
 }
