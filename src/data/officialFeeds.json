@@ -225,5 +225,10 @@
     "issuerId": "ir",
     "url": "https://president.ir/en/rss/all",
     "label": "이란 대통령실 소식(영문)"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://en.irna.ir/rss",
+    "label": "이란 국영통신 IRNA(영문, 국영 매체 보도)"
   }
 ]
