@@ -388,6 +388,25 @@ function qatarMofa(html: string, pageUrl: string, issuerId: IssuerId): DocCandid
 }
 
 /**
+ * 우크라이나 외교부 타임라인(/timeline?&type=posts): 날짜별 `<div class="timeline-block" id="12.11.2026">` 안에
+ * 항목마다 `<a class="title" href="/news/슬러그"><span>제목</span></a>`가 있다(2026-11-12 실제 페이지 확인).
+ * 제목이 우크라이나어라 영문 속보와는 잘 맞지 않는다(한국어·일본어 제목과 같은 한계).
+ */
+function ukraineMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const block of html.split(/<div\s+class="timeline-block[^"]*"/i).slice(1)) {
+    const d = /^[^>]*\bid="(\d{2})\.(\d{2})\.(\d{4})"/i.exec(block);
+    const date = d ? `${d[3]}-${d[2]}-${d[1]}` : null;
+    for (const m of block.matchAll(/<a\b[^>]*class="title"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+      const url = absolute(m[1], pageUrl);
+      const title = clean(m[2]);
+      if (url && title) out.push(candidate(issuerId, title, url, date));
+    }
+  }
+  return out;
+}
+
+/**
  * 일본 외무성 보도발표 목록: `<dt class="list-title">November 12</dt>` 다음 `<dd>`에 그날 링크들이 들어 있다(2026-11-12 실제 페이지 확인).
  * 날짜에 연도가 없어서 올해로 놓고, 오늘보다 하루 넘게 미래면 작년으로 돌린다(연말·연초 걸침 대비).
  */
@@ -437,6 +456,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mofa\.gov\.sa$/i, saudiMofa],
   [/(^|\.)mofa\.gov\.pk$/i, pakistanMofa],
   [/(^|\.)mofa\.gov\.qa$/i, qatarMofa],
+  [/(^|\.)mfa\.gov\.ua$/i, ukraineMfa],
 ];
 
 /** 이 주소의 목록 페이지를 읽는 함수가 있는가 */

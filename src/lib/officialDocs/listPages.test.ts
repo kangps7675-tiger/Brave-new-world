@@ -199,6 +199,15 @@ describe("목록 페이지 읽기", () => {
     expect(rows[1]).toMatchObject({ url: "https://mofa.gov.qa/en/latest-articles/statements/qatar-strongly-condemns-armed-attack-in-southern-egypt", publishedAt: "2026-11-07" });
   });
 
+  it("우크라이나 외교부: 날짜 블록 id(12.11.2026)와 제목 링크를 읽는다", () => {
+    const html = `<div class="timeline-block first-date-block" id="12.11.2026"><div class="date"><div class="day">12 листопада</div></div><div class="timeline-item main posts"><div class="description with_preview"><div class="source_text">Новини</div><a class="title" href="https://mfa.gov.ua/news/maryana-beca-parizkij-forum"><span>Мар’яна Беца взяла участь у Паризькому форумі миру</span></a></div><div class="time">12:46</div></div></div>
+<div class="timeline-block" id="11.11.2026"><div class="timeline-item main posts"><div class="description"><a class="title" href="/news/andrij-sibiga-zustrich"><span>Андрій Сибіга провів зустріч</span></a></div></div></div>`;
+    const rows = parseListPage(html, "https://mfa.gov.ua/timeline?&type=posts", "ua");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://mfa.gov.ua/news/maryana-beca-parizkij-forum", publishedAt: "2026-11-12" });
+    expect(rows[1]).toMatchObject({ url: "https://mfa.gov.ua/news/andrij-sibiga-zustrich", publishedAt: "2026-11-11" });
+  });
+
   it("일본 외무성: 날짜 제목 아래 링크를 읽고, 연도 없는 날짜는 오늘 기준으로 정한다", () => {
     const html = `<dl class="title-list"><dt class="list-title">November 12</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02843.html">Dinner hosted by State Minister</a></li></ul></dd>
 <dt class="list-title">November 11</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02842.html">Courtesy Call on Vice-Minister</a></li><li><a href="/press/release/pressite_000001_02841.html">Reception for Italy anniversary</a></li></ul></dd>
