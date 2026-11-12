@@ -38,8 +38,8 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "이 화면은 무엇인가요",
     steps: [
-      "해운사·화주·보험 실무자가 「이 바다는 지금 지나다닐 만한가」를 한 화면에서 판단하도록 만든 해운 위험 상황실입니다.",
-      "배가 맞았는지, 그 해역이 얼마나 위험한지, 주변에 군함·군용기가 있는지를 지구본 위에 겹쳐 보여 줍니다.",
+      "지구본 위에 지정학 속보를 찍고, 소식마다 출처와 확인 상태(확인·유력·자료 없음)를 붙여서 그 소식이 믿을 만한지 근거를 보고 직접 따져 볼 수 있게 만든 화면입니다.",
+      "속보를 누르면 그 소식의 원문 출처, 당사국이 낸 공식 문서, 관련 분석과 기사가 한곳에 모입니다. 해운(홍해·호르무즈)은 그중 첫 연재 주제입니다.",
       "모든 판정에는 근거와 한계를 같이 적습니다. 자료가 없는 구간은 「배가 없었다」가 아니라 「자료가 없다」로 표시합니다.",
     ],
   },
@@ -125,8 +125,8 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
   {
     title: "What is this screen?",
     steps: [
-      "A shipping-risk desk for carriers, shippers, and insurance staff to answer one question: is this sea passable right now?",
-      "It stacks, on one globe, which ship was hit, how risky the area is, and whether warships or military aircraft are nearby.",
+      "A globe that pins geopolitical alerts, each with its sources and a status (confirmed, likely, no data), so you can judge from the evidence whether an alert holds up.",
+      "Open an alert and its original sources, official documents from the parties involved, and related analysis and press reports are gathered in one place. Shipping (the Red Sea, Hormuz) is the first series topic.",
       "Every judgement shows its basis and its limits. A stretch with no signal reads “no data”, never “no ship was there”.",
     ],
   },
