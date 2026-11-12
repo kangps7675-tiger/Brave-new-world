@@ -8,7 +8,7 @@ const MAX_ARTICLES = 4;
 const ARTICLE_WINDOW_MS = 72 * 3_600_000;
 
 /** 문서를 낸 곳 → 사건 글에서 읽히는 당사자 id */
-const ACTOR_OF_ISSUER: Record<string, string> = {
+export const ACTOR_OF_ISSUER: Record<string, string> = {
   us: "us", ru: "russia", cn: "china", tw: "taiwan", kp: "dprk", kr: "rok", ir: "iran", il: "israel", ua: "ukraine", nato: "nato",
 };
 
