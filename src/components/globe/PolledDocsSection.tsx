@@ -23,7 +23,7 @@ function DocItem({ match, en }: { match: PolledDocMatch; en: boolean }) {
     ...reasons.places,
     ...reasons.topics.map((t) => (en ? TOPIC_EN[t] : TOPIC_KO[t]) ?? t),
     ...reasons.terms,
-    ...(reasons.rival ? [en ? "counterpart's side" : "맞서는 당사국"] : []),
+    ...(reasons.rival ? [en ? "other party named in the report" : "속보에 나온 상대 당사국"] : []),
   ].join(", ");
   const shown = localizedDoc(doc, en);
   return (
@@ -72,7 +72,7 @@ export function PolledDocsSection({ matches, en }: { matches: readonly PolledDoc
     <section data-polled-docs data-sides={groups.length} data-rival={pair ? `${pair[0].issuerId}-${pair[1].issuerId}` : undefined}>
       <p className="px-0.5 text-micro font-semibold text-[#5c4020]">
         {pair
-          ? en ? "What each side said officially" : "맞서는 양측의 공식 입장"
+          ? en ? "Each side's official statements" : "양측의 공식 입장"
           : sides ? (en ? "What each side's officials said" : "당사국별 공식 입장") : en ? "New official documents" : "새로 나온 공식 문서"}
         <span className="ml-1 font-normal text-[#5c4020]/70">{en ? "auto-collected, not reviewed" : "자동 수집 · 검수 전"}</span>
         <span className="block font-normal text-[#5c4020]/70">
