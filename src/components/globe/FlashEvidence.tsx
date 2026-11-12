@@ -48,8 +48,28 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const polled = usePolledOfficialDocs();
   const polledMatches = polledDocsForFlash(text, at, polled, { excludeUrls: new Set(docs.map((d) => d.sourceUrl)) });
 
+  const counts = [
+    docs.length + polledMatches.length > 0
+      ? `${en ? "official documents" : "공식 문서"} ${docs.length + polledMatches.length}`
+      : null,
+    articles.length > 0 ? `${en ? "press reports" : "언론 기사"} ${articles.length}` : null,
+    analysisMatches.length > 0 ? `${en ? "analyses" : "분석"} ${analysisMatches.length}` : null,
+  ].filter(Boolean);
+
   return (
     <div className="space-y-2 empty:hidden" data-flash-evidence>
+      {counts.length > 0 ? (
+        <div className="rounded-sm bg-[#6b4a22]/10 px-2 py-1" data-flash-evidence-head>
+          <p className="text-meta font-semibold text-[#3d2a12]">
+            {en ? "Evidence for this flash" : "이 속보의 근거 자료"} · {counts.join(" · ")}
+          </p>
+          <p className="text-micro text-[#5c4020]/80">
+            {en
+              ? "Each entry has a link to the original. Documents below are collected automatically and not yet reviewed."
+              : "아래 항목마다 원문으로 가는 링크가 있습니다. 공식 문서는 자동으로 모은 것이라 아직 검수 전입니다."}
+          </p>
+        </div>
+      ) : null}
       <SipriArmsRecord text={text} en={en} />
       {docs.length > 0 ? (
         <section>

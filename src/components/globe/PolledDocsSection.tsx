@@ -20,32 +20,48 @@ const TOPIC_EN: Record<string, string> = {
  * 보관본이 있으면 받은 시각과 SHA-256 앞자리를 같이 적는다 — 나중에 기관이 파일을 바꿨는지 가릴 때 쓴다.
  */
 function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean }) {
-  const links: Array<{ href: string; label: string; own?: boolean }> = [];
-  if (doc.fileAvailable) links.push({ href: `/api/official-docs/file/${doc.id}`, label: en ? "Original PDF (our copy)" : "원본 PDF 보기(보관본)", own: true });
-  links.push({ href: doc.url, label: en ? "Publisher's page" : "발행 기관 원본 페이지" });
-  if (doc.archiveUrl) links.push({ href: doc.archiveUrl, label: en ? "Web Archive snapshot" : "웹 아카이브 보관본" });
+  // 눈에 띄는 링크는 하나만 — 우리 보관본(원본 파일)이 있으면 그것, 없으면 발행 기관 페이지.
+  // 나머지 보관본과 보관 정보(시각·해시)는 접어 두어, 한 문서에 링크가 줄줄이 보이지 않게 한다.
+  const primary = doc.fileAvailable
+    ? { href: `/api/official-docs/file/${doc.id}`, label: en ? "Read the original (PDF)" : "원문 보기 (PDF)" }
+    : { href: doc.url, label: en ? "Read the original" : "원문 보기" };
+  const others: Array<{ href: string; label: string }> = [];
+  if (doc.fileAvailable) others.push({ href: doc.url, label: en ? "Publisher's page" : "발행 기관 페이지" });
+  if (doc.archiveUrl) others.push({ href: doc.archiveUrl, label: en ? "Web Archive snapshot" : "웹 아카이브 보관본" });
   const kb = doc.fileBytes ? `${Math.max(1, Math.round(doc.fileBytes / 1024))} KB` : "";
+  const hasMore = others.length > 0 || doc.fileSha256;
   return (
     <>
-      <p className="mt-0.5 flex flex-wrap gap-x-2 text-micro text-[#5c4020]">
-        {links.map((l) => (
-          <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={l.own ? "font-semibold underline" : "underline"}>
-            {l.label}
-          </a>
-        ))}
+      <p className="mt-0.5 text-micro text-[#5c4020]">
+        <a href={primary.href} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
+          {primary.label}
+        </a>
       </p>
+      {hasMore ? (
+        <details className="mt-0.5 text-micro text-[#5c4020]/80">
+          <summary className="cursor-pointer select-none">{en ? "Other copies · archive info" : "다른 보관본 · 보관 정보"}</summary>
+          <p className="mt-0.5 flex flex-wrap gap-x-2">
+            {others.map((l) => (
+              <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className="underline">
+                {l.label}
+              </a>
+            ))}
+          </p>
+          {doc.fileSha256 ? (
+            <p className="mt-0.5">
+              {en ? "Saved " : "보관 "}
+              {doc.fileFetchedAt ? doc.fileFetchedAt.slice(0, 16).replace("T", " ") + " UTC" : ""}
+              {kb ? ` · ${kb}` : ""} · SHA-256 {doc.fileSha256.slice(0, 8)}…
+              {en ? " (a fingerprint to check the file was not altered)" : " (파일이 바뀌지 않았는지 확인하는 지문값)"}
+            </p>
+          ) : null}
+        </details>
+      ) : null}
       {doc.fileAvailable && doc.issuerId === "gb" ? (
         <p className="mt-0.5 text-micro text-[#5c4020]/70">
           <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer" className="underline">
             Contains public sector information licensed under the Open Government Licence v3.0.
           </a>
-        </p>
-      ) : null}
-      {doc.fileSha256 ? (
-        <p className="mt-0.5 text-micro text-[#5c4020]/70">
-          {en ? "Saved " : "보관 "}
-          {doc.fileFetchedAt ? doc.fileFetchedAt.slice(0, 16).replace("T", " ") + " UTC" : ""}
-          {kb ? ` · ${kb}` : ""} · SHA-256 {doc.fileSha256.slice(0, 8)}…
         </p>
       ) : null}
     </>
