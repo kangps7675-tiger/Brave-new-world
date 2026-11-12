@@ -56,4 +56,11 @@ describe("polledDocsForFlash", () => {
     const ja = doc({ title: "ホルムズ海峡における商船への攻撃に関する外務大臣談話", tags: rareTagsOf("ホルムズ海峡における商船への攻撃に関する外務大臣談話").join(",") });
     expect(polledDocsForFlash("Tanker attacked near the Strait of Hormuz", AT, [ja])).toHaveLength(1);
   });
+
+  it("영어가 아닌 제목은 영어 번역의 단어로도 속보와 맞춰 본다", () => {
+    const ua = doc({ issuerId: "ua", title: "Андрій Сибіга обговорив санкції проти Rosneft", titleEn: "Andrii Sybiha discussed sanctions on Rosneft shipping network", tags: "topic:sanctions" });
+    const rows = polledDocsForFlash("US imposes sanctions on Rosneft shipping network, Ukraine says", AT, [ua]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].reasons.terms).toEqual(expect.arrayContaining(["rosneft"]));
+  });
 });

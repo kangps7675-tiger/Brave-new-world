@@ -13,11 +13,19 @@
 import type { IngestEnv } from "./env";
 import { candidatesOfBody, rowsFromOfficialFeed, officialFeedSources, type OfficialDocFeedWriteRow } from "../../../src/lib/officialDocs/ingestRows";
 import { japanMofaDetailDate } from "../../../src/lib/officialDocs/listPages";
+import { translateDoc, type Translator } from "../../../src/lib/officialDocs/translate";
+import { translateWithProviders } from "../../../src/lib/translateProviders";
+import { rareTagsOf } from "../../../src/lib/news/eventScenarios";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
 /** 상세 페이지로 연도를 확정하는 일본 외무성 항목: 새로 보는 것만, 한 번에 이 개수까지 */
 const DETAIL_DATE_MAX_PER_RUN = 20;
+/** 한 번 실행에서 번역할 문서 수(문서당 호출 2~4번) — 워커의 하위 요청 한도 안에서 */
+const TRANSLATE_MAX_PER_RUN = 20;
+/** 번역을 이만큼 시도해도 안 되면 포기한다(막힌 문장 때문에 대기열이 멈추지 않게) */
+const TRANSLATE_MAX_TRIES = 3;
+const TRANSLATE_UA = "ConflictViewBot/1.0 (official-docs title translation)";
 
 async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<boolean> {
   try {
@@ -97,6 +105,50 @@ async function refineJapanDates(db: D1Database, rows: OfficialDocFeedWriteRow[])
   }
 }
 
+/**
+ * 번역이 아직 없는 최근 문서를 골라 제목·요약을 한국어·영어로 번역해 채운다. 0044 마이그레이션 전이면 조용히 건너뛴다.
+ * 번역이 연속 3번 실패하면(공급자가 막히거나 한도) 이번 실행은 멈춘다.
+ */
+async function translatePending(db: D1Database, vars: Record<string, string | undefined>): Promise<number> {
+  let rows: Array<{ id: string; title: string; summary: string; tags: string }>;
+  try {
+    const res = await db
+      .prepare(
+        `SELECT id, title, summary, tags FROM official_doc_feed
+         WHERE translate_tries < ?1 AND (title_ko = '' OR title_en = '')
+         ORDER BY published_at DESC LIMIT ?2`,
+      )
+      .bind(TRANSLATE_MAX_TRIES, TRANSLATE_MAX_PER_RUN)
+      .all<{ id: string; title: string; summary: string; tags: string }>();
+    rows = res.results ?? [];
+  } catch {
+    return 0; // 0044가 아직 적용되지 않음
+  }
+  const tr: Translator = async (text, target) => (await translateWithProviders(text, target, { env: vars, userAgent: TRANSLATE_UA }))?.text ?? null;
+  let done = 0;
+  let consecutiveFails = 0;
+  for (const row of rows) {
+    if (consecutiveFails >= 3) break;
+    const out = await translateDoc({ title: row.title, summary: row.summary }, tr).catch(() => null);
+    if (out) {
+      consecutiveFails = 0;
+      done += 1;
+      // 원문이 영어가 아니라 지명이 안 읽혔던 문서는 영어 번역으로 다시 읽어 지명 태그를 보탠다(속보 매칭이 지명으로 붙는다)
+      const kept = row.tags.split(",").map((t) => t.trim()).filter(Boolean);
+      const tags = [...new Set([...kept, ...rareTagsOf(`${out.titleEn}. ${out.summaryEn}`)])].join(",");
+      await db
+        .prepare(`UPDATE official_doc_feed SET title_ko = ?2, title_en = ?3, summary_ko = ?4, summary_en = ?5, tags = ?6 WHERE id = ?1`)
+        .bind(row.id, out.titleKo, out.titleEn, out.summaryKo, out.summaryEn, tags)
+        .run()
+        .catch(() => undefined);
+    } else {
+      consecutiveFails += 1;
+      await db.prepare(`UPDATE official_doc_feed SET translate_tries = translate_tries + 1 WHERE id = ?1`).bind(row.id).run().catch(() => undefined);
+    }
+  }
+  return done;
+}
+
 async function recordPoll(db: D1Database, feed: string, ok: boolean, items: number, error: string | null): Promise<void> {
   await db
     .prepare(
@@ -165,6 +217,8 @@ export async function fetchAndUpsertOfficialDocs(env: IngestEnv): Promise<{
   try {
     await refineJapanDates(env.DB, unique);
     await upsertRows(env.DB, unique);
+    // 번역 실패가 수집을 깨면 안 된다
+    await translatePending(env.DB, vars).catch(() => 0);
     const cutoff = new Date(Date.now() - RETENTION_DAYS * 86_400_000).toISOString();
     await env.DB.prepare(`DELETE FROM official_doc_feed WHERE ingested_at < ?1`).bind(cutoff).run();
   } catch (e) {

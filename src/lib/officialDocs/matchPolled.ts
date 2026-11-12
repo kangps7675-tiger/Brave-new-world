@@ -26,6 +26,11 @@ export type PolledDoc = {
   tags: string;
   feed: string;
   agency: string;
+  /** 한국어·영어 번역(0044 이후, 없으면 비어 있음) */
+  titleKo?: string;
+  titleEn?: string;
+  summaryKo?: string;
+  summaryEn?: string;
 };
 
 export type PolledDocMatch = {
@@ -89,7 +94,8 @@ export function polledDocsForFlash(
     const samePlaces = placeTagsOf(doc.tags).filter((t) => places.has(t));
     const sameTopics = topicTagsOf(doc.tags).filter((t) => t !== "geopolitics" && flashTopics.has(t));
     const actor = actors.has(ACTOR_OF_ISSUER[doc.issuerId] ?? "");
-    const docTerms = termsOf(doc.title);
+    // 영어가 아닌 제목은 영어 번역의 단어로도 맞춰 본다
+    const docTerms = termsOf(`${doc.title} ${doc.titleEn ?? ""}`);
     const sameTerms = [...docTerms].filter((t) => flashTerms.has(t));
 
     let score = 0;

@@ -4,6 +4,7 @@ import { issuerNameEn, issuerNameKo } from "@/lib/countryName";
 import { KIND_KO } from "@/lib/officialDocs/classify";
 import type { DocKind } from "@/data/officialDocs";
 import type { PolledDocMatch } from "@/lib/officialDocs/matchPolled";
+import { localizedDoc } from "@/lib/officialDocs/translate";
 
 const TOPIC_KO: Record<string, string> = {
   semiconductor: "반도체", "ai-compute": "AI 연산", "defense-industry": "방산", "export-control": "수출통제", sanctions: "제재",
@@ -40,13 +41,17 @@ export function PolledDocsSection({ matches, en }: { matches: readonly PolledDoc
             ...reasons.topics.map((t) => (en ? TOPIC_EN[t] : TOPIC_KO[t]) ?? t),
             ...reasons.terms,
           ].join(", ");
+          const shown = localizedDoc(doc, en);
           return (
             <li key={doc.id} className="rounded-sm border border-[#6b4a22]/20 bg-[#f7edd4]/70 px-2 py-1">
               <p className="text-micro leading-snug">
                 <a href={doc.url} target="_blank" rel="noopener noreferrer" className="underline">
-                  {doc.title}
+                  {shown.title}
                 </a>
+                {shown.translated ? <span className="ml-1 text-[#5c4020]/70">{en ? "(auto-translated)" : "(자동 번역)"}</span> : null}
               </p>
+              {shown.summary ? <p className="mt-0.5 line-clamp-2 text-micro leading-snug text-[#5c4020]">{shown.summary}</p> : null}
+              {shown.original ? <p className="mt-0.5 text-micro text-[#5c4020]/70">{en ? "Original: " : "원문 제목: "}{shown.original}</p> : null}
               <p className="mt-0.5 text-micro text-[#5c4020]">
                 {doc.agency ? `${issuer} · ${doc.agency}` : issuer} · {kind} · {doc.publishedAt ?? ""}
                 {/국영/.test(doc.feed) ? <span className="ml-1">{en ? "· state media report" : "· 국영 매체 보도"}</span> : null}

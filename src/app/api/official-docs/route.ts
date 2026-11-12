@@ -54,7 +54,22 @@ export async function GET(request: Request) {
     const where = issuer
       ? and(eq(officialDocFeed.issuerId, issuer), gte(officialDocFeed.publishedAt, since))
       : gte(officialDocFeed.publishedAt, since);
-    const rows = await db.select().from(officialDocFeed).where(where).orderBy(desc(officialDocFeed.publishedAt)).limit(150);
+    let rows: Array<Record<string, unknown>>;
+    try {
+      rows = await db.select().from(officialDocFeed).where(where).orderBy(desc(officialDocFeed.publishedAt)).limit(150);
+    } catch {
+      // 0044(번역 칸) 마이그레이션 전이면 옛 칸만 읽는다 — 번역이 없어도 문서 목록은 계속 나와야 한다
+      rows = await db
+        .select({
+          id: officialDocFeed.id, issuerId: officialDocFeed.issuerId, kind: officialDocFeed.kind, weight: officialDocFeed.weight,
+          title: officialDocFeed.title, url: officialDocFeed.url, publishedAt: officialDocFeed.publishedAt, summary: officialDocFeed.summary,
+          tags: officialDocFeed.tags, feed: officialDocFeed.feed, agency: officialDocFeed.agency, ingestedAt: officialDocFeed.ingestedAt,
+        })
+        .from(officialDocFeed)
+        .where(where)
+        .orderBy(desc(officialDocFeed.publishedAt))
+        .limit(150);
+    }
     return NextResponse.json(
       { docs: rows, fetchedAt: new Date().toISOString() },
       { headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800" } },
