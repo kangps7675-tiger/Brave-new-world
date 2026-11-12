@@ -73,5 +73,15 @@
     "issuerId": "jp",
     "url": "https://www.mod.go.jp/j/press/news/index.html",
     "label": "일본 방위성 새 소식"
+  },
+  {
+    "issuerId": "cn",
+    "url": "http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/index.html",
+    "label": "중국 국방부 대변인 담화·기자 질문 답변(중문)"
+  },
+  {
+    "issuerId": "cn",
+    "url": "https://www.mfa.gov.cn/eng/xw/fyrbt/lxjzh/",
+    "label": "중국 외교부 정례 브리핑(Regular Press Conferences)"
   }
 ]

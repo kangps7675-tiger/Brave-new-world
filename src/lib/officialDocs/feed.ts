@@ -76,6 +76,8 @@ export function worthKeeping(row: DocCandidate): boolean {
   if (row.issuerId === "ru" || row.issuerId === "kr") return true;
   // 일본 방위성은 방위·북한 미사일 발표가 곧 정부 입장이라 모두 남긴다
   if (row.issuerId === "jp" && /(^|\.)mod\.go\.jp\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
+  // 중국 국방부 대변인 담화·답변과 외교부 정례 브리핑은 공식 입장이라 모두 남긴다(외교부 Top Stories는 기존 규칙 그대로 쓰이므로 같은 호스트의 다른 문서도 함께 남는다)
+  if (row.issuerId === "cn" && /(^|\.)(mod|mfa|fmprc)\.gov\.cn\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   // 대만: 국방부(중국 군 활동 일일 발표·보도자료)와 총통부는 속보 근거로 직접적이라 모두 남긴다(외교부는 기존 규칙)
   if (row.issuerId === "tw" && /(^|\.)(mnd\.gov\.tw|president\.gov\.tw)\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   return row.kind !== "remarks" && row.kind !== "press-release";

@@ -37,6 +37,15 @@ const TW_MND = `<a href="/en/News/PLAAct/88203" class="news_list"> <div class="d
 const JCS = `<li> <a href="/bbs/jcs2/121947/O_503624/artclView.do" onclick="jf_viewArtcl('jcs2', '121947', 'O_503624')"> <div class="conts"> <p class="sub"> <span class="num">NO. 505</span> </p> <strong class="title"><em><strong><span>영공방위 및 미사일 감시태세 이상무('26. 11. 11. 수)</span></strong> <span class="new">새글</span></em></strong> <p class="contentTxt"> </p> <ul class="detail"> <li> <strong>작성자</strong> 합참공보실 </li> <li><strong>등록일</strong>2026.11.12</li> </ul> </div> </a> </li>`;
 const JMOD = `<div class="news__item"><dt class="date">10/29</dt><dd class="news__title"><a href="/j/press/news/2026/10/29d.html" class="">北朝鮮のミサイル等関連情報（続報）について</a>　<a href="/j/press/news/2026/10/29d.pdf">印刷用</a></dd></div>`;
 
+const CN_MOD = `<li><a href="http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/16492077.html" target="_blank"> 国防部新闻发言人陈曦就赖清德发表所谓“双十”讲话答记者问</a> <p> </p> <span class="time">2026-10-11 11:19</span><span class="qrcode">手机阅读</span> </li>`;
+
+describe("중국 국방부 목록", () => {
+  it("대변인 답변: 제목·날짜·주소", () => {
+    const r = parseListPage(CN_MOD, "http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/index.html", "cn");
+    expect(r[0]).toMatchObject({ title: "国防部新闻发言人陈曦就赖清德发表所谓“双十”讲话答记者问", publishedAt: "2026-10-11", url: "http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/16492077.html" });
+  });
+});
+
 describe("합참·일본 방위성 목록", () => {
   it("합참 보도자료: 제목·등록일", () => {
     const r = parseListPage(JCS, "https://www.jcs.mil.kr/jcs2/4752/subview.do", "kr");

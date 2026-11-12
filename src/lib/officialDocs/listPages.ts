@@ -187,6 +187,20 @@ function japanMod(html: string, pageUrl: string, issuerId: IssuerId): DocCandida
   return out;
 }
 
+/**
+ * 중국 국방부 중문 "발언인 담화·기자 질문 답변"(/gfbw/xwfyr/fyrthhdjzw/index.html): `<li><a href="…/fyrthhdjzw/16492077.html"> 제목</a> <p></p> <span class="time">2026-10-11 11:19</span>`.
+ * 2026-11-12 실제 페이지 확인. 사이트는 http로 열린다(영문 사이트 eng.mod.gov.cn은 인증서 오류).
+ */
+function chinaMod(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(/<li>\s*<a\s+href="([^"]*\/gfbw\/[^"]*\/\d{6,}\.html)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<span class="time">\s*(\d{4}-\d{2}-\d{2})/gi)) {
+    const url = absolute(m[1], pageUrl);
+    const title = clean(m[2]);
+    if (url && title) out.push(candidate(issuerId, title, url, m[3]));
+  }
+  return out;
+}
+
 /** 일본 총리관저 영문 첫 화면: /statement/·/speech/ 글만. 날짜는 주소(202611/1111statement.html = 11월 11일)에서 읽는다. */
 function japanKantei(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
   const re = new RegExp(
@@ -315,6 +329,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mnd\.go\.kr$/i, koreaMnd],
   [/(^|\.)mnd\.gov\.tw$/i, taiwanMnd],
   [/(^|\.)jcs\.mil\.kr$/i, koreaJcs],
+  [/(^|\.)mod\.gov\.cn$/i, chinaMod],
   [/(^|\.)mod\.go\.jp$/i, japanMod],
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
   [/(^|\.)elysee\.fr$/i, elysee],
