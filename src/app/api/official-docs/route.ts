@@ -1,7 +1,7 @@
 import { and, desc, eq, gte } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { officialDocFeed } from "@/db/schema";
+import { officialDocFeed, officialDocPoll } from "@/db/schema";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { isValidIssuerId } from "@/data/officialDocs";
 
@@ -21,6 +21,17 @@ export async function GET(request: Request) {
   const since = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
 
   if (isApiStubMode()) return NextResponse.json({ docs: [], stub: true });
+
+  // ?status=1 — 피드별 마지막 수집 결과(어느 사이트가 막혔는지). 접속 확인을 PC 없이 하려는 용도.
+  if (url.searchParams.get("status")) {
+    try {
+      const db = await getDb();
+      const feeds = await db.select().from(officialDocPoll).orderBy(desc(officialDocPoll.checkedAt));
+      return NextResponse.json({ feeds, ok: feeds.filter((f) => f.ok === 1).length, failed: feeds.filter((f) => f.ok !== 1).length }, { headers: { "Cache-Control": "no-store" } });
+    } catch {
+      return NextResponse.json({ feeds: [], ok: 0, failed: 0 });
+    }
+  }
 
   try {
     const db = await getDb();

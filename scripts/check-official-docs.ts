@@ -46,6 +46,22 @@ const DEFAULT_TARGETS = [
   "https://www.defense.gov",
   "https://www.foreignminister.gov.au/",
   "https://japan.kantei.go.jp/",
+  // 지정학 플레이어국 추가(2026-11-12)
+  "https://www.gov.il/en",
+  "https://www.korea.kr",
+  "https://pib.gov.in",
+  "https://www.president.gov.ua/en",
+  "https://www.elysee.fr/en",
+  "https://www.bundesregierung.de/breg-en",
+  "https://www.europarl.europa.eu",
+  "https://www.eeas.europa.eu",
+  "https://www.un.org/en",
+  "https://www.iaea.org",
+  "https://www.mofa.gov.sa/en",
+  "https://www.gov.pl/web/diplomacy",
+  "https://mofa.gov.pk",
+  "https://www.mod.go.jp/en/",
+  "https://president.ir/en",
 ];
 
 const BOILERPLATE = /(enable javascript|cookies? (policy|settings|consent)|access denied|just a moment|captcha|403 forbidden|404 not found)/i;

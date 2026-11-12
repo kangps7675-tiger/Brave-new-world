@@ -80,5 +80,55 @@
     "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=homeland-security-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
     "label": "미국 국토안보부 규칙·고시",
     "format": "federal-register"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.korea.kr/rss/pressrelease.xml",
+    "label": "한국 정책브리핑 · 전 부처 보도자료"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.korea.kr/rss/policy.xml",
+    "label": "한국 정책브리핑 · 정책 뉴스"
+  },
+  {
+    "issuerId": "in",
+    "url": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3",
+    "label": "인도 PIB · 전 부처 보도자료"
+  },
+  {
+    "issuerId": "gb",
+    "url": "https://www.gov.uk/government/organisations/foreign-commonwealth-development-office.atom",
+    "label": "영국 외무·영연방·개발부(FCDO)"
+  },
+  {
+    "issuerId": "gb",
+    "url": "https://www.gov.uk/government/organisations/ministry-of-defence.atom",
+    "label": "영국 국방부"
+  },
+  {
+    "issuerId": "gb",
+    "url": "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street.atom",
+    "label": "영국 총리실"
+  },
+  {
+    "issuerId": "eu",
+    "url": "https://www.europarl.europa.eu/rss/doc/press-releases/en.xml",
+    "label": "유럽의회 보도자료"
+  },
+  {
+    "issuerId": "eu",
+    "url": "https://ec.europa.eu/commission/presscorner/api/rss?language=en",
+    "label": "유럽집행위 프레스코너"
+  },
+  {
+    "issuerId": "un",
+    "url": "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
+    "label": "유엔 뉴스"
+  },
+  {
+    "issuerId": "iaea",
+    "url": "https://www.iaea.org/feeds/topnews",
+    "label": "IAEA 주요 소식"
   }
 ]
