@@ -1348,6 +1348,17 @@ export const officialDocFeed = sqliteTable(
     summaryKo: text("summary_ko").notNull().default(""),
     summaryEn: text("summary_en").notNull().default(""),
     translateTries: integer("translate_tries").notNull().default(0),
+    /** 원본 파일(PDF) 보관(`drizzle/0045`): R2 객체 키·받은 시각·SHA-256. 빈 문자열이면 아직 없음. */
+    fileKey: text("file_key").notNull().default(""),
+    fileType: text("file_type").notNull().default(""),
+    fileBytes: integer("file_bytes").notNull().default(0),
+    fileSha256: text("file_sha256").notNull().default(""),
+    fileFetchedAt: text("file_fetched_at").notNull().default(""),
+    fileSourceUrl: text("file_source_url").notNull().default(""),
+    fileTries: integer("file_tries").notNull().default(0),
+    /** 웹 아카이브(archive.org) 보관본 주소 — 시각이 찍힌 제3자 사본 */
+    archiveUrl: text("archive_url").notNull().default(""),
+    archiveTries: integer("archive_tries").notNull().default(0),
     ingestedAt: text("ingested_at").notNull(),
   },
   (t) => ({

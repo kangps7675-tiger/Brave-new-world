@@ -5,6 +5,7 @@ import { officialDocFeed, officialDocPoll } from "@/db/schema";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { isValidIssuerId } from "@/data/officialDocs";
 import { buildFeedStatus } from "@/lib/officialDocs/health";
+import { fileDisplayAllowed } from "@/lib/officialDocs/capture";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,15 @@ export const dynamic = "force-dynamic";
  * 각국 정부·기구가 새로 낸 성명·공동성명·팩트시트·회담 요약 목록(제목·링크·요약). cron 적재분(D1)을 읽기만 한다.
  * 원문 전체가 아니라 링크 목록이다. 테이블 미마이그레이션 시 빈 배열로 폴백.
  */
+/** 내부 칸(R2 키·시도 횟수)은 빼고, 원본 파일을 열 수 있는지(우리 서버에서 직접 보여 줘도 되는 나라인지)만 알려 준다 */
+function publicDoc(row: Record<string, unknown>): Record<string, unknown> {
+  const { fileKey, fileTries, archiveTries, fileType, ...rest } = row;
+  void fileTries;
+  void archiveTries;
+  void fileType;
+  return { ...rest, fileAvailable: Boolean(fileKey) && fileDisplayAllowed(String(row.issuerId ?? "")) };
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const issuerRaw = url.searchParams.get("issuer");
@@ -71,7 +81,7 @@ export async function GET(request: Request) {
         .limit(150);
     }
     return NextResponse.json(
-      { docs: rows, fetchedAt: new Date().toISOString() },
+      { docs: rows.map(publicDoc), fetchedAt: new Date().toISOString() },
       { headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800" } },
     );
   } catch {

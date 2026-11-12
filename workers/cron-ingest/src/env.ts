@@ -3,6 +3,8 @@
 
 export type IngestEnv = {
   DB: D1Database;
+  /** 공식 문서 원본 파일(PDF) 보관용 R2. 웹앱과 같은 버킷(conflict-view-data)의 official-docs/ 아래에 둔다. 없으면 파일 보관만 건너뛴다. */
+  DATA_BUCKET?: R2Bucket;
   /** NASA FIRMS map key ??set via `wrangler secret put NASA_FIRMS_API_KEY` */
   NASA_FIRMS_API_KEY?: string;
   FIRMS_MAP_KEY?: string;
