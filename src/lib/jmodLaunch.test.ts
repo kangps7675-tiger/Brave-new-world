@@ -38,4 +38,13 @@ describe("jmodReportForFlash", () => {
     expect(jmodReportForFlash("North Korea fires ballistic missile", at + 14 * 3600_000, [r])).toBeNull();
     expect(jmodReportForFlash("Iran fires ballistic missile", at, [r])).toBeNull();
   });
+  it("같은 시간대에 발표가 둘이고 구분이 안 되면 붙이지 않고, 충분히 떨어져 있으면 가까운 쪽에 붙인다", () => {
+    const early: JmodReport = { ...r, url: "early", launchAt: "2026-09-20T03:00:00.000Z", distanceKm: 300 };
+    const late: JmodReport = { ...r, url: "late", launchAt: "2026-09-20T06:00:00.000Z", distanceKm: 440 };
+    // 속보 시각 06:20 — 두 발사가 3시간 떨어져 있어 06:00 쪽이 명확히 가깝다
+    expect(jmodReportForFlash("North Korea fires ballistic missile", at, [early, late])).toBe(late);
+    // 두 발사가 1시간 간격이라(05:00·06:00) 어느 속보인지 가를 수 없다
+    const close: JmodReport = { ...r, url: "close", launchAt: "2026-09-20T05:00:00.000Z", distanceKm: 380 };
+    expect(jmodReportForFlash("North Korea fires ballistic missile", at, [close, late])).toBeNull();
+  });
 });

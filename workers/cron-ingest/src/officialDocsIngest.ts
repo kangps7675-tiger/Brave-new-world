@@ -11,8 +11,8 @@
  */
 
 import type { IngestEnv } from "./env";
-import { rowsFromOfficialFeed, officialFeedSources, type OfficialDocFeedWriteRow } from "../../../src/lib/officialDocs/ingestRows";
-import { japanMofaDetailDate, parseListPage } from "../../../src/lib/officialDocs/listPages";
+import { candidatesOfBody, rowsFromOfficialFeed, officialFeedSources, type OfficialDocFeedWriteRow } from "../../../src/lib/officialDocs/ingestRows";
+import { japanMofaDetailDate } from "../../../src/lib/officialDocs/listPages";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
@@ -137,9 +137,10 @@ export async function fetchAndUpsertOfficialDocs(env: IngestEnv): Promise<{
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const body = await res.text();
         const rows = await rowsFromOfficialFeed(body, source);
-        // 목록 페이지는 구조가 바뀌면 0건이 되므로, 읽는 함수가 아무것도 못 읽었을 때를 실패로 남긴다
-        if (source.page && parseListPage(body, source.url, source.issuerId).length === 0) {
-          throw new Error("목록 페이지에서 0건 — 구조가 바뀌었거나 막힌 응답");
+        // 구조가 바뀌거나 막힌 응답(로그인·확인창 HTML)이면 읽는 함수가 한 건도 못 읽는다. 필터 전 0건을 실패로 남겨 조용히 죽지 않게 한다.
+        // 연방관보 주제 검색은 새 문서가 정말 0건일 수 있어서 제외한다.
+        if (source.format !== "federal-register" && candidatesOfBody(body, source).length === 0) {
+          throw new Error("읽힌 항목 0건 — 구조가 바뀌었거나 막힌 응답");
         }
         await recordPoll(env.DB, source.label, true, rows.length, null).catch(() => undefined);
         return rows;

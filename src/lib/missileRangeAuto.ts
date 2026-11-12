@@ -4,12 +4,13 @@ import { missileRangeForText } from "@/lib/missileRange";
 /**
  * 사거리 표에 없는 기종의 사거리를 뉴스 서술에서 자동으로 뽑는다.
  *  - 한 문장에 "기종 이름"과 "사거리 수치"가 같이 있을 때만 한 건으로 센다(예: "Hwasong-20 … a range of 15,000 km").
- *  - 서로 다른 기사 2건 이상이 비슷한 값(중앙값의 ±25%)을 말할 때만 표에 올린다. 한 기사의 주장만으로는 그리지 않는다.
+ *  - 서로 독립인 기사 2건 이상이 비슷한 값(중앙값의 ±25%)을 말할 때만 표에 올린다. 한 기사의 주장만으로는 그리지 않는다.
+ *    같은 매체(주소의 호스트가 같음)이거나, 사거리를 말한 문장이 거의 똑같은 기사들은 통신사 기사를 받아쓴 것으로 보고 한 출처로 센다.
  *  - 이렇게 만든 값은 공식 표와 구분되도록 `auto`를 달고, 화면에는 "자동 추출·검수 전"으로 표시한다.
  *  - 이미 등록된 기종, 값이 크게 엇갈리는 기종(최대/최소 1.6배 초과), 이름이 흔한 단어인 후보는 제외한다.
  */
 
-export type AutoRangeClaim = { key: string; name: string; km: number; url: string; title: string; at: string | null };
+export type AutoRangeClaim = { key: string; name: string; km: number; url: string; title: string; at: string | null; sentence?: string };
 
 export type AutoRangeSpec = MissileRangeSpec & { auto: { count: number; links: { title: string; url: string }[] } };
 
@@ -75,7 +76,7 @@ export function rangeClaimsFromText(
     if (keys.size !== 1) continue;
     const [[key, name]] = [...keys];
     if (NOT_A_MODEL.has(key.split("-")[0])) continue;
-    out.push({ key, name, km, url: meta.url, title: meta.title, at: meta.at ?? null });
+    out.push({ key, name, km, url: meta.url, title: meta.title, at: meta.at ?? null, sentence: s });
   }
   return out;
 }
@@ -94,6 +95,42 @@ function patternSourceFor(name: string): string {
   return String.raw`${fam}[- ]?${m[2]}(?![\d])`;
 }
 
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+/** 문장을 글자·숫자만 남겨 비교용으로 줄인다(받아쓴 기사끼리 앞부분이 같다) */
+function sentenceKey(sentence: string | undefined): string {
+  return (sentence ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "").slice(0, 60);
+}
+
+/** 같은 매체이거나 같은 문장을 쓴 기사들을 한 덩어리로 묶었을 때의 덩어리 수 = 독립 출처 수 */
+export function independentSources(claims: readonly AutoRangeClaim[]): number {
+  const parent = claims.map((_, i) => i);
+  const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+  const union = (a: number, b: number) => {
+    parent[find(a)] = find(b);
+  };
+  const seenHost = new Map<string, number>();
+  const seenSentence = new Map<string, number>();
+  claims.forEach((c, i) => {
+    const h = hostOf(c.url);
+    const k = sentenceKey(c.sentence);
+    if (seenHost.has(h)) union(i, seenHost.get(h)!);
+    else seenHost.set(h, i);
+    if (k.length >= 30) {
+      if (seenSentence.has(k)) union(i, seenSentence.get(k)!);
+      else seenSentence.set(k, i);
+    }
+  });
+  return new Set(claims.map((_, i) => find(i))).size;
+}
+
 /** 서술들을 기종별로 모아, 서로 다른 기사 2건 이상이 일치하는 값만 표 항목으로 만든다 */
 export function autoRangeSpecs(claims: readonly AutoRangeClaim[]): AutoRangeSpec[] {
   const byKey = new Map<string, AutoRangeClaim[]>();
@@ -109,7 +146,7 @@ export function autoRangeSpecs(claims: readonly AutoRangeClaim[]): AutoRangeSpec
     if (uniq.length < 2) continue;
     const med = median(uniq.map((c) => c.km));
     const agree = uniq.filter((c) => c.km >= med * 0.75 && c.km <= med * 1.25);
-    if (agree.length < 2) continue;
+    if (agree.length < 2 || independentSources(agree) < 2) continue;
     const kms = agree.map((c) => c.km);
     const lo = Math.min(...kms);
     const hi = Math.max(...kms);
@@ -120,7 +157,7 @@ export function autoRangeSpecs(claims: readonly AutoRangeClaim[]): AutoRangeSpec
       name: newest.name,
       country: "unknown",
       rangeKm: [lo, hi],
-      note: `뉴스 ${agree.length}건의 서술을 자동 추출(검수 전)`,
+      note: `뉴스 ${agree.length}건(독립 출처 ${independentSources(agree)}곳)의 서술을 자동 추출(검수 전)`,
       source: { name: `뉴스 ${agree.length}건에서 자동 추출`, url: newest.url },
       pattern: new RegExp(patternSourceFor(newest.name), "i"),
       auto: { count: agree.length, links: agree.slice(0, 3).map((c) => ({ title: c.title, url: c.url })) },

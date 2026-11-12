@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { rareTagsOf } from "@/lib/news/eventScenarios";
 import { polledDocsForFlash, type PolledDoc } from "./matchPolled";
 
 const AT = Date.parse("2026-11-12T00:00:00Z");
@@ -43,5 +44,16 @@ describe("polledDocsForFlash", () => {
     const rows = [1, 2, 3, 4].map((i) => doc({ id: String(i), url: `https://example.gov/${i}`, tags: "hormuz", publishedAt: `2026-11-0${i + 4}` }));
     const out = polledDocsForFlash("Attack near Hormuz", AT, rows, { excludeUrls: new Set(["https://example.gov/4"]) });
     expect(out.map((r) => r.doc.id)).toEqual(["3", "2", "1"]);
+  });
+
+  it("일본어·중국어·러시아어·우크라이나어 제목에서도 희귀 지명이 읽혀 영어 속보에 붙는다", () => {
+    expect(rareTagsOf("ホルムズ海峡での船舶への攻撃について")).toContain("hormuz");
+    expect(rareTagsOf("外交部发言人就红海局势答记者问")).toContain("red-sea");
+    expect(rareTagsOf("Удар по Харкову та Херсону")).toEqual(expect.arrayContaining(["kharkiv", "kherson"]));
+    expect(rareTagsOf("Сектор Газа: заявление МИД")).toContain("gaza");
+    // 러시아어 "газа"(가스의)는 가자로 읽지 않는다
+    expect(rareTagsOf("Экспорт природного газа вырос")).toEqual([]);
+    const ja = doc({ title: "ホルムズ海峡における商船への攻撃に関する外務大臣談話", tags: rareTagsOf("ホルムズ海峡における商船への攻撃に関する外務大臣談話").join(",") });
+    expect(polledDocsForFlash("Tanker attacked near the Strait of Hormuz", AT, [ja])).toHaveLength(1);
   });
 });

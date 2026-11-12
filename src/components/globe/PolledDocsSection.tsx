@@ -25,6 +25,11 @@ export function PolledDocsSection({ matches, en }: { matches: readonly PolledDoc
       <p className="px-0.5 text-micro font-semibold text-[#5c4020]">
         {en ? "New official documents" : "새로 나온 공식 문서"}
         <span className="ml-1 font-normal text-[#5c4020]/70">{en ? "auto-collected, not reviewed" : "자동 수집 · 검수 전"}</span>
+        <span className="block font-normal text-[#5c4020]/70">
+          {en
+            ? "What each body says, not verified fact. Linked to this report by shared clues only."
+            : "각 기관이 낸 주장·입장이며 사실로 확인된 것이 아닙니다. 이 속보와는 겹치는 단서만으로 이어 놓았습니다."}
+        </span>
       </p>
       <ul className="mt-1 grid gap-1">
         {matches.map(({ doc, reasons }) => {
@@ -44,6 +49,7 @@ export function PolledDocsSection({ matches, en }: { matches: readonly PolledDoc
               </p>
               <p className="mt-0.5 text-micro text-[#5c4020]">
                 {doc.agency ? `${issuer} · ${doc.agency}` : issuer} · {kind} · {doc.publishedAt ?? ""}
+                {/국영/.test(doc.feed) ? <span className="ml-1">{en ? "· state media report" : "· 국영 매체 보도"}</span> : null}
                 {why ? <span className="ml-1 text-[#5c4020]/70">{en ? `matched: ${why}` : `맞은 단서: ${why}`}</span> : null}
               </p>
             </li>

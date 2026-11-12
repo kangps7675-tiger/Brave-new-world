@@ -115,6 +115,8 @@
     "atop:draft": "node scripts/fetch-atop-alliances.js",
     "docs:fetch": "tsx scripts/fetch-official-docs.ts",
     "docs:check": "tsx scripts/check-official-docs.ts",
+    "docs:health": "tsx scripts/check-source-health.ts",
+    "docs:sample": "tsx scripts/sample-doc-matches.ts",
     "docs:grab": "tsx scripts/grab-official-pages.ts",
     "icow:draft": "node scripts/fetch-territorial-claims.js",
     "peeringdb:fetch": "node scripts/fetch-peeringdb-ix.js",
