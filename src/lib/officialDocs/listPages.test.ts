@@ -34,6 +34,21 @@ const MND = `<tr> <td class="td-num"> 13445 </td> <td class="td-title alignL"> <
 const TW_MND = `<a href="/en/News/PLAAct/88203" class="news_list"> <div class="date headline-h5 h5">2026.11.12</div> <h2 class="title headline-h4"><span class="en">PLA activities in the waters and airspace around Taiwan</span></h2> <div class="views body-2">Click-Through Rate：315</div></a>
 <a href="/en/News/PressRelease/88156" class="news_list"> <div class="left-block"> <div class="date body-2"><span class="en">2026.11.04</span></div></div> <div class="title-column"> <h2 class="title headline-h4"><span class="en">Ministry of National Defense Issues Press Release Regarding "PLA Joint Combat Readiness Patrol"</span></h2></div></a>`;
 
+const JCS = `<li> <a href="/bbs/jcs2/121947/O_503624/artclView.do" onclick="jf_viewArtcl('jcs2', '121947', 'O_503624')"> <div class="conts"> <p class="sub"> <span class="num">NO. 505</span> </p> <strong class="title"><em><strong><span>영공방위 및 미사일 감시태세 이상무('26. 11. 11. 수)</span></strong> <span class="new">새글</span></em></strong> <p class="contentTxt"> </p> <ul class="detail"> <li> <strong>작성자</strong> 합참공보실 </li> <li><strong>등록일</strong>2026.11.12</li> </ul> </div> </a> </li>`;
+const JMOD = `<div class="news__item"><dt class="date">10/29</dt><dd class="news__title"><a href="/j/press/news/2026/10/29d.html" class="">北朝鮮のミサイル等関連情報（続報）について</a>　<a href="/j/press/news/2026/10/29d.pdf">印刷用</a></dd></div>`;
+
+describe("합참·일본 방위성 목록", () => {
+  it("합참 보도자료: 제목·등록일", () => {
+    const r = parseListPage(JCS, "https://www.jcs.mil.kr/jcs2/4752/subview.do", "kr");
+    expect(r[0]).toMatchObject({ title: "영공방위 및 미사일 감시태세 이상무('26. 11. 11. 수)", publishedAt: "2026-11-12", url: "https://www.jcs.mil.kr/bbs/jcs2/121947/O_503624/artclView.do" });
+  });
+  it("방위성 새 소식: 연도는 주소에서", () => {
+    const r = parseListPage(JMOD, "https://www.mod.go.jp/j/press/news/index.html", "jp");
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({ publishedAt: "2026-10-29", url: "https://www.mod.go.jp/j/press/news/2026/10/29d.html" });
+  });
+});
+
 describe("대만 국방부 목록", () => {
   it("중국 군 활동은 날짜를 제목에 붙이고 보도자료는 그대로", () => {
     const rows = parseListPage(TW_MND, "https://www.mnd.gov.tw/en/news/PlaactList", "tw");

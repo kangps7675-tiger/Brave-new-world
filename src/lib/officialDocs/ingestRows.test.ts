@@ -19,7 +19,7 @@ describe("officialDocsIngest", () => {
   it("등록된 피드와 내장 피드를 합쳐 중복 없이 돌려준다", () => {
     const sources = officialFeedSources();
     expect(sources.length).toBeGreaterThanOrEqual(14);
-    expect(sources.filter((s) => s.page).map((s) => s.issuerId).sort()).toEqual(["cn", "fr", "fr", "ir", "jp", "jp", "kr", "kr", "kr", "nato", "tw", "tw", "tw"]);
+    expect(sources.filter((s) => s.page).map((s) => s.issuerId).sort()).toEqual(["cn", "fr", "fr", "ir", "jp", "jp", "jp", "kr", "kr", "kr", "kr", "nato", "tw", "tw", "tw"]);
     expect(new Set(sources.map((s) => s.url)).size).toBe(sources.length);
   });
 });

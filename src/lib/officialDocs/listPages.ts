@@ -157,6 +157,36 @@ function taiwanMnd(html: string, pageUrl: string, issuerId: IssuerId): DocCandid
   return out;
 }
 
+/**
+ * 합참 보도자료(/jcs2/4752/subview.do): `<a href="/bbs/jcs2/121947/O_503624/artclView.do">` 카드 안에 `strong.title`과 `등록일2026.11.12`(2026-11-12 확인).
+ * 북한 발사 직후 발표는 이 게시판에 오르지 않는다(문자·언론 브리핑으로 나간다). 훈련·태세 점검 등 합참 입장이 오른다.
+ */
+function koreaJcs(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(/<a\s+href="(\/bbs\/jcs2\/\d+\/[^"]+\/artclView\.do)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const t = m[2].match(/<strong class="title">([\s\S]*?)<\/strong>\s*<p/i) ?? m[2].match(/<strong class="title">([\s\S]*?)<\/strong>/i);
+    const d = m[2].match(/등록일\s*<\/strong>\s*(\d{4})\.(\d{2})\.(\d{2})/);
+    const url = absolute(m[1], pageUrl);
+    const title = t ? clean(t[1]).replace(/\s*새글\s*$/, "") : "";
+    if (url && title) out.push(candidate(issuerId, title, url, d ? `${d[1]}-${d[2]}-${d[3]}` : null));
+  }
+  return out;
+}
+
+/**
+ * 일본 방위성 새 소식(/j/press/news/index.html): `<dt class="date">10/29</dt><dd class="news__title"><a href="/j/press/news/2026/10/29d.html">…`.
+ * 날짜에 연도가 없어 주소(/news/2026/10/29d)에서 읽는다. 북한 미사일 발표는 별도(jmodLaunch)로 숫자까지 읽는다.
+ */
+function japanMod(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(/<dd[^>]*class="news__title"[^>]*>\s*<a\s+href="(\/j\/press\/news\/(\d{4})\/(\d{2})\/(\d{2})[a-z]?\.html)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = absolute(m[1], pageUrl);
+    const title = clean(m[5]);
+    if (url && title) out.push(candidate(issuerId, title, url, `${m[2]}-${m[3]}-${m[4]}`));
+  }
+  return out;
+}
+
 /** 일본 총리관저 영문 첫 화면: /statement/·/speech/ 글만. 날짜는 주소(202611/1111statement.html = 11월 11일)에서 읽는다. */
 function japanKantei(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
   const re = new RegExp(
@@ -284,6 +314,8 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mofa\.go\.kr$/i, (html, pageUrl, issuerId) => (/\/www\//.test(pageUrl) ? koreaMofaKo(html, pageUrl, issuerId) : koreaMofa(html, pageUrl, issuerId))],
   [/(^|\.)mnd\.go\.kr$/i, koreaMnd],
   [/(^|\.)mnd\.gov\.tw$/i, taiwanMnd],
+  [/(^|\.)jcs\.mil\.kr$/i, koreaJcs],
+  [/(^|\.)mod\.go\.jp$/i, japanMod],
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
   [/(^|\.)elysee\.fr$/i, elysee],
   [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],
