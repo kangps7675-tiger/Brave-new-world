@@ -67,7 +67,8 @@ export async function GET(request: Request) {
     let rows: Array<Record<string, unknown>>;
     try {
       rows = await db.select().from(officialDocFeed).where(where).orderBy(desc(officialDocFeed.publishedAt)).limit(150);
-    } catch {
+    } catch (e) {
+      console.error("[official-docs] 전체 칸 조회 실패, 옛 칸으로 재시도:", e instanceof Error ? e.message : e);
       // 0044(번역 칸) 마이그레이션 전이면 옛 칸만 읽는다 — 번역이 없어도 문서 목록은 계속 나와야 한다
       rows = await db
         .select({
@@ -84,9 +85,12 @@ export async function GET(request: Request) {
       { docs: rows.map(publicDoc), fetchedAt: new Date().toISOString() },
       { headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800" } },
     );
-  } catch {
+  } catch (e) {
+    // 빈 목록으로 숨기되 원인은 남긴다(런타임 로그). ?debug=1이면 응답에도 에러 문구를 싣는다.
+    const message = e instanceof Error ? e.message : String(e);
+    console.error("[official-docs] 조회 실패:", message);
     return NextResponse.json(
-      { docs: [], fetchedAt: new Date().toISOString() },
+      { docs: [], fetchedAt: new Date().toISOString(), ...(url.searchParams.get("debug") ? { error: message } : {}) },
       { status: 200, headers: { "Cache-Control": "public, s-maxage=60" } },
     );
   }
