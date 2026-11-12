@@ -1322,6 +1322,52 @@ export const warRiskQuotes = sqliteTable(
 export type WarRiskQuoteDbRow = typeof warRiskQuotes.$inferSelect;
 
 /**
+ * 공식 문서 자동 수집 목록 (`drizzle/0042_official_doc_feed.sql`).
+ * 각국 정부·기구 피드의 성명·공동성명·팩트시트·회담 요약 제목+링크+요약. 원문은 저장하지 않는다.
+ * 적재: workers/cron-ingest/src/officialDocsIngest.ts
+ */
+export const officialDocFeed = sqliteTable(
+  "official_doc_feed",
+  {
+    id: text("id").primaryKey(),
+    issuerId: text("issuer_id").notNull(),
+    kind: text("kind").notNull(),
+    weight: text("weight").notNull(),
+    title: text("title").notNull(),
+    url: text("url").notNull(),
+    publishedAt: text("published_at"),
+    summary: text("summary").notNull().default(""),
+    /** 쉼표로 이은 희귀 지명 태그(hormuz,gaza…) */
+    tags: text("tags").notNull().default(""),
+    feed: text("feed").notNull(),
+    /** 문서를 낸 기관(`drizzle/0043`). 한 목록에 여러 기관이 섞인 소스(연방관보)용. */
+    agency: text("agency").notNull().default(""),
+    /** 제목·요약의 한국어/영어 번역(`drizzle/0044`). 빈 문자열이면 아직 없음. 번역 시도는 translate_tries로 3번까지만. */
+    titleKo: text("title_ko").notNull().default(""),
+    titleEn: text("title_en").notNull().default(""),
+    summaryKo: text("summary_ko").notNull().default(""),
+    summaryEn: text("summary_en").notNull().default(""),
+    translateTries: integer("translate_tries").notNull().default(0),
+    ingestedAt: text("ingested_at").notNull(),
+  },
+  (t) => ({
+    pubIdx: index("idx_official_doc_feed_pub").on(t.publishedAt),
+    issuerIdx: index("idx_official_doc_feed_issuer").on(t.issuerId, t.publishedAt),
+  }),
+);
+
+export type OfficialDocFeedRow = typeof officialDocFeed.$inferSelect;
+
+/** 공식 문서 수집 피드별 마지막 결과(`drizzle/0042`). 어느 사이트가 워커에서 막히는지 보려고 남긴다. */
+export const officialDocPoll = sqliteTable("official_doc_poll", {
+  feed: text("feed").primaryKey(),
+  checkedAt: text("checked_at").notNull(),
+  ok: integer("ok").notNull().default(0),
+  items: integer("items").notNull().default(0),
+  error: text("error"),
+});
+
+/**
  * 선박 신원 — aisstream 정적 메시지의 IMO·호출부호 (`drizzle/0033_vessel_identity.sql`).
  * MMSI 당 1행. 적재: workers/cron-ingest/src/vesselIdentity.ts
  */

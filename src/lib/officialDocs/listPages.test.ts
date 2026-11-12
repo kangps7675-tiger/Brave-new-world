@@ -1,0 +1,277 @@
+import { describe, expect, it } from "vitest";
+import { hasListPageReader, japanMofaDetailDate, parseListPage } from "./listPages";
+
+const NATO = `
+<a href="/en/about-us/organization/nato-structure/nato-military-committee">NATO Military Committee portal</a>
+<div class="card-normal card-transcript">
+<a href="https://www.nato.int/en/about-us/official-texts-and-resources/official-texts/2026/07/08/the-ankara-summit-declaration" aria-label="The Ankara Summit Declaration ">
+<div class="card-normal-text"><h3 class="h4-style">The Ankara Summit Declaration </h3><p class="date">08 July 2026</p></div></a></div>
+<a href="https://www.nato.int/en/about-us/official-texts-and-resources/official-texts/2026/09/29/quantum-technology-roadmap">
+<h3 class="h4-style">Quantum Technology Roadmap</h3></a>`;
+
+const TW = `<li><span><a href="News_Content.aspx?n=1328&sms=273&s=123389" title="ROC (Taiwan) and Philippines sign updated MOU on direct hiring" id="" class=""> <i class="mark">2026/11<b>6</b></i>ROC (Taiwan) and Philippines sign updated MOU</a></span></li>
+<li><span><a href="News_Content.aspx?n=1329&sms=272&s=123389" title="ROC (Taiwan) and Philippines sign updated MOU on direct hiring"> <i class="mark">2026/11<b>6</b></i>x</a></span></li>
+<li><span><a href="News_Content.aspx?n=1328&sms=273&s=123390" title="MOFA response to IPAC statement">MOFA response to IPAC statement</a></span></li>`;
+
+const FR = `<article class="node"><div class="fr-card__body"><h3 class="fr-card__title">
+<a href="/en/presse-et-ressources/decouvrir-et-informer/actualites/declaration-conjointe-g7"  class="fr-card__link">
+ Joint declaration following the G7 Foreign Ministers Meeting in Paris on 9 and…
+</a></h3><p class="fr-card__detail"></p><div class="fr-card__end"><p class="fr-card__detail">
+ November 11th 2026
+</p></div></div></article>`;
+
+const KR = `<tr><td><div>11421</div></td><td class="left"><div><a href="#" onclick="f_view('323501');" class="link">Outcome of the 11th International Conference on the Law of the Sea</a></div></td>
+<td><div>2026-11-04</div></td></tr>`;
+
+const JP = `<li><a href="https://japan.kantei.go.jp/105/statement/202611/1111statement.html" class="panel-article__link"><div class="panel-article__media"></div><div class="panel-article__content"><div class="panel-article__title">Instruction by the Prime Minister regarding the Avian Influenza Case</div></div></a></li>
+<li><a href="/105/speech/202611/05kaiken.html" class="panel-article__link"><div class="panel-article__title">Press Conference on the Summit Telephone Meeting with President Macron</div></a></li>
+<li><a href="/105/actions/202611/09hyoukei.html" class="panel-article__link"><div class="panel-article__title">Courtesy Call</div></a></li>`;
+
+const KR_KO = `<tr> <td data-before="번호"><div>22884</div></td> <td data-before="제목"> <div> <a href="./view.do?seq=377761&amp;page=1&amp;pitem=10" onclick="javascript:f_view('377761'); return false;"> <span class="krds-badge outline-primary">NEW</span> 제9차 외교부-시민사회 정책대화 개최 </a> </div> </td> <td data-before="작성일"><div> <span class="date"> 2026-11-12</span> </div></td> </tr>`;
+
+const MND = `<tr> <td class="td-num"> 13445 </td> <td class="td-title alignL"> <a href="/bbs/mnd/13000005/DPIM_124632/artclView.do" onclick="jf_viewArtcl('mnd', '13000005', 'DPIM_124632')"> <strong><span>국방 분야 혁신제품 최초 지정, 민간 혁신기술의 군 활용 확대 </span></strong> <span class="new">새글</span> </a> </td> <td class="td-write"> 김채명 </td> <td class="td-date">2026.11.12</td> </tr>`;
+
+const TW_MND = `<a href="/en/News/PLAAct/88203" class="news_list"> <div class="date headline-h5 h5">2026.11.12</div> <h2 class="title headline-h4"><span class="en">PLA activities in the waters and airspace around Taiwan</span></h2> <div class="views body-2">Click-Through Rate：315</div></a>
+<a href="/en/News/PressRelease/88156" class="news_list"> <div class="left-block"> <div class="date body-2"><span class="en">2026.11.04</span></div></div> <div class="title-column"> <h2 class="title headline-h4"><span class="en">Ministry of National Defense Issues Press Release Regarding "PLA Joint Combat Readiness Patrol"</span></h2></div></a>`;
+
+const JCS = `<li> <a href="/bbs/jcs2/121947/O_503624/artclView.do" onclick="jf_viewArtcl('jcs2', '121947', 'O_503624')"> <div class="conts"> <p class="sub"> <span class="num">NO. 505</span> </p> <strong class="title"><em><strong><span>영공방위 및 미사일 감시태세 이상무('26. 11. 11. 수)</span></strong> <span class="new">새글</span></em></strong> <p class="contentTxt"> </p> <ul class="detail"> <li> <strong>작성자</strong> 합참공보실 </li> <li><strong>등록일</strong>2026.11.12</li> </ul> </div> </a> </li>`;
+const JMOD = `<div class="news__item"><dt class="date">10/29</dt><dd class="news__title"><a href="/j/press/news/2026/10/29d.html" class="">北朝鮮のミサイル等関連情報（続報）について</a>　<a href="/j/press/news/2026/10/29d.pdf">印刷用</a></dd></div>`;
+
+const CN_MOD = `<ul class="list-unstyled article-list" id="main-news-list">
+\t\t\t\t<li>
+\t\t\t\t\t<a href="http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/16492077.html">
+\t\t\t\t\t\t<img src="/gfbw/xwfyr/fyrthhdjzw/_attachment/2026/09/03/16492077_72c2c5d2d2029bd33c9ce6b5199a8957.jpg" class="image hidden" border="0"/>
+\t\t\t\t\t\t<h3>
+\t\t\t\t\t\t\t<p class="title">
+\t\t\t\t\t\t\t\t国防部新闻发言人陈曦就赖清德发表所谓“双十”讲话答记者问
+\t\t\t\t\t\t\t</p>
+\t\t\t\t\t\t\t<small class="time hidden-xs">2026-10-11 11:19</small>
+\t\t\t\t\t\t</h3>
+\t\t\t\t\t\t<div class="hidden desc"></div>
+\t\t\t\t\t\t<span class="hidden keywords"></span>
+\t\t\t\t\t</a>
+\t\t\t\t</li>`;
+
+const IN_MEA = `<div class="pressReleaseList"> <div class="pressRelesastBox"> <div class="d-flex"> <span class="date">12 November, 2026</span> </div> <h3 class="pressTitle"> <a href="/press-releases?dtl/41942/12th_round_of_India__South_Africa_Foreign_Office_Consultations"> 12th round of India - South Africa Foreign Office Consultations </a> </h3> <div class="d-flex tags"></div></div>`;
+
+const AU_DEF = `<div class="dod-card-item"> <a href="/news-events/releases/2026-11-09/aukus-partners-demonstrate-autonomous-systems-scale" class="card dod-card"> <div class="card-body"> <div class="row"><div class="col"><h6 class="dod-card-topic">Media release</h6></div></div> <h3>AUKUS partners demonstrate autonomous systems at scale</h3> </div> </a> </div>`;
+
+describe("호주 국방부 목록", () => {
+  it("보도자료: 제목·주소의 날짜", () => {
+    const r = parseListPage(AU_DEF, "https://www.defence.gov.au/news-events/releases", "au");
+    expect(r[0]).toMatchObject({ title: "AUKUS partners demonstrate autonomous systems at scale", publishedAt: "2026-11-09", url: "https://www.defence.gov.au/news-events/releases/2026-11-09/aukus-partners-demonstrate-autonomous-systems-scale" });
+  });
+});
+
+describe("인도 외교부 목록", () => {
+  it("자바스크립트가 부르는 목록 조각에서 제목·날짜·주소", () => {
+    const r = parseListPage(IN_MEA, "https://www.mea.gov.in/FrontEnd/FetchPublicationListingData?publicationId=51", "in");
+    expect(r[0]).toMatchObject({ title: "12th round of India - South Africa Foreign Office Consultations", publishedAt: "2026-11-12", url: "https://www.mea.gov.in/press-releases?dtl/41942/12th_round_of_India__South_Africa_Foreign_Office_Consultations" });
+  });
+});
+
+describe("중국 국방부 목록", () => {
+  it("대변인 답변: 제목·날짜·주소", () => {
+    const r = parseListPage(CN_MOD, "http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/index.html", "cn");
+    expect(r[0]).toMatchObject({ title: "国防部新闻发言人陈曦就赖清德发表所谓“双十”讲话答记者问", publishedAt: "2026-10-11", url: "http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/16492077.html" });
+  });
+});
+
+describe("합참·일본 방위성 목록", () => {
+  it("합참 보도자료: 제목·등록일", () => {
+    const r = parseListPage(JCS, "https://www.jcs.mil.kr/jcs2/4752/subview.do", "kr");
+    expect(r[0]).toMatchObject({ title: "영공방위 및 미사일 감시태세 이상무('26. 11. 11. 수)", publishedAt: "2026-11-12", url: "https://www.jcs.mil.kr/bbs/jcs2/121947/O_503624/artclView.do" });
+  });
+  it("방위성 새 소식: 연도는 주소에서", () => {
+    const r = parseListPage(JMOD, "https://www.mod.go.jp/j/press/news/index.html", "jp");
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({ publishedAt: "2026-10-29", url: "https://www.mod.go.jp/j/press/news/2026/10/29d.html" });
+  });
+});
+
+describe("대만 국방부 목록", () => {
+  it("중국 군 활동은 날짜를 제목에 붙이고 보도자료는 그대로", () => {
+    const rows = parseListPage(TW_MND, "https://www.mnd.gov.tw/en/news/PlaactList", "tw");
+    expect(rows.map((r) => r.title)).toEqual([
+      "PLA activities in the waters and airspace around Taiwan (2026-11-12)",
+      'Ministry of National Defense Issues Press Release Regarding "PLA Joint Combat Readiness Patrol"',
+    ]);
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-11-12", url: "https://www.mnd.gov.tw/en/News/PLAAct/88203" });
+  });
+});
+
+describe("한국 국문 목록 페이지", () => {
+  it("외교부 국문 보도자료: 제목·날짜·상세 주소", () => {
+    const rows = parseListPage(KR_KO, "https://www.mofa.go.kr/www/brd/m_4080/list.do", "kr");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ title: "제9차 외교부-시민사회 정책대화 개최", publishedAt: "2026-11-12", url: "https://www.mofa.go.kr/www/brd/m_4080/view.do?seq=377761" });
+  });
+  it("국방부 보도자료: 새글 표시를 떼고 날짜를 읽는다", () => {
+    const rows = parseListPage(MND, "https://www.mnd.go.kr/mnd/167/subview.do", "kr");
+    expect(rows[0]).toMatchObject({ title: "국방 분야 혁신제품 최초 지정, 민간 혁신기술의 군 활용 확대", publishedAt: "2026-11-12", url: "https://www.mnd.go.kr/bbs/mnd/13000005/DPIM_124632/artclView.do" });
+  });
+});
+
+describe("목록 페이지 읽기", () => {
+  it("나토: 주소에서 날짜를 읽고 정상선언을 공동성명으로, 일반 문서는 성명으로 둔다", () => {
+    const rows = parseListPage(NATO, "https://www.nato.int/en/about-us/official-texts-and-resources", "nato");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ title: "The Ankara Summit Declaration", publishedAt: "2026-07-08", kind: "joint-statement", weight: "agreed" });
+    expect(rows[1]).toMatchObject({ publishedAt: "2026-09-29", kind: "statement" });
+  });
+
+  it("대만: 같은 기사(s=번호)는 하나로 합치고, 날짜 표시가 없으면 null", () => {
+    const rows = parseListPage(TW, "https://en.mofa.gov.tw/", "tw");
+    expect(rows).toHaveLength(2);
+    expect(rows[0].publishedAt).toBe("2026-11-06");
+    expect(rows[0].url).toBe("https://en.mofa.gov.tw/News_Content.aspx?n=1328&sms=273&s=123389");
+    expect(rows[1].publishedAt).toBeNull();
+  });
+
+  it("프랑스: 카드의 제목·날짜를 읽는다", () => {
+    const rows = parseListPage(FR, "https://www.diplomatie.gouv.fr/en/press/news", "fr");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-11-11", kind: "joint-statement" });
+    expect(rows[0].url).toContain("declaration-conjointe-g7");
+  });
+
+  it("한국: f_view 글번호로 상세 주소를 만든다", () => {
+    const rows = parseListPage(KR, "https://www.mofa.go.kr/eng/brd/m_5676/list.do", "kr");
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-11-04", url: "https://www.mofa.go.kr/eng/brd/m_5676/view.do?seq=323501" });
+  });
+
+  it("일본 총리관저: 성명·연설만, 날짜는 주소에서", () => {
+    const rows = parseListPage(JP, "https://japan.kantei.go.jp/", "jp");
+    expect(rows.map((r) => r.publishedAt)).toEqual(["2026-11-11", "2026-11-05"]);
+    expect(rows[1].kind).toBe("remarks");
+  });
+
+  it("읽는 함수가 없는 호스트는 빈 목록", () => {
+    expect(parseListPage("<a href='x'>x</a>", "https://pib.gov.in/allRel.aspx", "in")).toEqual([]);
+    expect(hasListPageReader("https://www.nato.int/x")).toBe(true);
+    expect(hasListPageReader("https://pib.gov.in/")).toBe(false);
+  });
+
+  it("프랑스 대통령실: 앞의 날짜·유형을 떼고 주소에서 날짜를 읽는다", () => {
+    const html = `<h3><a href="/emmanuel-macron/2026/10/02/g7-leaders-statement-on-global-energy-security">2 octobre 2026 Communiqué de presse G7 Leaders' Statement on Global Energy Security and Market Stability</a></h3>
+<h3><a href="https://www.elysee.fr/emmanuel-macron/2026/10/22/exposition">22 octobre 2026 Article La Grande exposition du Fabriqué en France</a></h3>`;
+    const rows = parseListPage(html, "https://www.elysee.fr/toutes-les-actualites", "fr");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-10-02", title: "G7 Leaders' Statement on Global Energy Security and Market Stability" });
+    expect(rows[1].title).toBe("La Grande exposition du Fabriqué en France");
+  });
+
+  it("중국 외교부 주요 소식: 주소에서 날짜, 링크 글자가 제목", () => {
+    const html = `<li><a href="https://www.fmprc.gov.cn/eng/xw/zyxw/202611/t20261106_12055153.html">President Xi Jinping Holds Talks with Gabonese President</a><span>November 06, 2026</span></li>
+<li><a href="./202611/t20261110_12056514.html">Xi Jinping Congratulates Iliana Iotova on Her Election</a></li>`;
+    const rows = parseListPage(html, "https://www.fmprc.gov.cn/eng/xw/zyxw/", "cn");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-11-06" });
+    expect(rows[1].url).toBe("https://www.fmprc.gov.cn/eng/xw/zyxw/202611/t20261110_12056514.html");
+    expect(rows[1].publishedAt).toBe("2026-11-10");
+  });
+
+  it("이란 외무부: 항목별 제목 링크와 2026/11/11 날짜를 읽는다", () => {
+    const item = (id: number, title: string, date: string) => `<div class="news-arch-item"><div class="news-img-arch"><div class="news-item-img"><a id="x" href="../newsview/${id}"></a></div></div>
+<div class="news-content-arch"><div class="news-item-title"><h2><a id="y" class="hTitle" href="../newsview/${id}">${title}</a></h2></div>
+<div class="news-item-lead"><a class="hLeadText" href="../newsview/${id}">.</a></div>
+<div class="bottom-details"><div class="dateNews"><i class="fa fa-calendar"></i> ${date} </div></div></div></div>`;
+    const html = item(797561, "Iran FM: US delusions lead to failure of its policies", "2026/11/11") + item(797510, "Iran declares Argentine Navy Air Force terrorist organizations", "2026/11/10");
+    const rows = parseListPage(html, "https://en.mfa.ir/portal/newsarchive/699", "ir");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://en.mfa.ir/portal/newsview/797561", publishedAt: "2026-11-11" });
+    expect(rows[1].publishedAt).toBe("2026-11-10");
+  });
+
+  it("사우디 외교부: 카드 제목·날짜를 읽고 csrt 값은 떼며, 성명 목록의 일반 제목은 성명으로 분류한다", () => {
+    const card = (title: string, date: string, href: string) => `<article class="card"><div class="card-body placeholder-glow"><div><h2 class="card-title">${title}</h2><p class="card-text">${title} ...</p></div><small><span>${date}</span></small><div><a class="btn btn-primary" href="${href}">Read More</a></div></div></article>`;
+    const html =
+      card("Joint Declaration by the Ministers of Foreign Affairs of the Kingdom of Saudi Arabia and the Italian Republic", "Wednesday, July 29, 2026", "https://www.mofa.gov.sa/en/ministry/statements/Pages/Joint-Declaration-.aspx?csrt=10495061656260767707") +
+      card("Kingdom welcomes the agreement", "Monday, July 6, 2026", "/en/ministry/statements/Pages/N674.aspx");
+    const rows = parseListPage(html, "https://www.mofa.gov.sa/en/ministry/statements/Pages/default.aspx", "sa");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://www.mofa.gov.sa/en/ministry/statements/Pages/Joint-Declaration-.aspx", publishedAt: "2026-07-29", kind: "joint-statement" });
+    expect(rows[1]).toMatchObject({ url: "https://www.mofa.gov.sa/en/ministry/statements/Pages/N674.aspx", publishedAt: "2026-07-06", kind: "statement" });
+  });
+
+  it("파키스탄 외교부: 카드의 h5 제목과 03 Nov 2026 날짜를 읽는다", () => {
+    const card = (slug: string, title: string, date: string) => `<div class="col"><a href="https://mofa.gov.pk/press-releases/${slug}"><div class="card"><h6>Press Releases</h6><div class="card-body"><h5>${title}</h5></div><div class="card-footer"><p class="mb-0"><i class="fas fa-calendar-alt me-1"></i> ${date} </p></div></div></a></div>`;
+    const html = card("un-first-committee", "UN General Assembly’s First Committee adopts Pakistan’s Sponsored Resolutions", "03 Nov 2026") + card("curtain-raiser-idcpc", "Curtain Raiser: Visit of the Minister of the IDCPC to Pakistan", "01 Nov 2026");
+    const rows = parseListPage(html, "https://mofa.gov.pk/press-releases", "pk");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://mofa.gov.pk/press-releases/un-first-committee", publishedAt: "2026-11-03" });
+    expect(rows[1].publishedAt).toBe("2026-11-01");
+  });
+
+  it("카타르 외교부: news-list-item의 제목 링크와 날짜를 읽고, 성명 목록은 성명으로 분류한다", () => {
+    const item = (href: string, title: string, date: string) => `<div class="col-12 col-md-6 news-list-item"><div class="news-img-wrp"><img class="news-img" src="x.png"></div><div class="news-title-wrp"><a href="${href}"><h4 class="news-title">${title}</h4></a></div><p class="news-publication-date">${date}</p></div>`;
+    const html = item("https://mofa.gov.qa/en/latest-articles/statements/qatar-condemns-shooting-in-poland", "Qatar Condemns Shooting in Poland", "Sunday, November 08, 2026") + item("/en/latest-articles/statements/qatar-strongly-condemns-armed-attack-in-southern-egypt", "Qatar Strongly Condemns Armed Attack in Southern Egypt", "Saturday, November 07, 2026");
+    const rows = parseListPage(html, "https://mofa.gov.qa/en/latest-articles/statements", "qa");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://mofa.gov.qa/en/latest-articles/statements/qatar-condemns-shooting-in-poland", publishedAt: "2026-11-08", kind: "statement" });
+    expect(rows[1]).toMatchObject({ url: "https://mofa.gov.qa/en/latest-articles/statements/qatar-strongly-condemns-armed-attack-in-southern-egypt", publishedAt: "2026-11-07" });
+  });
+
+  it("우크라이나 외교부: 날짜 블록 id(12.11.2026)와 제목 링크를 읽는다", () => {
+    const html = `<div class="timeline-block first-date-block" id="12.11.2026"><div class="date"><div class="day">12 листопада</div></div><div class="timeline-item main posts"><div class="description with_preview"><div class="source_text">Новини</div><a class="title" href="https://mfa.gov.ua/news/maryana-beca-parizkij-forum"><span>Мар’яна Беца взяла участь у Паризькому форумі миру</span></a></div><div class="time">12:46</div></div></div>
+<div class="timeline-block" id="11.11.2026"><div class="timeline-item main posts"><div class="description"><a class="title" href="/news/andrij-sibiga-zustrich"><span>Андрій Сибіга провів зустріч</span></a></div></div></div>`;
+    const rows = parseListPage(html, "https://mfa.gov.ua/timeline?&type=posts", "ua");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://mfa.gov.ua/news/maryana-beca-parizkij-forum", publishedAt: "2026-11-12" });
+    expect(rows[1]).toMatchObject({ url: "https://mfa.gov.ua/news/andrij-sibiga-zustrich", publishedAt: "2026-11-11" });
+  });
+
+  it("폴란드 정부 포털: 일.월.년 날짜와 제목 링크를 읽는다", () => {
+    const li = (date: string, href: string, title: string) => `<li><div><picture><img alt="x" src="/photo/a"></picture><div><div class="event"><span class="date">\n${date}\n</span></div><div class="title">\n<a href="${href}"> ${title} </a>\n</div><div class="intro">intro</div></div></div></li>`;
+    const html = `<div class="art-prev art-prev--near-menu" ><ul>${li("07.11.2026", "/web/diplomacy/poland-and-greece-on-eu-priorities", "Poland and Greece on EU priorities")}${li("05.11.2026", "/web/diplomacy/statement-of-ministers", "Statement of Ministers")}</ul></div>`;
+    const rows = parseListPage(html, "https://www.gov.pl/web/diplomacy/news-", "pl");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://www.gov.pl/web/diplomacy/poland-and-greece-on-eu-priorities", title: "Poland and Greece on EU priorities", publishedAt: "2026-11-07" });
+    expect(rows[1].publishedAt).toBe("2026-11-05");
+  });
+
+  it("대만 총통부 첫 화면: News Releases의 제목·날짜·주소", () => {
+    const html = `<div class="idxList1">
+<div class="listI"><a href="/News/7241#new"><div class="pic"><img src="x.jpg" alt=""></div><div class="date"><span>2026-11-12</span></div><div class="title"><strong>President Lai attends press conference before Taiwan’s delegation departs for 2026 APEC Economic Leaders’ Meeting</strong></div></a></div>
+<div class="listI"><a href="/News/7240#new"><div class="date"><span>2026-11-11</span></div><div class="title"><strong>President Lai meets delegation</strong></div></a></div>`;
+    const rows = parseListPage(html, "https://english.president.gov.tw/", "tw");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://english.president.gov.tw/News/7241", publishedAt: "2026-11-12" });
+    expect(rows[1].publishedAt).toBe("2026-11-11");
+  });
+
+  it("일본 외무성: 날짜 제목 아래 링크를 읽고, 연도 없는 날짜는 오늘 기준으로 정한다", () => {
+    const html = `<dl class="title-list"><dt class="list-title">November 12</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02843.html">Dinner hosted by State Minister</a></li></ul></dd>
+<dt class="list-title">November 11</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02842.html">Courtesy Call on Vice-Minister</a></li><li><a href="/press/release/pressite_000001_02841.html">Reception for Italy anniversary</a></li></ul></dd>
+<dt class="list-title">December 30</dt><dd><ul><li><a href="/press/release/pressite_000001_02000.html">Year-end note</a></li></ul></dd></dl>`;
+    const rows = parseListPage(html, "https://www.mofa.go.jp/press/release/index.html", "jp", new Date("2026-11-12T03:00:00Z"));
+    expect(rows.map((r) => r.publishedAt)).toEqual(["2026-11-12", "2026-11-11", "2026-11-11", "2025-12-30"]);
+    expect(rows[0].url).toBe("https://www.mofa.go.jp/press/release/pressite_000001_02843.html");
+  });
+
+  it("일본 외무성 상세 페이지의 연도 포함 날짜를 읽는다", () => {
+    expect(japanMofaDetailDate("Prefecture e-mail Print November 11, 2026 Japanese On November 11, from 2:35 PM")).toBe("2026-11-11");
+    expect(japanMofaDetailDate("no date here")).toBeNull();
+  });
+});
+
+describe("중국 상무부 영문 대변인 발표(API 응답)", () => {
+  const api = "https://english.mofcom.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit?pageId=MUKS1cCFmT39NDRQgDYop";
+  const html =
+    '<ul><li><a href="/News/SpokesmansRemarks/art/2026/art_a471d3e9fb504ff1adeede99c64bbcf0.html" target="_blank">MOFCOM Spokesperson’s Remarks on the U.S. FCC Voting to Adopt Restrictions on Testing Labs</a><span>11/06/2026</span></li>' +
+    '<li><a href="/News/SpokesmansRemarks/art/2026/art_11faf0c1340d4c8db0e0ebae51574036.html">Remarks on UFLPA Entity List</a><span>11/04/2026</span></li></ul>';
+  const body = JSON.stringify({ success: true, data: { html } });
+  it("JSON 안의 목록에서 제목·주소·날짜(월/일/년)를 읽는다", () => {
+    expect(hasListPageReader(api)).toBe(true);
+    const rows = parseListPage(body, api, "cn");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      url: "https://english.mofcom.gov.cn/News/SpokesmansRemarks/art/2026/art_a471d3e9fb504ff1adeede99c64bbcf0.html",
+      publishedAt: "2026-11-06",
+    });
+    expect(rows[1].publishedAt).toBe("2026-11-04");
+  });
+  it("JSON이 아니어도 HTML 조각이면 읽는다", () => {
+    expect(parseListPage(html, api, "cn")).toHaveLength(2);
+  });
+});

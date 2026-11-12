@@ -45,19 +45,19 @@ const PATHS: Array<{ path: ScenarioPath; re: RegExp }> = [
 
 /** 희귀 지명 하나면 같은 사건. 나라 이름만으로는 묶지 않는다. */
 const RARE: Array<[RegExp, string]> = [
-  [/strait of hormuz|\bhormuz\b|호르무즈/i, "hormuz"],
-  [/red sea|홍해/i, "red-sea"],
-  [/bab[\s-]?el[\s-]?mandeb|바브엘만데브/i, "bab"],
-  [/zaporizhzhia|자포리자/i, "zaporizhzhia"],
-  [/\bkharkiv\b|하르키우/i, "kharkiv"],
-  [/\bdonbas\b|돈바스/i, "donbas"],
-  [/\bbakhmut\b|바흐무트/i, "bakhmut"],
-  [/\bkherson\b|헤르손/i, "kherson"],
-  [/\brafah\b|라파/i, "rafah"],
-  [/\bgaza\b|가자/i, "gaza"],
-  [/taiwan strait|대만해협/i, "taiwan-strait"],
-  [/\bkinmen\b|진먼/i, "kinmen"],
-  [/\bdmz\b|판문점|비무장지대/i, "dmz"],
+  [/strait of hormuz|\bhormuz\b|호르무즈|ホルムズ|霍尔木兹|霍爾木茲|Ормуз|Гормуз|Хормуз|هرمز/i, "hormuz"],
+  [/red sea|홍해|紅海|红海|Красное море|Красного моря|Червоне море|البحر الأحمر/i, "red-sea"],
+  [/bab[\s-]?el[\s-]?mandeb|바브엘만데브|バブ・?エル・?マンデブ|曼德海峡|Баб-эль-Мандеб|باب المندب/i, "bab"],
+  [/zaporizhzhia|자포리자|ザポリージャ|扎波罗热|Запорож|Запоріж/i, "zaporizhzhia"],
+  [/\bkharkiv\b|하르키우|ハルキウ|ハリコフ|哈尔科夫|Харків|Харьк|Харк/i, "kharkiv"],
+  [/\bdonbas\b|돈바스|ドンバス|顿巴斯|Донбас/i, "donbas"],
+  [/\bbakhmut\b|바흐무트|バフムト|巴赫穆特|Бахмут/i, "bakhmut"],
+  [/\bkherson\b|헤르손|ヘルソン|赫尔松|Херсон/i, "kherson"],
+  [/\brafah\b|라파|ラファ|拉法|Рафах/i, "rafah"],
+  [/\bgaza\b|가자|ガザ|加沙|сектор[а-я]* газа|غزة/i, "gaza"],
+  [/taiwan strait|대만해협|台湾海峡|台灣海峽|Тайваньск[а-я]* пролив/i, "taiwan-strait"],
+  [/\bkinmen\b|진먼|金門|金门/i, "kinmen"],
+  [/\bdmz\b|판문점|비무장지대|非武装地帯|非军事区|非軍事區/i, "dmz"],
 ];
 
 const ACTORS: Array<[RegExp, string]> = [

@@ -1,5 +1,6 @@
 "use client";
 
+import type { MissileRangeFeatureCollection } from "@/lib/missileRange";
 import type { MutableRefObject } from "react";
 import type { FeatureCollection } from "geojson";
 import type { PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
@@ -153,6 +154,8 @@ export interface UseGlobeMapGlobePropsParams {
   ultraLite: boolean;
   mapInteractiveLayerIds: readonly string[];
   showIslandChains: boolean;
+  /** 열린 속보의 미사일 사거리(발사 글에서 기종이 읽힐 때만) */
+  missileRangeFc: MissileRangeFeatureCollection | null;
   configureGlobe: () => void;
   handleGlobeMouseMove: (coords: { lat: number; lng: number } | null) => void;
   tensionHeatmaps: TensionHeatmapLayer[];
@@ -253,6 +256,7 @@ export function useGlobeMapGlobeProps(
     ultraLite,
     mapInteractiveLayerIds,
     showIslandChains,
+    missileRangeFc,
     configureGlobe,
     handleGlobeMouseMove,
     tensionHeatmaps,
@@ -347,6 +351,7 @@ export function useGlobeMapGlobeProps(
     showCityLabels: historyOn ? false : showCityLabels,
     interactiveLayerIds: mapInteractiveLayerIds,
     showIslandChains: historyOn ? false : showIslandChains,
+    missileRangeFc: historyOn ? null : missileRangeFc,
     onGlobeReady: configureGlobe,
     onGlobeMouseMove: handleGlobeMouseMove,
     heatmapsData: historyOn ? [] : tensionHeatmaps,

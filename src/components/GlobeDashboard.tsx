@@ -132,6 +132,10 @@ import { type FeedTabId } from "@/lib/feedDrawer/tabs";
 import { TrackingToggles } from "@/components/globe/TrackingToggles";
 import { StackItemParchment } from "@/components/globe/StackItemParchment";
 import { LiveFlashDesk, deskCategory } from "@/components/globe/LiveFlashDesk";
+import { flightFiguresOf, missileRangeForText, missileRangeGeoJson } from "@/lib/missileRange";
+import { useJmodLaunches } from "@/hooks/useJmodLaunches";
+import { jmodReportForFlash } from "@/lib/jmodLaunch";
+import { useAutoMissileRanges } from "@/hooks/useAutoMissileRanges";
 import { buildFlashNeonPoints } from "@/lib/flashNeon";
 import { EventScenarioBoard } from "@/components/globe/EventScenarioBoard";
 import { BranchDesk } from "@/components/globe/BranchDesk";
@@ -5958,6 +5962,21 @@ export function GlobeDashboard({
     [deskOpenId, liveDeskItems, liveDeskShipIds],
   );
 
+  /** 열린 속보가 미사일 발사 글이고 기종이 읽히면 그 속보 위치 기준 사거리 원을 지구본에 그린다 */
+  const autoMissileRanges = useAutoMissileRanges(deskOpenId != null);
+  const jmodReports = useJmodLaunches(deskOpenId != null);
+  const missileRangeFc = useMemo(() => {
+    if (deskOpenId == null) return null;
+    const item = liveDeskItems.find((x) => x.id === deskOpenId);
+    if (!item || !Number.isFinite(item.lat) || !Number.isFinite(item.lng)) return null;
+    const text = `${item.title} ${item.liveua?.title ?? ""} ${item.liveua?.body ?? ""} ${item.detail ?? ""}`;
+    const hit = missileRangeForText(text, autoMissileRanges);
+    if (!hit) return null;
+    const own = flightFiguresOf(text);
+    const jmod = jmodReportForFlash(text, item.at, jmodReports);
+    return missileRangeGeoJson(item.lat, item.lng, hit.spec, { distanceKm: own.distanceKm ?? jmod?.distanceKm, apogeeKm: own.apogeeKm ?? jmod?.apogeeKm });
+  }, [deskOpenId, liveDeskItems, autoMissileRanges, jmodReports]);
+
   const mapGlobeProps = useGlobeMapGlobeProps({
     showLeftPanel,
     globeTextures,
@@ -5965,6 +5984,7 @@ export function GlobeDashboard({
     ultraLite,
     mapInteractiveLayerIds,
     showIslandChains,
+    missileRangeFc,
     configureGlobe,
     handleGlobeMouseMove,
     tensionHeatmaps,

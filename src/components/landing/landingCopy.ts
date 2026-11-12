@@ -10,8 +10,8 @@ export function landingCopy(lang: LabelLanguage) {
   const t = (ko: string, english: string) => (en ? english : ko);
   return {
     pageTitle: t(
-      `${BRAND_NAME.ko} — 정보기관 상황실처럼, 전선과 일정을 한눈에`,
-      `${BRAND_NAME.en} — Like an intelligence watch floor, fronts and dates in one view`,
+      `${BRAND_NAME.ko} — 근거로 확인하는 지정학 속보`,
+      `${BRAND_NAME.en} — Geopolitical alerts, checked against sources`,
     ),
     navAria: t("주 메뉴", "Main"),
     navAsk: t("무엇을 알려 주나", "What it shows"),
@@ -33,28 +33,28 @@ export function landingCopy(lang: LabelLanguage) {
       { id: "faq", label: t("자주 묻는 질문", "FAQ") },
     ],
     heroEyebrow: t(
-      "지정학 상황실 · 전선 · 선거 · 헌법",
-      "Geopolitics desk · fronts · elections · constitutions",
+      "지정학 속보 · 출처 · 확인 상태",
+      "Geopolitical alerts · sources · status",
     ),
-    heroLine1: t("정보기관 상황실처럼,", "Like an intelligence watch floor,"),
-    heroLine2: t("전선과 일정을 한눈에.", "fronts and dates in one view."),
+    heroLine1: t("속보가 떴다면,", "An alert just landed."),
+    heroLine2: t("먼저 근거부터 보세요.", "Look at the evidence first."),
     heroBody: t(
-      "어느 전선이 움직였는지, 다음 공식 일정은 언제인지, 그 나라 헌법에는 뭐라고 적혀 있는지. 속보가 뜰 때 찾던 답을 3D 지구본 한 화면에 모았습니다.",
-      "Which front moved, when the next official date is, and what that country’s constitution says. The answers you look up when an alert lands, on one 3D globe.",
+      "속보는 지구본 위에 점으로 찍히고, 소식마다 출처와 확인 상태가 붙어 있습니다. 그 소식이 믿을 만한지는 근거를 보고 직접 따져 볼 수 있어요.",
+      "Alerts show up as dots on a globe, each with its sources and a status. Whether one holds up is something you can judge from the evidence.",
     ),
     heroRead: t("화면 읽는 법 먼저 보기", "How to read the screen"),
     heroBeta: t("베타 기간에는 가입 없이 바로 볼 수 있어요.", "During beta you can look without signing up."),
     threatEyebrow: t("전선에서 지금 쓰이는 것", "What the fronts are using"),
     threatTitle: t("드론, 미사일, 기뢰가 전선에서 쓰입니다.", "Drones, missiles, and mines are in use on the fronts."),
     stats: [
-      { n: 3, s: t("가지", "labels"), label: t("소식마다 붙는 확인 상태 — 확인·유력·자료 없음", "Status on every alert: confirmed, likely, no data") },
+      { n: 3, s: t("가지", "labels"), label: t("소식마다 붙는 확인 상태(확인·유력·자료 없음)", "Status on every alert (confirmed, likely, no data)") },
       { n: 8, s: t("종", "sources"), label: t("서로 맞춰 보는 공개 출처", "Public sources checked against each other") },
       { n: 6, s: t("시간", "hours"), label: t("마다 새로 고르는 사진 뉴스", "Between each photo-news pick") },
       { n: 9, s: t("개", "tools"), label: t("핵심 화면 밖 상세 기능", "Tools beyond the main screen") },
     ],
-    askEyebrow: t("경보 하나에 질문 넷", "Four questions, one alert"),
-    askTitle1: t("속보, 다음 일정, 헌법을 서로 다른 창에서 찾습니다.", "Alerts, the next date, and the constitution usually live in different windows."),
-    askTitle2: t("이제 그 답을 지구본 하나에서 봅니다.", "Those answers now sit on one globe."),
+    askEyebrow: t("속보를 보면 궁금해지는 것", "What you wonder when an alert lands"),
+    askTitle1: t("보통은 창을 여러 개 열어야 알 수 있는 것들입니다.", "Usually you need several windows open to find these out."),
+    askTitle2: t("여기서는 지구본 하나에서 봅니다.", "Here they are on one globe."),
     questions: [
       {
         q: t("어느 전선이 움직였나?", "Which front moved?"),
@@ -102,45 +102,45 @@ export function landingCopy(lang: LabelLanguage) {
     ),
     readEyebrow: t("화면 읽는 법", "How to read the screen"),
     readTitle1: t("반짝이는 데는 다 이유가 있어요.", "Everything that glows is there for a reason."),
-    readTitle2: t("색과 모양만 알면 30초 만에 읽힙니다.", "Learn the colors and shapes and you can read it in 30 seconds."),
+    readTitle2: t("색과 모양 몇 개만 알면 됩니다.", "A few colors and shapes are all you need."),
     read: [
       {
-        title: t("표시 — 공격이 보고된 자리", "A mark — where an attack was reported"),
+        title: t("표시는 공격이 보고된 자리", "A mark is where an attack was reported"),
         body: t(
           "공격이 보고된 자리에 표시가 뜨고, 그 근처에서 움직이는 군함도 같이 보입니다. 이름이 붙은 큰 배는 항공모함이에요.",
           "A mark appears where an attack was reported, with warships moving nearby. A large named ship is a carrier.",
         ),
       },
       {
-        title: t("불꽃 — 드론·미사일이 떨어진 곳", "Flames — where a drone or missile landed"),
+        title: t("불꽃은 드론·미사일이 떨어진 곳", "Flames are where a drone or missile landed"),
         body: t(
           "발사나 요격이 아니라 실제로 맞았다고 보도된 곳만 켭니다. 항구, 정유소, 군 시설이 그 대상입니다.",
           "Only places reported as actually hit, not launches or intercepts. Ports, refineries, and military sites.",
         ),
       },
       {
-        title: t("붉은 면 — 전쟁 중인 땅", "Red ground — land at war"),
+        title: t("붉은 면은 전쟁 중인 땅", "Red ground is land at war"),
         body: t(
           "우크라이나 점령 지역, 예멘·레바논의 무장세력 통제 구역처럼 그 땅을 누가 쥐고 있는지 칠합니다.",
           "Who holds the ground: occupied Ukraine, and armed-group control in Yemen and Lebanon.",
         ),
       },
       {
-        title: t("비행기 — 지금 떠 있는 군용기", "Aircraft — military planes in the air now"),
+        title: t("비행기는 지금 떠 있는 군용기", "Aircraft are military planes in the air now"),
         body: t(
           "항공기 위치 신호(ADS-B)로 전선 위를 나는 정찰기·급유기를 보여 줍니다. 신호를 끈 비행기는 보이지 않아요.",
           "ADS-B shows reconnaissance aircraft and tankers over a front. A plane with its signal off is not on the map.",
         ),
       },
       {
-        title: t("깜빡이는 점 — 방금 들어온 속보", "A blinking dot — an alert that just arrived"),
+        title: t("깜빡이는 점은 방금 들어온 속보", "A blinking dot is an alert that just arrived"),
         body: t(
           "전선 속보가 가리키는 자리입니다. 테두리 색은 출처가 얼마나 탄탄한지를 뜻해요.",
           "Where a front-line alert points. The ring color is how solid the sourcing is.",
         ),
       },
       {
-        title: t("빛나는 선 — 누가 누구를 돕나", "A glowing line — who is backing whom"),
+        title: t("빛나는 선은 누가 누구를 돕는지", "A glowing line shows who is backing whom"),
         body: t(
           "이란·러시아처럼 같은 편끼리 무기와 에너지를 주고받는 관계를 곡선으로 잇습니다. 공격하는 쪽이 어디서 힘을 얻는지 보여요.",
           "Curves link partners such as Iran and Russia that trade weapons and energy. They show where an attacker draws support.",
@@ -335,23 +335,23 @@ export function landingCopy(lang: LabelLanguage) {
       },
     ],
     devicesEyebrow: t("데스크톱 · 휴대폰", "Desktop and phone"),
-    devicesTitle1: t("상황실은 데스크톱에서,", "The watch floor is the desktop."),
-    devicesTitle2: t("휴대폰은 주머니 속 알림창으로.", "The phone is an alert window in your pocket."),
-    deskTitle: t("데스크톱 — 주로 쓰는 상황실", "Desktop — the desk you actually use"),
+    devicesTitle1: t("큰 화면에서는 지구본으로,", "On a big screen, the globe."),
+    devicesTitle2: t("휴대폰에서는 목록으로.", "On a phone, a list."),
+    deskTitle: t("데스크톱: 주로 쓰는 화면", "Desktop: the main screen"),
     desk: [
       t("3D 지구본 위에 전선·비행기·불꽃·경보를 모두 겹쳐 봅니다.", "Fronts, aircraft, flames, and alerts stacked on the 3D globe."),
       t("전선 속보, 국가 중대 일정, 뉴스 창을 옆에 띄워 두고 함께 봅니다.", "Front-line alerts, major dates, and the news pane stay open beside it."),
       t("넓은 화면에서 전선 하나를 끝까지 따라가며 읽는 데 맞춰져 있어요.", "A wide screen is for following one front all the way through."),
     ],
-    phoneTitle: t("휴대폰 — 보조 알림창", "Phone — a secondary alert window"),
+    phoneTitle: t("휴대폰: 알림 목록", "Phone: an alert list"),
     phone: [
       t("무거운 3D 지구본 대신 속보·경보를 글 목록으로 가볍게 봅니다.", "Alerts as a text list, instead of the heavy 3D globe."),
       t("알림을 허용하면 새 소식을 푸시로 받을 수 있어요.", "Allow notifications and new items can arrive as a push."),
       t("홈 화면에 추가하면 앱처럼 바로 열립니다. 자세히 볼 일은 데스크톱에서 이어서 보세요.", "Add it to the home screen and it opens like an app. The close reading still happens on the desktop."),
     ],
     whoEyebrow: t("누가 쓰나", "Who it's for"),
-    whoTitle1: t("전선이 어디로 움직이는지,", "Where a front is moving,"),
-    whoTitle2: t("다음 일정이 언제인지 읽는 분들께", "and when the next date falls — for the people who read that."),
+    whoTitle1: t("뉴스에 뜬 속보를,", "For people who check an alert"),
+    whoTitle2: t("그대로 믿기 전에 따져 보는 분들께", "before taking it at face value."),
     audiences: [
       {
         who: t("전선을 읽는 사람", "People reading a front"),
@@ -458,11 +458,11 @@ export function landingCopy(lang: LabelLanguage) {
         ),
       },
     ],
-    ctaTitle1: t("이 전선,", "This front —"),
-    ctaTitle2: t("지금 무엇이 움직이나요?", "what is moving on it now?"),
+    ctaTitle1: t("속보 하나,", "One alert —"),
+    ctaTitle2: t("직접 확인해 보세요.", "check it yourself."),
     ctaBody: t(
-      "지구본을 열고 길목을 하나 골라 보세요. 가입도, 설치도 필요 없어요.",
-      "Open the globe and pick a passage. No account, no install.",
+      "지구본을 열어서 눈에 띄는 점을 하나 눌러 보세요. 가입도 설치도 필요 없습니다.",
+      "Open the globe and tap any dot. No account, no install.",
     ),
     footer: t(
       "공개 정보를 모아 보여 주는 서비스이며, 정부·정보기관과는 관계가 없습니다. 전선과 일정에 관한 최종 판단은 이용자에게 있습니다.",
