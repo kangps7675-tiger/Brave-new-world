@@ -5,7 +5,8 @@
  *    + `src/data/officialListPages.json`(RSS 없는 사이트의 목록 페이지: 나토·대만·프랑스·한국·일본 총리관저)
  *  - 합의문·팩트시트·회담 요약·성명·조약만 남긴다(`worthKeeping`). 연설·일반 보도자료는 버린다.
  *  - 목록에는 제목 + 링크 + 요약 280자 + 읽힌 지명 태그만 둔다. 문서에 붙은 원본 PDF는 별도로 받아 R2에 보관하고(capturePending),
- *    웹 아카이브(archive.org) 보관본 주소도 받아 둔다(archivePending). 우리 서버에서 직접 펼쳐 보여 주는 나라는 capture.ts의 FILE_DISPLAY_ISSUERS가 정한다.
+ *    웹 아카이브(archive.org) 보관본 주소도 받아 둔다(archivePending). 사본은 이용 조건을 확인한 발행처·사이트(capture.ts의 FILE_DISPLAY_ISSUERS,
+ *    FILE_STORE_HOSTS)에서만 만들고, 나머지는 파일을 받지도 않는다.
  *  - 30분 최소 간격 자체 스로틀. 피드별 성공·실패를 `official_doc_poll`에 남긴다
  *    (정부 사이트가 Cloudflare Worker 주소를 막는지 이 표로 알 수 있다).
  *  - 실패해도 메인 인제스트는 안 깨지게 호출부에서 try/catch
@@ -18,7 +19,7 @@ import { translateDoc, type Translator } from "../../../src/lib/officialDocs/tra
 import { translateWithProviders } from "../../../src/lib/translateProviders";
 import { rareTagsOf } from "../../../src/lib/news/eventScenarios";
 import { canFetchArticle } from "../../../src/lib/news/robotsTxt";
-import { FILE_MAX_BYTES, archiveSaveUrl, archiveUrlOf, fileKeyOf, isPdfBytes, isPdfUrl, pdfLinksOf, sha256Hex } from "../../../src/lib/officialDocs/capture";
+import { FILE_DISPLAY_ISSUERS, FILE_MAX_BYTES, archiveSaveUrl, archiveUrlOf, fileKeyOf, fileStoreAllowedHost, isPdfBytes, isPdfUrl, pdfLinksOf, sha256Hex } from "../../../src/lib/officialDocs/capture";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
@@ -173,13 +174,15 @@ async function capturePending(env: IngestEnv): Promise<number> {
   if (!bucket) return 0;
   let rows: Array<{ id: string; url: string }>;
   try {
+    const issuers = [...FILE_DISPLAY_ISSUERS];
     const res = await env.DB
       .prepare(
         `SELECT id, url FROM official_doc_feed
          WHERE file_tries < ?1 AND file_fetched_at = '' AND published_at >= date('now', ?2)
+           AND issuer_id IN (${issuers.map((_, i) => `?${i + 4}`).join(",")})
          ORDER BY published_at DESC LIMIT ?3`,
       )
-      .bind(CAPTURE_MAX_TRIES, `-${CAPTURE_WINDOW_DAYS} days`, CAPTURE_MAX_PER_RUN)
+      .bind(CAPTURE_MAX_TRIES, `-${CAPTURE_WINDOW_DAYS} days`, CAPTURE_MAX_PER_RUN, ...issuers)
       .all<{ id: string; url: string }>();
     rows = res.results ?? [];
   } catch {
@@ -197,6 +200,11 @@ async function capturePending(env: IngestEnv): Promise<number> {
   let done = 0;
   for (const row of rows) {
     try {
+      // 이용 조건을 읽지 않은 사이트는 아예 건드리지 않는다(요청도, 저장도 하지 않음). 다시 보지 않도록 끝낸 것으로 표시한다.
+      if (!fileStoreAllowedHost(row.url)) {
+        await fail(row.id, true);
+        continue;
+      }
       // robots.txt가 막은 주소·경로는 받지 않는다(프로젝트 저작권 점검 O-3과 같은 규칙). 확인을 못 한 경우도 보수적으로 막힌 것으로 본다.
       if (!(await canFetchArticle(row.url, CAPTURE_UA))) {
         await retry(row.id);
@@ -218,6 +226,10 @@ async function capturePending(env: IngestEnv): Promise<number> {
           continue;
         }
         fileUrl = links[0];
+        if (!fileStoreAllowedHost(fileUrl)) {
+          await fail(row.id, true);
+          continue;
+        }
         if (!(await canFetchArticle(fileUrl, CAPTURE_UA))) {
           await retry(row.id);
           continue;

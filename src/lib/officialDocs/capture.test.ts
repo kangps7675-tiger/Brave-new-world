@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { archiveUrlOf, fileDisplayAllowed, fileKeyOf, isPdfBytes, isPdfUrl, pdfLinksOf, sameSite, sha256Hex } from "./capture";
+import { archiveUrlOf, fileDisplayAllowed, fileKeyOf, fileStoreAllowedHost, isPdfBytes, isPdfUrl, pdfLinksOf, sameSite, sha256Hex } from "./capture";
 
 describe("pdfLinksOf", () => {
   const page = "https://www.state.gov/releases/office-of-the-spokesman/2023/05/fact-sheet/";
@@ -64,5 +64,21 @@ describe("표시 허용 발행처", () => {
     expect(fileDisplayAllowed("us")).toBe(true);
     expect(fileDisplayAllowed("gb")).toBe(true);
     expect(fileDisplayAllowed("cn")).toBe(false);
+  });
+});
+
+describe("사본을 만들어도 되는 사이트", () => {
+  it("이용 조건을 읽은 사이트(국무부·백악관·영국 정부)와 그 하위 도메인만", () => {
+    expect(fileStoreAllowedHost("https://www.state.gov/releases/x/")).toBe(true);
+    expect(fileStoreAllowedHost("https://www.whitehouse.gov/releases/x/")).toBe(true);
+    expect(fileStoreAllowedHost("https://assets.publishing.service.gov.uk/media/a.pdf")).toBe(true);
+  });
+  it("같은 미국·영국 발행처라도 이용 조건을 아직 못 읽은 사이트와 다른 나라는 받지 않는다", () => {
+    expect(fileStoreAllowedHost("https://www.defense.gov/News/x/")).toBe(false);
+    expect(fileStoreAllowedHost("https://www.federalregister.gov/d/x")).toBe(false);
+    expect(fileStoreAllowedHost("https://www.mofa.go.jp/a.pdf")).toBe(false);
+    expect(fileStoreAllowedHost("https://evilstate.gov.example.com/a.pdf")).toBe(false);
+    expect(fileStoreAllowedHost("https://notstate.gov/a.pdf")).toBe(false);
+    expect(fileStoreAllowedHost("not a url")).toBe(false);
   });
 });

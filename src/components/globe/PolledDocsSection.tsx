@@ -34,6 +34,13 @@ function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean })
           </a>
         ))}
       </p>
+      {doc.fileAvailable ? (
+        <p className="mt-0.5 text-micro text-[#5c4020]/70">
+          {en
+            ? "Unaltered copy of the publisher's file. The publisher has not endorsed or partnered with this service. Photos and other third-party material inside remain with their owners."
+            : "발행 기관이 낸 파일을 가공 없이 보관한 사본입니다. 발행 기관이 이 서비스를 보증하거나 제휴한 것이 아니며, 문서 안의 사진 등 제3자 자료의 권리는 각 권리자에게 있습니다."}
+        </p>
+      ) : null}
       {doc.fileAvailable && doc.issuerId === "gb" ? (
         <p className="mt-0.5 text-micro text-[#5c4020]/70">
           <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer" className="underline">

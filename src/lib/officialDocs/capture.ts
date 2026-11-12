@@ -1,22 +1,37 @@
 /**
  * 공식 문서 원본 파일(PDF) 보관의 순수 부분. 워커(수집)와 API(내려주기)와 테스트가 같이 쓴다.
  *
- * 저장은 어느 나라 문서든 같은 규칙으로 한다(정부가 나중에 파일을 고치거나 지워도 "그때는 이랬다"는 증거가 남게).
- * 사용자에게 우리 서버에서 직접 펼쳐 보여 주는 것은 별개라서 발행처마다 켜고 끈다(FILE_DISPLAY_ISSUERS).
- * 꺼진 나라도 원본 링크와 아카이브 보관본 링크는 보인다.
+ * 위험을 가장 작게 하려고 사본(복제)은 **이용 조건을 읽고 확인한 사이트의 문서에만** 만든다(FILE_STORE_HOSTS).
+ * 그 밖의 나라·사이트 문서는 파일을 받지도 저장하지도 않고, 원본 링크와 웹 아카이브(archive.org) 보관본 링크만 남긴다
+ * (복제는 제3자인 아카이브가 한다). 저장·표시 대상은 이용 조건을 새로 읽고 확인한 뒤 한 곳씩 늘린다.
  */
 
 /** 이보다 큰 파일은 받지 않는다(워커 메모리·R2 용량·모바일 열람 모두 감안) */
 export const FILE_MAX_BYTES = 15 * 1024 * 1024;
 
 /**
- * 원본 파일을 우리 서버에서 직접 보여 줘도 되는 발행처. **이용 조건을 읽고 확인한 곳만** 넣는다.
+ * 사본을 만들어 보관하고 우리 서버에서 보여 줘도 되는 발행처(나라). **이용 조건을 읽고 확인한 곳만** 넣는다.
  *  - us: 미국 연방정부 저작물은 저작권 보호 대상이 아니다(17 U.S.C. §105). state.gov·whitehouse.gov 안내문도 같은 취지(2026-11-12 확인).
- *    단 사진·삽화 등 제3자 자료는 예외라는 안내가 있다.
- *  - gb: 영국 정부는 Open Government Licence v3.0(출처 표기 조건, 로고·제3자 권리 제외). 2026-11-12 확인.
- * 다른 나라는 이용 조건을 읽은 뒤 한 곳씩 추가한다. 빠진 나라는 "안 된다"가 아니라 "아직 확인 안 했다"는 뜻이다.
+ *    단 사진·삽화 등 제3자 자료는 예외이고, 인장·로고는 허락 없이 쓰지 말라는 안내가 있다(원본을 가공 없이 그대로만 보여 준다).
+ *  - gb: 영국 정부는 Open Government Licence v3.0(출처 표기 필수, 보증·후원 암시 금지, 로고·제3자 권리 제외). 2026-11-12 확인.
+ * 빠진 나라는 "안 된다"가 아니라 "아직 확인 안 했다"는 뜻이다.
  */
 export const FILE_DISPLAY_ISSUERS: ReadonlySet<string> = new Set(["us", "gb"]);
+
+/**
+ * 사본을 만들어도 되는 사이트(호스트). 발행처가 us·gb여도 **위에서 이용 조건을 직접 읽은 사이트만** 받는다.
+ * 같은 미국 정부라도 국방부·재무부·상무부·연방관보 사이트는 안내문을 아직 못 읽어서 빠져 있다(법 규정상 문제가 없을 가능성이 높지만 확인 전).
+ */
+export const FILE_STORE_HOSTS: readonly string[] = ["state.gov", "whitehouse.gov", "gov.uk"];
+
+export function fileStoreAllowedHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return FILE_STORE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
 
 export function fileDisplayAllowed(issuerId: string): boolean {
   return FILE_DISPLAY_ISSUERS.has(issuerId);
