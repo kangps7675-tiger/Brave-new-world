@@ -2,8 +2,11 @@
 
 import { OfficialDocCard } from "@/components/globe/OfficialDocCard";
 import { SipriArmsRecord } from "@/components/globe/SipriArmsRecord";
+import { PolledDocsSection } from "@/components/globe/PolledDocsSection";
 import { OFFICIAL_DOCS } from "@/data/officialDocs";
+import { usePolledOfficialDocs } from "@/hooks/usePolledOfficialDocs";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
+import { polledDocsForFlash } from "@/lib/officialDocs/matchPolled";
 import type { NewsStreamItem } from "@/lib/news/types";
 
 type Props = {
@@ -19,6 +22,8 @@ type Props = {
 export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const docs = docsForFlash(text, OFFICIAL_DOCS);
   const articles = articlesForFlash(text, at, newsPool, ownUrl);
+  const polled = usePolledOfficialDocs();
+  const polledMatches = polledDocsForFlash(text, at, polled, { excludeUrls: new Set(docs.map((d) => d.sourceUrl)) });
 
   return (
     <div className="space-y-2 empty:hidden" data-flash-evidence>
@@ -33,6 +38,7 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
           </ul>
         </section>
       ) : null}
+      <PolledDocsSection matches={polledMatches} en={en} />
       {articles.length > 0 ? (
         <section>
           <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{en ? "Related press reports" : "관련 언론 기사"}</p>
