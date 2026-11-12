@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { missileRangeForText, rangeShape, missileRangeGeoJson, formatRangeKm } from "./missileRange";
+import { compareFlight, flightFiguresOf, missileRangeForText, rangeShape, missileRangeGeoJson, formatRangeKm } from "./missileRange";
 
 const RAD = Math.PI / 180;
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -62,5 +62,30 @@ describe("표시 문자열·GeoJSON", () => {
     const fc = missileRangeGeoJson(39, 125.7, missileRangeForText("Hwasong-15 launched")!.spec);
     expect(fc.features.map((f) => f.properties.part)).toEqual(["fill", "line"]);
     expect(fc.features[0].properties.km).toBe(13000);
+  });
+});
+
+describe("발표 비행 수치", () => {
+  it("영어·한글 서술에서 비행거리와 정점 고도를 읽는다", () => {
+    expect(flightFiguresOf("The missile flew about 1,000 km before landing in the East Sea")).toEqual({ distanceKm: 1000 });
+    expect(flightFiguresOf("It reached an altitude of around 7,000 km and flew approximately 1,000 kilometers")).toEqual({ distanceKm: 1000, apogeeKm: 7000 });
+    expect(flightFiguresOf("합참은 정점 고도 약 7,000km, 비행거리 약 1,000km로 탐지했다")).toEqual({ distanceKm: 1000, apogeeKm: 7000 });
+    expect(flightFiguresOf("약 1,000km 비행 후 동해에 낙하")).toEqual({ distanceKm: 1000 });
+  });
+  it("수치가 없으면 비워 둔다", () => {
+    expect(flightFiguresOf("North Korea launches Hwasong-18")).toEqual({});
+    expect(flightFiguresOf("A drone strike near a base 3 km from the border")).toEqual({});
+  });
+  it("최대 사거리 대비 비율, 고각 여부, 모순을 계산한다", () => {
+    const spec = missileRangeForText("Hwasong-18 launched")!.spec;
+    expect(compareFlight(spec, { distanceKm: 1000, apogeeKm: 7000 })).toEqual({ percentOfMax: 7, lofted: true, exceedsMax: false });
+    expect(compareFlight(spec, { distanceKm: 900 }).lofted).toBe(false);
+    expect(compareFlight(spec, { distanceKm: 20000 }).exceedsMax).toBe(true);
+  });
+  it("비행거리가 있으면 같은 발사 지점의 노란 선을 더한다", () => {
+    const spec = missileRangeForText("Hwasong-18 launched")!.spec;
+    const fc = missileRangeGeoJson(39, 125.7, spec, { distanceKm: 1000 });
+    expect(fc.features.map((f) => f.properties.part)).toEqual(["fill", "line", "flown"]);
+    expect(fc.features[2].properties.km).toBe(1000);
   });
 });

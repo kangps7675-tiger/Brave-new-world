@@ -99,18 +99,76 @@ export type MissileRangeFeatureCollection = {
   type: "FeatureCollection";
   features: Array<
     | { type: "Feature"; properties: { id: string; name: string; km: number; part: "fill" }; geometry: { type: "Polygon"; coordinates: [number, number][][] } }
-    | { type: "Feature"; properties: { id: string; name: string; km: number; part: "line" }; geometry: { type: "LineString"; coordinates: [number, number][] } }
+    | { type: "Feature"; properties: { id: string; name: string; km: number; part: "line" | "flown" }; geometry: { type: "LineString"; coordinates: [number, number][] } }
   >;
 };
 
+/** 발표에 적힌 이번 비행 수치. 글에 없으면 비어 있다(지어내지 않는다). */
+export type FlightFigures = { distanceKm?: number; apogeeKm?: number };
+
+const NUM = String.raw`([\d,]+(?:\.\d+)?)`;
+const KM_EN = String.raw`\s?(?:km|kilomet(?:er|re)s?)\b`;
+const KM_KO = String.raw`\s?(?:여\s?)?(?:km|㎞|킬로미터)`;
+const HEDGE_EN = String.raw`(?:about|around|approximately|some|roughly|over|nearly|up to)?\s*`;
+
+function num(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const n = Number(raw.replace(/,/g, ""));
+  return Number.isFinite(n) && n >= 1 && n <= 40_000 ? n : undefined;
+}
+
+/** "flew about 1,000 km", "비행거리 약 1,000km", "altitude of 6,000 km", "정점 고도 약 6,000km" 같은 서술에서 수치를 읽는다 */
+export function flightFiguresOf(text: string): FlightFigures {
+  const out: FlightFigures = {};
+  const dist =
+    new RegExp(String.raw`(?:flew|flown|traveled|travelled|covered(?: a distance of)?|flight distance of|distance of)\s+${HEDGE_EN}${NUM}${KM_EN}`, "i").exec(text) ??
+    new RegExp(String.raw`비행\s?거리\D{0,6}?(?:약\s*)?${NUM}${KM_KO}`).exec(text) ??
+    new RegExp(String.raw`(?:약\s*)?${NUM}${KM_KO}\s?(?:가량\s?|정도\s?)?(?:를\s?)?비행`).exec(text);
+  const apo =
+    new RegExp(String.raw`(?:altitude|apogee)\s+(?:of\s+)?${HEDGE_EN}${NUM}${KM_EN}`, "i").exec(text) ??
+    new RegExp(String.raw`(?:정점\s?고도|최고\s?고도|고도)\D{0,6}?(?:약\s*)?${NUM}${KM_KO}`).exec(text);
+  const d = num(dist?.[1]);
+  const a = num(apo?.[1]);
+  if (d != null) out.distanceKm = d;
+  if (a != null) out.apogeeKm = a;
+  return out;
+}
+
+export type FlightComparison = {
+  /** 이번 비행거리가 최대 사거리의 몇 %인지 */
+  percentOfMax: number | null;
+  /** 정점 고도가 비행거리보다 높으면 고각(로프티드) 발사로 읽힌다 — 발표 수치만으로 말할 수 있는 범위 */
+  lofted: boolean;
+  /** 발표 비행거리가 출처의 최대 사거리를 넘는 모순 */
+  exceedsMax: boolean;
+};
+
+export function compareFlight(spec: MissileRangeSpec, fig: FlightFigures): FlightComparison {
+  const max = spec.rangeKm[1];
+  const d = fig.distanceKm;
+  return {
+    percentOfMax: d != null ? Math.round((d / max) * 100) : null,
+    lofted: d != null && fig.apogeeKm != null && fig.apogeeKm > d,
+    exceedsMax: d != null && d > max,
+  };
+}
+
 /** 지도에 올릴 GeoJSON: 칠할 폴리곤(가능할 때)과 점선용 경계선. 최대 사거리로 그린다. */
-export function missileRangeGeoJson(lat: number, lng: number, spec: MissileRangeSpec): MissileRangeFeatureCollection {
+export function missileRangeGeoJson(lat: number, lng: number, spec: MissileRangeSpec, fig: FlightFigures = {}): MissileRangeFeatureCollection {
   const km = spec.rangeKm[1];
   const shape = rangeShape(lat, lng, km);
   const props = { id: spec.id, name: spec.name, km };
   const features: MissileRangeFeatureCollection["features"] = [];
   if (shape.fill) features.push({ type: "Feature", properties: { ...props, part: "fill" }, geometry: { type: "Polygon", coordinates: shape.fill } });
   features.push({ type: "Feature", properties: { ...props, part: "line" }, geometry: { type: "LineString", coordinates: shape.boundary } });
+  // 발표된 실제 비행거리: 같은 발사 지점에서 그 거리만큼의 선. 방향은 이 선으로 알 수 없다(낙하 방향·지점은 별도 근거가 있을 때만).
+  if (fig.distanceKm != null) {
+    features.push({
+      type: "Feature",
+      properties: { id: spec.id, name: spec.name, km: fig.distanceKm, part: "flown" },
+      geometry: { type: "LineString", coordinates: rangeShape(lat, lng, fig.distanceKm).boundary },
+    });
+  }
   return { type: "FeatureCollection", features };
 }
 

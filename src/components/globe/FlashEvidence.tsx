@@ -7,7 +7,7 @@ import { OFFICIAL_DOCS } from "@/data/officialDocs";
 import { usePolledOfficialDocs } from "@/hooks/usePolledOfficialDocs";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import { polledDocsForFlash } from "@/lib/officialDocs/matchPolled";
-import { formatRangeKm, missileRangeForText } from "@/lib/missileRange";
+import { compareFlight, flightFiguresOf, formatRangeKm, missileRangeForText } from "@/lib/missileRange";
 import type { NewsStreamItem } from "@/lib/news/types";
 
 type Props = {
@@ -24,6 +24,8 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const docs = docsForFlash(text, OFFICIAL_DOCS);
   const articles = articlesForFlash(text, at, newsPool, ownUrl);
   const missile = missileRangeForText(text);
+  const figures = flightFiguresOf(text);
+  const cmp = missile ? compareFlight(missile.spec, figures) : null;
   const polled = usePolledOfficialDocs();
   const polledMatches = polledDocsForFlash(text, at, polled, { excludeUrls: new Set(docs.map((d) => d.sourceUrl)) });
 
@@ -47,11 +49,20 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
             <p className="text-micro leading-snug">
               {missile.spec.name} · {formatRangeKm(missile.spec)}
             </p>
+            {figures.distanceKm != null ? (
+              <p className="mt-0.5 text-micro leading-snug">
+                {en ? "Reported flight" : "이번 발표"}: {en ? "distance" : "비행거리"} {en ? "about " : "약 "}{figures.distanceKm.toLocaleString("en-US")}km
+                {cmp?.percentOfMax != null ? (en ? ` (${cmp.percentOfMax}% of the max range)` : ` (최대 사거리의 약 ${cmp.percentOfMax}%)`) : ""}
+                {figures.apogeeKm != null ? (en ? ` · apogee about ${figures.apogeeKm.toLocaleString("en-US")}km` : ` · 정점 고도 약 ${figures.apogeeKm.toLocaleString("en-US")}km`) : ""}
+                {cmp?.lofted ? (en ? " · apogee is higher than the distance flown, which reads as a lofted launch" : " · 정점이 비행거리보다 높아 고각 발사로 읽힘") : ""}
+                {cmp?.exceedsMax ? (en ? " · reported distance exceeds this source's max range" : " · 발표 비행거리가 이 출처의 최대 사거리보다 김(수치 확인 필요)") : ""}
+              </p>
+            ) : null}
             <p className="mt-0.5 text-micro text-[#5c4020]">
               {missile.spec.note ? `${missile.spec.note}. ` : ""}
               {en
-                ? "The red area on the globe is the maximum range drawn from this report's location, treated as the launch point. Estimates differ by source."
-                : "지구본의 붉은 면은 이 속보의 위치를 발사 지점으로 보고 최대 사거리로 그린 것입니다. 출처마다 추정이 다릅니다."}{" "}
+                ? "On the globe, the red area is the maximum range from this report's location (treated as the launch point) and the amber line is the distance actually reported. The line shows distance only, not direction. Estimates differ by source."
+                : "지구본의 붉은 면은 이 속보의 위치를 발사 지점으로 보고 최대 사거리로 그린 것이고, 노란 선은 발표된 실제 비행거리입니다. 노란 선은 거리만 보여 주며 낙하 방향은 알려 주지 않습니다. 출처마다 추정이 다릅니다."}{" "}
               <a href={missile.spec.source.url} target="_blank" rel="noopener noreferrer" className="underline">
                 {missile.spec.source.name}
               </a>

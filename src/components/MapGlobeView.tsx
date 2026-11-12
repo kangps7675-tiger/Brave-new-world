@@ -3892,6 +3892,12 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               filter={["==", ["get", "part"], "line"]}
               paint={{ "line-color": "#ef4444", "line-width": 2, "line-opacity": 0.9, "line-dasharray": [0, 4, 3] }}
             />
+            <Layer
+              id="missile-flown-line"
+              type="line"
+              filter={["==", ["get", "part"], "flown"]}
+              paint={{ "line-color": "#fbbf24", "line-width": 2.4, "line-opacity": 0.95 }}
+            />
           </Source>
         ) : null}
 
