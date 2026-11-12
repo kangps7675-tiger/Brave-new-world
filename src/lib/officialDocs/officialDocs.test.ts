@@ -135,3 +135,26 @@ describe("승인 검사", () => {
     expect(classifyDocKind("Joint statement by the foreign ministers of Japan and Korea")).toBe("joint-statement");
   });
 });
+
+describe("러시아 외무부 Atom 피드(2026-11-12 실제 응답 모양)", () => {
+  it("self-closing link와 published 날짜를 읽는다", () => {
+    const xml = `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title type="html">The Ministry of Foreign Affairs of the Russian Federation</title>
+  <link rel="alternate" href="http://mid.ru/en/rss.php"/>
+  <updated>11/12/2026</updated>
+  <entry>
+    <title type="html">Briefing by Foreign Ministry Spokeswoman Maria Zakharova, Moscow, November 11, 2026</title>
+    <link href="http://mid.ru/en/foreign_policy/news/2162475/"/>
+    <summary type="html"/>
+    <id>http://mid.ru/en/foreign_policy/news/2162475/</id>
+    <published>2026-11-11T19:22:00+03:00</published>
+  </entry>
+</feed>`;
+    const rows = parseOfficialFeed(xml, "ru");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ url: "http://mid.ru/en/foreign_policy/news/2162475/", publishedAt: "2026-11-11" });
+    expect(worthKeeping(rows[0])).toBe(true);
+  });
+});
+

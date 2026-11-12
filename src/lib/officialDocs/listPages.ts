@@ -188,12 +188,13 @@ function japanMod(html: string, pageUrl: string, issuerId: IssuerId): DocCandida
 }
 
 /**
- * 중국 국방부 중문 "발언인 담화·기자 질문 답변"(/gfbw/xwfyr/fyrthhdjzw/index.html): `<li><a href="…/fyrthhdjzw/16492077.html"> 제목</a> <p></p> <span class="time">2026-10-11 11:19</span>`.
- * 2026-11-12 실제 페이지 확인. 사이트는 http로 열린다(영문 사이트 eng.mod.gov.cn은 인증서 오류).
+ * 중국 국방부 중문 "발언인 담화·기자 질문 답변"(/gfbw/xwfyr/fyrthhdjzw/index.html). 목록은 서버가 주는 HTML에 이미 들어 있고(2026-11-12 원본 HTML 확인),
+ * 항목은 `<li><a href=".../fyrthhdjzw/16492077.html"> … <h3><p class="title">제목</p><small class="time hidden-xs">2026-10-11 11:19</small>` 모양이다.
+ * 사이트는 http로 열린다(영문 사이트 eng.mod.gov.cn은 인증서 오류).
  */
 function chinaMod(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
   const out: DocCandidate[] = [];
-  for (const m of html.matchAll(/<li>\s*<a\s+href="([^"]*\/gfbw\/[^"]*\/\d{6,}\.html)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<span class="time">\s*(\d{4}-\d{2}-\d{2})/gi)) {
+  for (const m of html.matchAll(/<li>\s*<a\s+href="([^"]*\/gfbw\/[^"]*\/\d{6,}\.html)"[^>]*>[\s\S]*?<p class="title">([\s\S]*?)<\/p>[\s\S]*?<small class="time[^"]*">\s*(\d{4}-\d{2}-\d{2})/gi)) {
     const url = absolute(m[1], pageUrl);
     const title = clean(m[2]);
     if (url && title) out.push(candidate(issuerId, title, url, m[3]));
@@ -426,6 +427,24 @@ function polandGov(html: string, pageUrl: string, issuerId: IssuerId): DocCandid
 }
 
 /**
+ * 대만 총통부 영문 첫 화면의 "News Releases": 항목마다 `<div class="listI"><a href="/News/7241#new"> … <div class="date"><span>2026-11-12</span></div>
+ * <div class="title"><strong>제목</strong>`(2026-11-12 실제 페이지 확인). RSS 주소(RSSNEWS.aspx)는 첫 화면으로 돌려보내서 쓸 수 없다.
+ */
+function taiwanPresident(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const block of html.split(/<div class="listI"/i).slice(1)) {
+    const a = /<a\b[^>]*href="(\/News\/\d+)[^"]*"/i.exec(block);
+    const t = /<div class="title">\s*<strong>([\s\S]*?)<\/strong>/i.exec(block);
+    if (!a || !t) continue;
+    const url = absolute(a[1], pageUrl);
+    const title = clean(t[1]);
+    const d = /<div class="date">\s*<span>\s*(\d{4}-\d{2}-\d{2})/i.exec(block);
+    if (url && title) out.push(candidate(issuerId, title, url, d ? d[1] : null));
+  }
+  return out;
+}
+
+/**
  * 일본 외무성 보도발표 목록: `<dt class="list-title">November 12</dt>` 다음 `<dd>`에 그날 링크들이 들어 있다(2026-11-12 실제 페이지 확인).
  * 날짜에 연도가 없어서 올해로 놓고, 오늘보다 하루 넘게 미래면 작년으로 돌린다(연말·연초 걸침 대비).
  */
@@ -462,6 +481,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mofa\.go\.kr$/i, (html, pageUrl, issuerId) => (/\/www\//.test(pageUrl) ? koreaMofaKo(html, pageUrl, issuerId) : koreaMofa(html, pageUrl, issuerId))],
   [/(^|\.)mnd\.go\.kr$/i, koreaMnd],
   [/(^|\.)mnd\.gov\.tw$/i, taiwanMnd],
+  [/(^|\.)president\.gov\.tw$/i, taiwanPresident],
   [/(^|\.)jcs\.mil\.kr$/i, koreaJcs],
   [/(^|\.)mea\.gov\.in$/i, indiaMea],
   [/(^|\.)defence\.gov\.au$/i, australiaDefence],

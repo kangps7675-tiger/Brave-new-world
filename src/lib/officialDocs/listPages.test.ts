@@ -37,7 +37,20 @@ const TW_MND = `<a href="/en/News/PLAAct/88203" class="news_list"> <div class="d
 const JCS = `<li> <a href="/bbs/jcs2/121947/O_503624/artclView.do" onclick="jf_viewArtcl('jcs2', '121947', 'O_503624')"> <div class="conts"> <p class="sub"> <span class="num">NO. 505</span> </p> <strong class="title"><em><strong><span>영공방위 및 미사일 감시태세 이상무('26. 11. 11. 수)</span></strong> <span class="new">새글</span></em></strong> <p class="contentTxt"> </p> <ul class="detail"> <li> <strong>작성자</strong> 합참공보실 </li> <li><strong>등록일</strong>2026.11.12</li> </ul> </div> </a> </li>`;
 const JMOD = `<div class="news__item"><dt class="date">10/29</dt><dd class="news__title"><a href="/j/press/news/2026/10/29d.html" class="">北朝鮮のミサイル等関連情報（続報）について</a>　<a href="/j/press/news/2026/10/29d.pdf">印刷用</a></dd></div>`;
 
-const CN_MOD = `<li><a href="http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/16492077.html" target="_blank"> 国防部新闻发言人陈曦就赖清德发表所谓“双十”讲话答记者问</a> <p> </p> <span class="time">2026-10-11 11:19</span><span class="qrcode">手机阅读</span> </li>`;
+const CN_MOD = `<ul class="list-unstyled article-list" id="main-news-list">
+\t\t\t\t<li>
+\t\t\t\t\t<a href="http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/16492077.html">
+\t\t\t\t\t\t<img src="/gfbw/xwfyr/fyrthhdjzw/_attachment/2026/09/03/16492077_72c2c5d2d2029bd33c9ce6b5199a8957.jpg" class="image hidden" border="0"/>
+\t\t\t\t\t\t<h3>
+\t\t\t\t\t\t\t<p class="title">
+\t\t\t\t\t\t\t\t国防部新闻发言人陈曦就赖清德发表所谓“双十”讲话答记者问
+\t\t\t\t\t\t\t</p>
+\t\t\t\t\t\t\t<small class="time hidden-xs">2026-10-11 11:19</small>
+\t\t\t\t\t\t</h3>
+\t\t\t\t\t\t<div class="hidden desc"></div>
+\t\t\t\t\t\t<span class="hidden keywords"></span>
+\t\t\t\t\t</a>
+\t\t\t\t</li>`;
 
 const IN_MEA = `<div class="pressReleaseList"> <div class="pressRelesastBox"> <div class="d-flex"> <span class="date">12 November, 2026</span> </div> <h3 class="pressTitle"> <a href="/press-releases?dtl/41942/12th_round_of_India__South_Africa_Foreign_Office_Consultations"> 12th round of India - South Africa Foreign Office Consultations </a> </h3> <div class="d-flex tags"></div></div>`;
 
@@ -215,6 +228,16 @@ describe("목록 페이지 읽기", () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]).toMatchObject({ url: "https://www.gov.pl/web/diplomacy/poland-and-greece-on-eu-priorities", title: "Poland and Greece on EU priorities", publishedAt: "2026-11-07" });
     expect(rows[1].publishedAt).toBe("2026-11-05");
+  });
+
+  it("대만 총통부 첫 화면: News Releases의 제목·날짜·주소", () => {
+    const html = `<div class="idxList1">
+<div class="listI"><a href="/News/7241#new"><div class="pic"><img src="x.jpg" alt=""></div><div class="date"><span>2026-11-12</span></div><div class="title"><strong>President Lai attends press conference before Taiwan’s delegation departs for 2026 APEC Economic Leaders’ Meeting</strong></div></a></div>
+<div class="listI"><a href="/News/7240#new"><div class="date"><span>2026-11-11</span></div><div class="title"><strong>President Lai meets delegation</strong></div></a></div>`;
+    const rows = parseListPage(html, "https://english.president.gov.tw/", "tw");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://english.president.gov.tw/News/7241", publishedAt: "2026-11-12" });
+    expect(rows[1].publishedAt).toBe("2026-11-11");
   });
 
   it("일본 외무성: 날짜 제목 아래 링크를 읽고, 연도 없는 날짜는 오늘 기준으로 정한다", () => {

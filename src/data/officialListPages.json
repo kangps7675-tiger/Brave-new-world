@@ -133,5 +133,10 @@
     "issuerId": "pl",
     "url": "https://www.gov.pl/web/national-defence/news",
     "label": "폴란드 국방부 소식(영문)"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://english.president.gov.tw/",
+    "label": "대만 총통부 소식(영문 첫 화면)"
   }
 ]
