@@ -15,6 +15,36 @@ const TOPIC_EN: Record<string, string> = {
   "investment-screening": "investment screening", "critical-minerals": "critical minerals", "tech-supply-chain": "tech supply chain", "biotech-quantum": "biotech/quantum",
 };
 
+/**
+ * 원본을 확인하는 길. 우리 서버가 보관한 원본 PDF(이용 조건을 확인한 나라만), 발행 기관의 원본 링크, 시각이 찍힌 웹 아카이브 보관본.
+ * 보관본이 있으면 받은 시각과 SHA-256 앞자리를 같이 적는다 — 나중에 기관이 파일을 바꿨는지 가릴 때 쓴다.
+ */
+function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean }) {
+  const links: Array<{ href: string; label: string; own?: boolean }> = [];
+  if (doc.fileAvailable) links.push({ href: `/api/official-docs/file/${doc.id}`, label: en ? "Original PDF (our copy)" : "원본 PDF 보기(보관본)", own: true });
+  links.push({ href: doc.url, label: en ? "Publisher's page" : "발행 기관 원본 페이지" });
+  if (doc.archiveUrl) links.push({ href: doc.archiveUrl, label: en ? "Web Archive snapshot" : "웹 아카이브 보관본" });
+  const kb = doc.fileBytes ? `${Math.max(1, Math.round(doc.fileBytes / 1024))} KB` : "";
+  return (
+    <>
+      <p className="mt-0.5 flex flex-wrap gap-x-2 text-micro text-[#5c4020]">
+        {links.map((l) => (
+          <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={l.own ? "font-semibold underline" : "underline"}>
+            {l.label}
+          </a>
+        ))}
+      </p>
+      {doc.fileSha256 ? (
+        <p className="mt-0.5 text-micro text-[#5c4020]/70">
+          {en ? "Saved " : "보관 "}
+          {doc.fileFetchedAt ? doc.fileFetchedAt.slice(0, 16).replace("T", " ") + " UTC" : ""}
+          {kb ? ` · ${kb}` : ""} · SHA-256 {doc.fileSha256.slice(0, 8)}…
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 function DocItem({ match, en }: { match: PolledDocMatch; en: boolean }) {
   const { doc, reasons } = match;
   const issuer = en ? issuerNameEn(doc.issuerId) : issuerNameKo(doc.issuerId);
@@ -36,6 +66,7 @@ function DocItem({ match, en }: { match: PolledDocMatch; en: boolean }) {
       </p>
       {shown.summary ? <p className="mt-0.5 line-clamp-2 text-micro leading-snug text-[#5c4020]">{shown.summary}</p> : null}
       {shown.original ? <p className="mt-0.5 text-micro text-[#5c4020]/70">{en ? "Original: " : "원문 제목: "}{shown.original}</p> : null}
+      <OriginalLinks doc={doc} en={en} />
       <p className="mt-0.5 text-micro text-[#5c4020]">
         {doc.agency ? `${issuer} · ${doc.agency}` : issuer} · {kind} · {doc.publishedAt ?? ""}
         {/국영/.test(doc.feed) ? <span className="ml-1">{en ? "· state media report" : "· 국영 매체 보도"}</span> : null}

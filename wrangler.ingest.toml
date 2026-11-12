@@ -72,6 +72,11 @@ database_name = "conflict-view-db"
 database_id = "7e44bacd-d2f1-4c77-84c2-7be6b90fa0ae"
 migrations_dir = "drizzle"
 
+# 공식 문서 원본 파일(PDF) 보관 — 웹앱(wrangler.jsonc)과 같은 버킷, official-docs/ 아래만 쓴다.
+[[r2_buckets]]
+binding = "DATA_BUCKET"
+bucket_name = "conflict-view-data"
+
 # Every 10 minutes — FIRMS/AIS 등 빠른 레이어용.
 # NAVAREA는 웹훅이 없는 정적 TXT라 폴링이 필요하지만, 정부기관 예우상
 # navarea.ts 내부 min-interval(기본 30분)로 자체 스로틀한다 (크론을 늦출 필요 없음).

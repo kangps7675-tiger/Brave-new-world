@@ -4,7 +4,8 @@
  *  - 소스: `src/data/officialFeeds.json`(등록한 피드) + ISSUERS에 내장된 피드(영국·EU)
  *    + `src/data/officialListPages.json`(RSS 없는 사이트의 목록 페이지: 나토·대만·프랑스·한국·일본 총리관저)
  *  - 합의문·팩트시트·회담 요약·성명·조약만 남긴다(`worthKeeping`). 연설·일반 보도자료는 버린다.
- *  - 원문은 저장하지 않는다. 제목 + 링크 + 요약 280자 + 읽힌 지명 태그만(이용 조건이 사이트마다 다르다).
+ *  - 목록에는 제목 + 링크 + 요약 280자 + 읽힌 지명 태그만 둔다. 문서에 붙은 원본 PDF는 별도로 받아 R2에 보관하고(capturePending),
+ *    웹 아카이브(archive.org) 보관본 주소도 받아 둔다(archivePending). 우리 서버에서 직접 펼쳐 보여 주는 나라는 capture.ts의 FILE_DISPLAY_ISSUERS가 정한다.
  *  - 30분 최소 간격 자체 스로틀. 피드별 성공·실패를 `official_doc_poll`에 남긴다
  *    (정부 사이트가 Cloudflare Worker 주소를 막는지 이 표로 알 수 있다).
  *  - 실패해도 메인 인제스트는 안 깨지게 호출부에서 try/catch
@@ -16,6 +17,7 @@ import { japanMofaDetailDate } from "../../../src/lib/officialDocs/listPages";
 import { translateDoc, type Translator } from "../../../src/lib/officialDocs/translate";
 import { translateWithProviders } from "../../../src/lib/translateProviders";
 import { rareTagsOf } from "../../../src/lib/news/eventScenarios";
+import { FILE_MAX_BYTES, archiveSaveUrl, archiveUrlOf, fileKeyOf, isPdfBytes, isPdfUrl, pdfLinksOf, sha256Hex } from "../../../src/lib/officialDocs/capture";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
@@ -26,6 +28,16 @@ const TRANSLATE_MAX_PER_RUN = 20;
 /** 번역을 이만큼 시도해도 안 되면 포기한다(막힌 문장 때문에 대기열이 멈추지 않게) */
 const TRANSLATE_MAX_TRIES = 3;
 const TRANSLATE_UA = "ConflictViewBot/1.0 (official-docs title translation)";
+/** 원본 파일·보관본은 이 일수 안에 나온 문서만 받는다(옛 문서를 한꺼번에 긁지 않는다) */
+const CAPTURE_WINDOW_DAYS = 21;
+/** 한 번 실행에서 원본 파일을 받을 문서 수 / 아카이브 요청 수 — 워커의 하위 요청 한도 안에서 */
+const CAPTURE_MAX_PER_RUN = 6;
+const ARCHIVE_MAX_PER_RUN = 4;
+const CAPTURE_MAX_TRIES = 3;
+const ARCHIVE_MAX_TRIES = 2;
+/** file_tries 가 이 값이면 이 문서에는 받을 PDF가 없다는 뜻 — 다시 시도하지 않는다 */
+const NO_FILE = 99;
+const CAPTURE_UA = "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world; official-docs archive)";
 
 async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<boolean> {
   try {
@@ -149,6 +161,129 @@ async function translatePending(db: D1Database, vars: Record<string, string | un
   return done;
 }
 
+/**
+ * 문서에 붙은 원본 파일(PDF)을 받아 R2에 보관하고 받은 시각·SHA-256을 남긴다. 어느 나라 문서든 같은 규칙.
+ *  - 문서 주소가 PDF이면 그 파일, HTML 페이지이면 같은 사이트의 첫 PDF 링크. PDF가 없는 문서는 한 번만 보고 포기(NO_FILE).
+ *  - 파일이 %PDF- 로 시작하지 않으면(차단·로그인 화면) 저장하지 않고 시도 횟수만 올린다.
+ *  - 0045 마이그레이션 전이거나 R2 바인딩이 없으면 조용히 건너뛴다.
+ */
+async function capturePending(env: IngestEnv): Promise<number> {
+  const bucket = env.DATA_BUCKET;
+  if (!bucket) return 0;
+  let rows: Array<{ id: string; url: string }>;
+  try {
+    const res = await env.DB
+      .prepare(
+        `SELECT id, url FROM official_doc_feed
+         WHERE file_tries < ?1 AND file_fetched_at = '' AND published_at >= date('now', ?2)
+         ORDER BY published_at DESC LIMIT ?3`,
+      )
+      .bind(CAPTURE_MAX_TRIES, `-${CAPTURE_WINDOW_DAYS} days`, CAPTURE_MAX_PER_RUN)
+      .all<{ id: string; url: string }>();
+    rows = res.results ?? [];
+  } catch {
+    return 0; // 0045가 아직 적용되지 않음
+  }
+  const fail = (id: string, finalTry = false) =>
+    env.DB
+      .prepare(`UPDATE official_doc_feed SET file_tries = ?2 WHERE id = ?1`)
+      .bind(id, finalTry ? NO_FILE : 1)
+      .run()
+      .catch(() => undefined);
+  const retry = (id: string) =>
+    env.DB.prepare(`UPDATE official_doc_feed SET file_tries = file_tries + 1 WHERE id = ?1`).bind(id).run().catch(() => undefined);
+
+  let done = 0;
+  for (const row of rows) {
+    try {
+      const page = await fetch(row.url, { headers: { "User-Agent": CAPTURE_UA, Accept: "text/html,application/pdf,*/*" }, redirect: "follow", signal: AbortSignal.timeout(25_000) });
+      if (!page.ok) {
+        await retry(row.id);
+        continue;
+      }
+      let fileUrl = page.url;
+      let bytes: ArrayBuffer;
+      if (isPdfUrl(page.url) || /application\/pdf/i.test(page.headers.get("content-type") ?? "")) {
+        bytes = await page.arrayBuffer();
+      } else {
+        const links = pdfLinksOf(await page.text(), page.url);
+        if (links.length === 0) {
+          await fail(row.id, true);
+          continue;
+        }
+        fileUrl = links[0];
+        const f = await fetch(fileUrl, { headers: { "User-Agent": CAPTURE_UA, Accept: "application/pdf,*/*" }, redirect: "follow", signal: AbortSignal.timeout(30_000) });
+        const len = Number(f.headers.get("content-length") ?? 0);
+        if (!f.ok || len > FILE_MAX_BYTES) {
+          await (len > FILE_MAX_BYTES ? fail(row.id, true) : retry(row.id));
+          continue;
+        }
+        bytes = await f.arrayBuffer();
+      }
+      if (bytes.byteLength > FILE_MAX_BYTES) {
+        await fail(row.id, true);
+        continue;
+      }
+      if (!isPdfBytes(bytes)) {
+        await retry(row.id);
+        continue;
+      }
+      const sha = await sha256Hex(bytes);
+      const key = fileKeyOf(row.id, sha);
+      await bucket.put(key, bytes, { httpMetadata: { contentType: "application/pdf" }, customMetadata: { docId: row.id, sourceUrl: fileUrl, sha256: sha } });
+      await env.DB
+        .prepare(
+          `UPDATE official_doc_feed SET file_key = ?2, file_type = 'application/pdf', file_bytes = ?3, file_sha256 = ?4,
+             file_fetched_at = ?5, file_source_url = ?6 WHERE id = ?1`,
+        )
+        .bind(row.id, key, bytes.byteLength, sha, new Date().toISOString(), fileUrl)
+        .run();
+      done += 1;
+    } catch {
+      await retry(row.id);
+    }
+  }
+  return done;
+}
+
+/**
+ * 웹 아카이브(archive.org)에 문서 페이지 저장을 요청하고 보관본 주소를 받아 둔다. 시각이 찍힌 제3자 사본이라
+ * 정부가 나중에 글을 고치거나 지워도 "그때는 이랬다"의 증거가 된다. 아카이브가 거절하는 페이지·호출 한도가 있어 전부 보장되진 않는다.
+ */
+async function archivePending(env: IngestEnv): Promise<number> {
+  let rows: Array<{ id: string; url: string }>;
+  try {
+    const res = await env.DB
+      .prepare(
+        `SELECT id, url FROM official_doc_feed
+         WHERE archive_url = '' AND archive_tries < ?1 AND published_at >= date('now', ?2)
+         ORDER BY published_at DESC LIMIT ?3`,
+      )
+      .bind(ARCHIVE_MAX_TRIES, `-${CAPTURE_WINDOW_DAYS} days`, ARCHIVE_MAX_PER_RUN)
+      .all<{ id: string; url: string }>();
+    rows = res.results ?? [];
+  } catch {
+    return 0;
+  }
+  let done = 0;
+  for (const row of rows) {
+    let archived: string | null = null;
+    try {
+      const res = await fetch(archiveSaveUrl(row.url), { headers: { "User-Agent": CAPTURE_UA }, redirect: "follow", signal: AbortSignal.timeout(40_000) });
+      if (res.ok) archived = archiveUrlOf(res.headers, res.url);
+    } catch {
+      /* 시간 초과·거절은 아래에서 시도 횟수만 올린다 */
+    }
+    if (archived) {
+      done += 1;
+      await env.DB.prepare(`UPDATE official_doc_feed SET archive_url = ?2 WHERE id = ?1`).bind(row.id, archived).run().catch(() => undefined);
+    } else {
+      await env.DB.prepare(`UPDATE official_doc_feed SET archive_tries = archive_tries + 1 WHERE id = ?1`).bind(row.id).run().catch(() => undefined);
+    }
+  }
+  return done;
+}
+
 async function recordPoll(db: D1Database, feed: string, ok: boolean, items: number, error: string | null): Promise<void> {
   await db
     .prepare(
@@ -219,6 +354,9 @@ export async function fetchAndUpsertOfficialDocs(env: IngestEnv): Promise<{
     await upsertRows(env.DB, unique);
     // 번역 실패가 수집을 깨면 안 된다
     await translatePending(env.DB, vars).catch(() => 0);
+    // 원본 파일·보관본이 실패해도 수집은 계속된다
+    await capturePending(env).catch(() => 0);
+    await archivePending(env).catch(() => 0);
     const cutoff = new Date(Date.now() - RETENTION_DAYS * 86_400_000).toISOString();
     await env.DB.prepare(`DELETE FROM official_doc_feed WHERE ingested_at < ?1`).bind(cutoff).run();
   } catch (e) {

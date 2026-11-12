@@ -34,6 +34,13 @@ export type PolledDoc = {
   titleEn?: string;
   summaryKo?: string;
   summaryEn?: string;
+  /** 원본 파일(PDF) 보관(0045 이후). fileAvailable = 우리 서버에서 직접 열어 보여 줘도 되는 나라의 문서이고 파일이 있다 */
+  fileAvailable?: boolean;
+  fileBytes?: number;
+  fileSha256?: string;
+  fileFetchedAt?: string;
+  /** 웹 아카이브(archive.org) 보관본 주소 */
+  archiveUrl?: string;
 };
 
 export type PolledDocMatch = {
