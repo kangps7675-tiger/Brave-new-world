@@ -208,6 +208,15 @@ describe("목록 페이지 읽기", () => {
     expect(rows[1]).toMatchObject({ url: "https://mfa.gov.ua/news/andrij-sibiga-zustrich", publishedAt: "2026-11-11" });
   });
 
+  it("폴란드 정부 포털: 일.월.년 날짜와 제목 링크를 읽는다", () => {
+    const li = (date: string, href: string, title: string) => `<li><div><picture><img alt="x" src="/photo/a"></picture><div><div class="event"><span class="date">\n${date}\n</span></div><div class="title">\n<a href="${href}"> ${title} </a>\n</div><div class="intro">intro</div></div></div></li>`;
+    const html = `<div class="art-prev art-prev--near-menu" ><ul>${li("07.11.2026", "/web/diplomacy/poland-and-greece-on-eu-priorities", "Poland and Greece on EU priorities")}${li("05.11.2026", "/web/diplomacy/statement-of-ministers", "Statement of Ministers")}</ul></div>`;
+    const rows = parseListPage(html, "https://www.gov.pl/web/diplomacy/news-", "pl");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://www.gov.pl/web/diplomacy/poland-and-greece-on-eu-priorities", title: "Poland and Greece on EU priorities", publishedAt: "2026-11-07" });
+    expect(rows[1].publishedAt).toBe("2026-11-05");
+  });
+
   it("일본 외무성: 날짜 제목 아래 링크를 읽고, 연도 없는 날짜는 오늘 기준으로 정한다", () => {
     const html = `<dl class="title-list"><dt class="list-title">November 12</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02843.html">Dinner hosted by State Minister</a></li></ul></dd>
 <dt class="list-title">November 11</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02842.html">Courtesy Call on Vice-Minister</a></li><li><a href="/press/release/pressite_000001_02841.html">Reception for Italy anniversary</a></li></ul></dd>

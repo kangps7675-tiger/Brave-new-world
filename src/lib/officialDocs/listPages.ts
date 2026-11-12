@@ -407,6 +407,25 @@ function ukraineMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandi
 }
 
 /**
+ * 폴란드 정부 포털(gov.pl)의 기관별 소식 목록: `<ul>`(art-prev) 안 항목마다 `<span class="date">07.11.2026</span>`와
+ * `<div class="title"><a href="/web/diplomacy/슬러그"> 제목 </a>`가 있다(외교부 /web/diplomacy/news-, 국방부 /web/national-defence/news,
+ * 2026-11-12 실제 페이지 확인). 날짜는 일.월.년 순서다.
+ */
+function polandGov(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const block of html.split(/<li>/i).slice(1)) {
+    const a = /class="title"[^>]*>\s*<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i.exec(block);
+    if (!a) continue;
+    const url = absolute(a[1], pageUrl);
+    const title = clean(a[2]);
+    if (!url || !title) continue;
+    const d = /class="date"[^>]*>\s*(\d{2})\.(\d{2})\.(\d{4})/i.exec(block);
+    out.push(candidate(issuerId, title, url, d ? `${d[3]}-${d[2]}-${d[1]}` : null));
+  }
+  return out;
+}
+
+/**
  * 일본 외무성 보도발표 목록: `<dt class="list-title">November 12</dt>` 다음 `<dd>`에 그날 링크들이 들어 있다(2026-11-12 실제 페이지 확인).
  * 날짜에 연도가 없어서 올해로 놓고, 오늘보다 하루 넘게 미래면 작년으로 돌린다(연말·연초 걸침 대비).
  */
@@ -457,6 +476,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mofa\.gov\.pk$/i, pakistanMofa],
   [/(^|\.)mofa\.gov\.qa$/i, qatarMofa],
   [/(^|\.)mfa\.gov\.ua$/i, ukraineMfa],
+  [/(^|\.)gov\.pl$/i, polandGov],
 ];
 
 /** 이 주소의 목록 페이지를 읽는 함수가 있는가 */

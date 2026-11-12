@@ -123,5 +123,15 @@
     "issuerId": "ua",
     "url": "https://mfa.gov.ua/timeline?&type=posts",
     "label": "우크라이나 외교부 소식(우크라이나어)"
+  },
+  {
+    "issuerId": "pl",
+    "url": "https://www.gov.pl/web/diplomacy/news-",
+    "label": "폴란드 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "pl",
+    "url": "https://www.gov.pl/web/national-defence/news",
+    "label": "폴란드 국방부 소식(영문)"
   }
 ]

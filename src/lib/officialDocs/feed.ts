@@ -96,6 +96,8 @@ export function worthKeeping(row: DocCandidate): boolean {
   if (row.issuerId === "lv" && /(^|\.)mfa\.gov\.lv\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   if (row.issuerId === "fi" && /(^|\.)um\.fi\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   if (row.issuerId === "md" && /(^|\.)mfa\.gov\.md\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
+  // 폴란드 외교부·국방부 소식은 장관 회담·성명·군 배치 발표라 모두 남긴다
+  if (row.issuerId === "pl" && /(^|\.)gov\.pl\/web\/(diplomacy|national-defence)\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   // 대만: 국방부(중국 군 활동 일일 발표·보도자료)와 총통부는 속보 근거로 직접적이라 모두 남긴다(외교부는 기존 규칙)
   if (row.issuerId === "tw" && /(^|\.)(mnd\.gov\.tw|president\.gov\.tw)\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   return row.kind !== "remarks" && row.kind !== "press-release";
