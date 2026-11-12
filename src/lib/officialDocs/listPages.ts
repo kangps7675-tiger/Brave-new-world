@@ -196,7 +196,28 @@ function iranMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandidat
   return out;
 }
 
-const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId) => DocCandidate[]]> = [
+/**
+ * 일본 외무성 보도발표 목록: `<dt class="list-title">November 12</dt>` 다음 `<dd>`에 그날 링크들이 들어 있다(2026-11-12 실제 페이지 확인).
+ * 날짜에 연도가 없어서 올해로 놓고, 오늘보다 하루 넘게 미래면 작년으로 돌린다(연말·연초 걸침 대비).
+ */
+function japanMofa(html: string, pageUrl: string, issuerId: IssuerId, now: Date): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(/<dt[^>]*>\s*([A-Za-z]+)\s+(\d{1,2})\s*<\/dt>\s*<dd[^>]*>([\s\S]*?)<\/dd>/gi)) {
+    const month = MONTHS[m[1].toLowerCase()];
+    if (!month) continue;
+    let year = now.getUTCFullYear();
+    if (Date.UTC(year, Number(month) - 1, Number(m[2])) > now.getTime() + 36 * 3600 * 1000) year -= 1;
+    const date = `${year}-${month}-${pad(m[2])}`;
+    for (const a of m[3].matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+      const url = absolute(a[1], pageUrl);
+      const title = clean(a[2]);
+      if (url && title) out.push(candidate(issuerId, title, url, date));
+    }
+  }
+  return out;
+}
+
+const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId, now: Date) => DocCandidate[]]> = [
   [/(^|\.)nato\.int$/i, natoOfficialTexts],
   [/(^|\.)mofa\.gov\.tw$/i, taiwanMofa],
   [/(^|\.)diplomatie\.gouv\.fr$/i, franceDiplomatie],
@@ -205,6 +226,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)elysee\.fr$/i, elysee],
   [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],
   [/(^|\.)mfa\.ir$/i, iranMfa],
+  [/(^|\.)mofa\.go\.jp$/i, japanMofa],
 ];
 
 /** 이 주소의 목록 페이지를 읽는 함수가 있는가 */
@@ -218,7 +240,7 @@ export function hasListPageReader(pageUrl: string): boolean {
 }
 
 /** 목록 페이지 HTML → 후보. 읽는 함수가 없는 호스트면 빈 배열. */
-export function parseListPage(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+export function parseListPage(html: string, pageUrl: string, issuerId: IssuerId, now: Date = new Date()): DocCandidate[] {
   let host: string;
   try {
     host = new URL(pageUrl).hostname;
@@ -228,5 +250,5 @@ export function parseListPage(html: string, pageUrl: string, issuerId: IssuerId)
   const reader = READERS.find(([re]) => re.test(host));
   if (!reader) return [];
   const seen = new Set<string>();
-  return reader[1](html, pageUrl, issuerId).filter((row) => !seen.has(row.url) && seen.add(row.url));
+  return reader[1](html, pageUrl, issuerId, now).filter((row) => !seen.has(row.url) && seen.add(row.url));
 }

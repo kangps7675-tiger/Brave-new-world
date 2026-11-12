@@ -38,5 +38,10 @@
     "issuerId": "ir",
     "url": "https://en.mfa.ir/portal/newsarchive/699",
     "label": "이란 외무부 성명(Statements) 보관함"
+  },
+  {
+    "issuerId": "jp",
+    "url": "https://www.mofa.go.jp/press/release/index.html",
+    "label": "일본 외무성 보도발표"
   }
 ]

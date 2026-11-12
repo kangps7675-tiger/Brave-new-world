@@ -97,4 +97,13 @@ describe("목록 페이지 읽기", () => {
     expect(rows[0]).toMatchObject({ url: "https://en.mfa.ir/portal/newsview/797561", publishedAt: "2026-11-11" });
     expect(rows[1].publishedAt).toBe("2026-11-10");
   });
+
+  it("일본 외무성: 날짜 제목 아래 링크를 읽고, 연도 없는 날짜는 오늘 기준으로 정한다", () => {
+    const html = `<dl class="title-list"><dt class="list-title">November 12</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02843.html">Dinner hosted by State Minister</a></li></ul></dd>
+<dt class="list-title">November 11</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02842.html">Courtesy Call on Vice-Minister</a></li><li><a href="/press/release/pressite_000001_02841.html">Reception for Italy anniversary</a></li></ul></dd>
+<dt class="list-title">December 30</dt><dd><ul><li><a href="/press/release/pressite_000001_02000.html">Year-end note</a></li></ul></dd></dl>`;
+    const rows = parseListPage(html, "https://www.mofa.go.jp/press/release/index.html", "jp", new Date("2026-11-12T03:00:00Z"));
+    expect(rows.map((r) => r.publishedAt)).toEqual(["2026-11-12", "2026-11-11", "2026-11-11", "2025-12-30"]);
+    expect(rows[0].url).toBe("https://www.mofa.go.jp/press/release/pressite_000001_02843.html");
+  });
 });
