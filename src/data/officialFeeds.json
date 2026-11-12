@@ -130,5 +130,65 @@
     "issuerId": "iaea",
     "url": "https://www.iaea.org/feeds/topnews",
     "label": "IAEA 주요 소식"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=semiconductor&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 반도체 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=advanced%20computing&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 첨단 컴퓨팅·AI 칩 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=critical%20minerals&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 핵심광물 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=defense%20industrial%20base&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 방위산업 기반 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=export%20controls&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 수출통제 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=foreign%20adversary&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 적성국(ICTS·커넥티드카·통신장비) 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=outbound%20investment&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 대외투자 심사 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=unmanned%20aircraft%20systems&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 드론 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=Section%20232&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 232조 안보 관세 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=shipbuilding&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 조선 관련 문서",
+    "format": "federal-register"
   }
 ]

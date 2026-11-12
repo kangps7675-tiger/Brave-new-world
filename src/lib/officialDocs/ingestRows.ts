@@ -81,7 +81,7 @@ export async function rowsFromOfficialFeed(xml: string, source: OfficialDocFeedS
       url: c.url,
       published_at: c.publishedAt,
       summary: c.summary,
-      tags: rareTagsOf(`${c.title}. ${c.summary}`).join(","),
+      tags: [...rareTagsOf(`${c.title}. ${c.summary}`), ...(c.topics ?? []).map((t) => `topic:${t}`)].join(","),
       feed: source.label,
       agency: c.agency ?? "",
     });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isGeoRelevant, parseFederalRegister } from "./federalRegister";
+import { isGeoRelevant, parseFederalRegister, topicsOf } from "./federalRegister";
 import { candidatesOfBody } from "./ingestRows";
 
 const JSON_BODY = {
@@ -55,5 +55,18 @@ describe("연방관보 읽기", () => {
   it("소스 종류에 맞는 읽기 함수를 고른다", () => {
     const rows = candidatesOfBody(JSON.stringify(JSON_BODY), { issuerId: "us", url: "https://x", label: "x", format: "federal-register" });
     expect(rows).toHaveLength(2);
+  });
+
+  it("반도체·방산·핵심광물 같은 안보화된 주제를 알아보고 주제 id를 붙인다", () => {
+    expect(topicsOf("Export Controls on Advanced Computing Items and Semiconductor Manufacturing Equipment", "")).toEqual(
+      expect.arrayContaining(["semiconductor", "export-control"]),
+    );
+    expect(topicsOf("Defense Federal Acquisition Regulation Supplement: Munitions Industrial Base", "")).toContain("defense-industry");
+    expect(topicsOf("Critical Minerals List Update", "gallium and germanium")).toContain("critical-minerals");
+    expect(isGeoRelevant("Notice of Meeting of the Advisory Committee on Tire Safety", "")).toBe(false);
+    const rows = parseFederalRegister({
+      results: [{ title: "Semiconductor Supply Chain Review", html_url: "https://www.federalregister.gov/d/1", publication_date: "2026-11-10", abstract: "", type: "Notice", agencies: [{ name: "Commerce Department" }] }],
+    });
+    expect(rows[0].topics).toContain("semiconductor");
   });
 });
