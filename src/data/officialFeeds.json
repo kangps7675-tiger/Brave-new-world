@@ -190,5 +190,30 @@
     "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=shipbuilding&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
     "label": "미국 연방관보 · 조선 관련 문서",
     "format": "federal-register"
+  },
+  {
+    "issuerId": "ua",
+    "url": "https://www.president.gov.ua/en/rss/news/all.rss",
+    "label": "우크라이나 대통령실 · 전체 소식"
+  },
+  {
+    "issuerId": "ua",
+    "url": "https://www.president.gov.ua/en/rss/documents/all.rss",
+    "label": "우크라이나 대통령실 · 대통령령·문서"
+  },
+  {
+    "issuerId": "ua",
+    "url": "https://www.president.gov.ua/en/rss/news/speeches.rss",
+    "label": "우크라이나 대통령 연설"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.bundesregierung.de/service/rss/breg-de/1151242/feed.xml",
+    "label": "독일 연방정부 · 보도자료·기사·연설 모음"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.bundesregierung.de/service/rss/breg-de/1151244/feed.xml",
+    "label": "독일 연방정부 · 보도자료"
   }
 ]

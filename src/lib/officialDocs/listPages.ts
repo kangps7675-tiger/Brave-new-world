@@ -125,12 +125,66 @@ function japanKantei(html: string, pageUrl: string, issuerId: IssuerId): DocCand
   return out;
 }
 
+
+/** 링크 하나의 글자에서 태그를 걷어 낸 제목 */
+function anchorText(raw: string): string {
+  return clean(raw);
+}
+
+/**
+ * 프랑스 대통령실(엘리제) 소식 목록: 링크 글자가 "22 octobre 2026 Article 제목" 모양이고, 주소에 날짜가 들어 있다
+ * (/emmanuel-macron/2026/10/22/slug). 앞의 날짜·유형(Article·Communiqué de presse·Conseil des ministres)을 떼고 제목만 쓴다.
+ * 실제 HTML을 직접 보고 짠 게 아니라 페이지 설명에 맞춘 것이라, docs:grab으로 저장해 본 뒤 맞는지 확인한다.
+ */
+function elysee(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const re = /<a\b[^>]*href="([^"]*\/emmanuel-macron\/(\d{4})\/(\d{2})\/(\d{2})\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+  const seen = new Set<string>();
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(re)) {
+    const url = absolute(m[1], pageUrl);
+    if (!url || seen.has(url)) continue;
+    const title = anchorText(m[5])
+      .replace(/^\d{1,2}(?:er)?\s+\p{L}+\s+\d{4}\s+/u, "")
+      .replace(/^(Article|Communiqu[eé] de presse|Conseil des ministres|D[eé]claration|Discours|Entretien)\s+/i, "")
+      .trim();
+    if (!title) continue;
+    seen.add(url);
+    out.push(candidate(issuerId, title, url, `${m[2]}-${m[3]}-${m[4]}`));
+  }
+  return out;
+}
+
+/**
+ * 중국 외교부 영문 "주요 소식(Top Stories)": 주소가 /eng/xw/zyxw/202611/t20261110_12056514.html 모양이라 날짜가 들어 있고,
+ * 링크 글자가 제목이다. 대변인 정례 브리핑(발언)은 다른 목록이라 여기에 없다.
+ * 이 페이지는 설명으로 확인한 구조에 맞춘 것이므로 docs:grab으로 실제 HTML을 확인해야 한다.
+ */
+function chinaMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const re = /<a\b[^>]*href="([^"]*\/(?:\.\/)?\d{6}\/t(\d{4})(\d{2})(\d{2})_\d+\.html|\.\/\d{6}\/t(\d{4})(\d{2})(\d{2})_\d+\.html)"[^>]*>([\s\S]*?)<\/a>/gi;
+  const seen = new Set<string>();
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(re)) {
+    const url = absolute(m[1], pageUrl);
+    if (!url || seen.has(url)) continue;
+    const y = m[2] ?? m[5];
+    const mo = m[3] ?? m[6];
+    const d = m[4] ?? m[7];
+    const title = anchorText(m[8]);
+    if (!title || title.length < 8) continue;
+    seen.add(url);
+    out.push(candidate(issuerId, title, url, `${y}-${mo}-${d}`));
+  }
+  return out;
+}
+
 const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId) => DocCandidate[]]> = [
   [/(^|\.)nato\.int$/i, natoOfficialTexts],
   [/(^|\.)mofa\.gov\.tw$/i, taiwanMofa],
   [/(^|\.)diplomatie\.gouv\.fr$/i, franceDiplomatie],
   [/(^|\.)mofa\.go\.kr$/i, koreaMofa],
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
+  [/(^|\.)elysee\.fr$/i, elysee],
+  [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],
 ];
 
 /** 이 주소의 목록 페이지를 읽는 함수가 있는가 */

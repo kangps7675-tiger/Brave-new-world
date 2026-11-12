@@ -66,4 +66,23 @@ describe("목록 페이지 읽기", () => {
     expect(hasListPageReader("https://www.nato.int/x")).toBe(true);
     expect(hasListPageReader("https://www.mea.gov.in/")).toBe(false);
   });
+
+  it("프랑스 대통령실: 앞의 날짜·유형을 떼고 주소에서 날짜를 읽는다", () => {
+    const html = `<h3><a href="/emmanuel-macron/2026/10/02/g7-leaders-statement-on-global-energy-security">2 octobre 2026 Communiqué de presse G7 Leaders' Statement on Global Energy Security and Market Stability</a></h3>
+<h3><a href="https://www.elysee.fr/emmanuel-macron/2026/10/22/exposition">22 octobre 2026 Article La Grande exposition du Fabriqué en France</a></h3>`;
+    const rows = parseListPage(html, "https://www.elysee.fr/toutes-les-actualites", "fr");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-10-02", title: "G7 Leaders' Statement on Global Energy Security and Market Stability" });
+    expect(rows[1].title).toBe("La Grande exposition du Fabriqué en France");
+  });
+
+  it("중국 외교부 주요 소식: 주소에서 날짜, 링크 글자가 제목", () => {
+    const html = `<li><a href="https://www.fmprc.gov.cn/eng/xw/zyxw/202611/t20261106_12055153.html">President Xi Jinping Holds Talks with Gabonese President</a><span>November 06, 2026</span></li>
+<li><a href="./202611/t20261110_12056514.html">Xi Jinping Congratulates Iliana Iotova on Her Election</a></li>`;
+    const rows = parseListPage(html, "https://www.fmprc.gov.cn/eng/xw/zyxw/", "cn");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-11-06" });
+    expect(rows[1].url).toBe("https://www.fmprc.gov.cn/eng/xw/zyxw/202611/t20261110_12056514.html");
+    expect(rows[1].publishedAt).toBe("2026-11-10");
+  });
 });
