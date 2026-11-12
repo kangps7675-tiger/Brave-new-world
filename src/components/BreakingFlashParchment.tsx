@@ -10,6 +10,7 @@ import { t } from "@/lib/uiStrings";
 import {
   flashVerdictBasis,
   flashVerdictLabel,
+  flashVerdictNote,
   type FlashVerdict,
 } from "@/lib/news/flashVerdict";
 
@@ -93,6 +94,7 @@ export function BreakingFlashParchment({
               <>
                 <span
                   className={`rounded-sm border px-2 py-0.5 text-micro font-semibold ${VERDICT_CHIP[briefing.verdict.verdict]}`}
+                  title={flashVerdictNote(lang === "en" ? "en" : "ko")}
                 >
                   {flashVerdictLabel(briefing.verdict.verdict, lang === "en" ? "en" : "ko")}
                 </span>

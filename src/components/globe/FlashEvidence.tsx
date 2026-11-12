@@ -32,7 +32,13 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
             ))}
           </ul>
         </section>
-      ) : null}
+      ) : (
+        <p className="px-0.5 text-micro text-[#5c4020]/70" data-flash-no-doc>
+          {en
+            ? "No government source document is linked to this flash yet."
+            : "이 속보에 연결된 정부 원문은 아직 없습니다."}
+        </p>
+      )}
       {articles.length > 0 ? (
         <section>
           <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{en ? "Related press reports" : "관련 언론 기사"}</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { flashVerdictBasis, flashVerdictLabel } from "@/lib/news/flashVerdict";
+import { flashVerdictBasis, flashVerdictLabel, flashVerdictNote } from "@/lib/news/flashVerdict";
 import {
   createContext,
   forwardRef,
@@ -2256,6 +2256,9 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     {!preferEconomyNews && hero!.verdict ? (
                       <p className="mt-1 text-meta leading-snug text-slate-400">
                         {flashVerdictBasis(hero!.verdict, lang === "en" ? "en" : "ko")}
+                        <span className="mt-0.5 block text-micro text-slate-500">
+                          {flashVerdictNote(lang === "en" ? "en" : "ko")}
+                        </span>
                       </p>
                     ) : null}
                     <ArticleReactions articleId={hero!.id} lang={lang === "en" ? "en" : "ko"} />
