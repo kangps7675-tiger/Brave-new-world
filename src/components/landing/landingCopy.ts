@@ -10,7 +10,7 @@ export function landingCopy(lang: LabelLanguage) {
   const t = (ko: string, english: string) => (en ? english : ko);
   return {
     pageTitle: t(
-      `${BRAND_NAME.ko} — 근거로 확인하는 지정학 속보`,
+      `${BRAND_NAME.ko} — 지정학 속보, 어디까지 확인됐을까`,
       `${BRAND_NAME.en} — Geopolitical alerts, checked against sources`,
     ),
     navAria: t("주 메뉴", "Main"),
@@ -33,13 +33,13 @@ export function landingCopy(lang: LabelLanguage) {
       { id: "faq", label: t("자주 묻는 질문", "FAQ") },
     ],
     heroEyebrow: t(
-      "지정학 속보 · 출처 · 확인 상태",
+      "지정학 속보의 출처와 확인 상태",
       "Geopolitical alerts · sources · status",
     ),
-    heroLine1: t("속보가 떴다면,", "An alert just landed."),
-    heroLine2: t("먼저 근거부터 보세요.", "Look at the evidence first."),
+    heroLine1: t("이 속보,", "An alert just landed."),
+    heroLine2: t("어디까지 확인됐을까요?", "Look at the evidence first."),
     heroBody: t(
-      "속보는 지구본 위에 점으로 찍히고, 소식마다 출처와 확인 상태가 붙어 있습니다. 그 소식이 믿을 만한지는 근거를 보고 직접 따져 볼 수 있어요.",
+      "보도 출처와 위치를 다른 공개 자료와 대조합니다. 확인된 내용과 아직 근거가 부족한 내용을 3D 지구본에서 나눠 보여 줍니다.",
       "Alerts show up as dots on a globe, each with its sources and a status. Whether one holds up is something you can judge from the evidence.",
     ),
     heroRead: t("화면 읽는 법 먼저 보기", "How to read the screen"),
