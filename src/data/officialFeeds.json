@@ -210,5 +210,10 @@
     "issuerId": "ru",
     "url": "https://www.mid.ru/en/rss.php",
     "label": "러시아 외무부 영문 Atom 피드"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://english.president.gov.tw/RSSNEWS.aspx",
+    "label": "대만 총통부 소식"
   }
 ]

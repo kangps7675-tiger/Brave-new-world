@@ -74,5 +74,7 @@ export function parseOfficialFeed(xml: string, issuerId: IssuerId): DocCandidate
  */
 export function worthKeeping(row: DocCandidate): boolean {
   if (row.issuerId === "ru" || row.issuerId === "kr") return true;
+  // 대만: 국방부(중국 군 활동 일일 발표·보도자료)와 총통부는 속보 근거로 직접적이라 모두 남긴다(외교부는 기존 규칙)
+  if (row.issuerId === "tw" && /(^|\.)(mnd\.gov\.tw|president\.gov\.tw)\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   return row.kind !== "remarks" && row.kind !== "press-release";
 }

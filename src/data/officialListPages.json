@@ -53,5 +53,15 @@
     "issuerId": "kr",
     "url": "https://www.mnd.go.kr/mnd/167/subview.do",
     "label": "한국 국방부 보도자료"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://www.mnd.gov.tw/en/news/PlaactList",
+    "label": "대만 국방부 · 중국 군 활동 일일 발표"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://www.mnd.gov.tw/en/news/PressReleaseList",
+    "label": "대만 국방부 보도자료"
   }
 ]

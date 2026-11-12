@@ -137,6 +137,26 @@ function koreaMnd(html: string, pageUrl: string, issuerId: IssuerId): DocCandida
   return out;
 }
 
+/**
+ * 대만 국방부 영문 목록(보도자료 /en/news/PressReleaseList, 중국 군 활동 /en/news/PlaactList): `<a href="/en/News/PLAAct/88203" class="news_list">` 안에
+ * `<div class="date …">2026.11.12</div>`와 `<h2 class="title …">…</h2>`(2026-11-12 실제 페이지 확인).
+ * 중국 군 활동 발표는 제목이 매일 같아서 날짜를 붙여 구분한다.
+ */
+function taiwanMnd(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(/<a\s+href="(\/en\/News\/(?:PLAAct|PressRelease)\/\d+)"[^>]*class="news_list"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const d = m[2].match(/(\d{4})\.(\d{2})\.(\d{2})/);
+    const t = m[2].match(/<h2[^>]*class="title[^"]*"[^>]*>([\s\S]*?)<\/h2>/i);
+    const url = absolute(m[1], pageUrl);
+    if (!url || !t) continue;
+    const date = d ? `${d[1]}-${d[2]}-${d[3]}` : null;
+    let title = clean(t[1]);
+    if (/PLAAct/i.test(m[1]) && date) title = `${title} (${date})`;
+    out.push(candidate(issuerId, title, url, date));
+  }
+  return out;
+}
+
 /** 일본 총리관저 영문 첫 화면: /statement/·/speech/ 글만. 날짜는 주소(202611/1111statement.html = 11월 11일)에서 읽는다. */
 function japanKantei(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
   const re = new RegExp(
@@ -263,6 +283,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)diplomatie\.gouv\.fr$/i, franceDiplomatie],
   [/(^|\.)mofa\.go\.kr$/i, (html, pageUrl, issuerId) => (/\/www\//.test(pageUrl) ? koreaMofaKo(html, pageUrl, issuerId) : koreaMofa(html, pageUrl, issuerId))],
   [/(^|\.)mnd\.go\.kr$/i, koreaMnd],
+  [/(^|\.)mnd\.gov\.tw$/i, taiwanMnd],
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
   [/(^|\.)elysee\.fr$/i, elysee],
   [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],

@@ -31,6 +31,20 @@ const KR_KO = `<tr> <td data-before="번호"><div>22884</div></td> <td data-befo
 
 const MND = `<tr> <td class="td-num"> 13445 </td> <td class="td-title alignL"> <a href="/bbs/mnd/13000005/DPIM_124632/artclView.do" onclick="jf_viewArtcl('mnd', '13000005', 'DPIM_124632')"> <strong><span>국방 분야 혁신제품 최초 지정, 민간 혁신기술의 군 활용 확대 </span></strong> <span class="new">새글</span> </a> </td> <td class="td-write"> 김채명 </td> <td class="td-date">2026.11.12</td> </tr>`;
 
+const TW_MND = `<a href="/en/News/PLAAct/88203" class="news_list"> <div class="date headline-h5 h5">2026.11.12</div> <h2 class="title headline-h4"><span class="en">PLA activities in the waters and airspace around Taiwan</span></h2> <div class="views body-2">Click-Through Rate：315</div></a>
+<a href="/en/News/PressRelease/88156" class="news_list"> <div class="left-block"> <div class="date body-2"><span class="en">2026.11.04</span></div></div> <div class="title-column"> <h2 class="title headline-h4"><span class="en">Ministry of National Defense Issues Press Release Regarding "PLA Joint Combat Readiness Patrol"</span></h2></div></a>`;
+
+describe("대만 국방부 목록", () => {
+  it("중국 군 활동은 날짜를 제목에 붙이고 보도자료는 그대로", () => {
+    const rows = parseListPage(TW_MND, "https://www.mnd.gov.tw/en/news/PlaactList", "tw");
+    expect(rows.map((r) => r.title)).toEqual([
+      "PLA activities in the waters and airspace around Taiwan (2026-11-12)",
+      'Ministry of National Defense Issues Press Release Regarding "PLA Joint Combat Readiness Patrol"',
+    ]);
+    expect(rows[0]).toMatchObject({ publishedAt: "2026-11-12", url: "https://www.mnd.gov.tw/en/News/PLAAct/88203" });
+  });
+});
+
 describe("한국 국문 목록 페이지", () => {
   it("외교부 국문 보도자료: 제목·날짜·상세 주소", () => {
     const rows = parseListPage(KR_KO, "https://www.mofa.go.kr/www/brd/m_4080/list.do", "kr");
