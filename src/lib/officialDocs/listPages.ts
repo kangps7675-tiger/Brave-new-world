@@ -309,6 +309,32 @@ function chinaMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandida
 }
 
 /**
+ * 중국 상무부(MOFCOM) 영문 사이트 대변인 발표(Spokesman's Remarks). 목록 페이지는 자바스크립트가 채우는 빈 껍데기(4.7KB)라서,
+ * 껍데기가 부르는 목록 API(/api-gateway/jpaas-publish-server/front/page/build/unit?…pageId=…)를 수집 주소로 직접 쓴다.
+ * 응답은 JSON이고 `data.html`에 `<a href="/News/…/art/2026/art_….html">제목</a><span>11/06/2026</span>`(월/일/년) 목록이 들어 있다(2026-11-12 확인).
+ * 영문 "Announcements & Orders"는 2025-04 이후로 갱신이 멈춰 있어 쓰지 않는다(수출통제 공고의 실제 게시처는 중문 사이트).
+ */
+function chinaMofcom(body: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  let html = body;
+  try {
+    const data = (JSON.parse(body) as { data?: { html?: string } }).data;
+    if (typeof data?.html === "string") html = data.html;
+  } catch {
+    /* JSON이 아니면 본문을 그대로 HTML로 읽는다 */
+  }
+  const out: DocCandidate[] = [];
+  const seen = new Set<string>();
+  for (const m of html.matchAll(/<a\b[^>]*href="([^"]+\/art_[^"]+\.html)"[^>]*>([\s\S]*?)<\/a>\s*<span>\s*(\d{2})\/(\d{2})\/(\d{4})\s*<\/span>/gi)) {
+    const url = absolute(m[1], pageUrl);
+    const title = clean(m[2]);
+    if (!url || !title || seen.has(url)) continue;
+    seen.add(url);
+    out.push(candidate(issuerId, title, url, `${m[5]}-${m[3]}-${m[4]}`));
+  }
+  return out;
+}
+
+/**
  * 이란 외무부 영문 뉴스 보관함(/portal/newsarchive/699, "Statements" 분류): 항목마다 `news-item-title` 안의 링크가 제목이고
  * 주소는 ../newsview/<번호>, 날짜는 같은 항목의 `dateNews`에 2026/11/11 꼴로 있다(2026-11-12 실제 페이지 확인).
  * 요약 칸(news-item-lead)은 "."만 있는 경우가 많아 쓰지 않는다. 이란 외무부는 RSS가 없다.
@@ -490,6 +516,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
   [/(^|\.)elysee\.fr$/i, elysee],
   [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],
+  [/(^|\.)mofcom\.gov\.cn$/i, chinaMofcom],
   [/(^|\.)mfa\.ir$/i, iranMfa],
   [/(^|\.)mofa\.go\.jp$/i, japanMofa],
   [/(^|\.)mofa\.gov\.sa$/i, saudiMofa],

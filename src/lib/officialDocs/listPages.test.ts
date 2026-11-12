@@ -254,3 +254,24 @@ describe("목록 페이지 읽기", () => {
     expect(japanMofaDetailDate("no date here")).toBeNull();
   });
 });
+
+describe("중국 상무부 영문 대변인 발표(API 응답)", () => {
+  const api = "https://english.mofcom.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit?pageId=MUKS1cCFmT39NDRQgDYop";
+  const html =
+    '<ul><li><a href="/News/SpokesmansRemarks/art/2026/art_a471d3e9fb504ff1adeede99c64bbcf0.html" target="_blank">MOFCOM Spokesperson’s Remarks on the U.S. FCC Voting to Adopt Restrictions on Testing Labs</a><span>11/06/2026</span></li>' +
+    '<li><a href="/News/SpokesmansRemarks/art/2026/art_11faf0c1340d4c8db0e0ebae51574036.html">Remarks on UFLPA Entity List</a><span>11/04/2026</span></li></ul>';
+  const body = JSON.stringify({ success: true, data: { html } });
+  it("JSON 안의 목록에서 제목·주소·날짜(월/일/년)를 읽는다", () => {
+    expect(hasListPageReader(api)).toBe(true);
+    const rows = parseListPage(body, api, "cn");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      url: "https://english.mofcom.gov.cn/News/SpokesmansRemarks/art/2026/art_a471d3e9fb504ff1adeede99c64bbcf0.html",
+      publishedAt: "2026-11-06",
+    });
+    expect(rows[1].publishedAt).toBe("2026-11-04");
+  });
+  it("JSON이 아니어도 HTML 조각이면 읽는다", () => {
+    expect(parseListPage(html, api, "cn")).toHaveLength(2);
+  });
+});

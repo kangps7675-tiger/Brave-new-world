@@ -138,5 +138,10 @@
     "issuerId": "tw",
     "url": "https://english.president.gov.tw/",
     "label": "대만 총통부 소식(영문 첫 화면)"
+  },
+  {
+    "issuerId": "cn",
+    "url": "https://english.mofcom.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit?parseType=bulidstatic&webId=6c75aaf37b20474fb2ff8831451b51a0&tplSetId=coGxHOTsUcFSE5XydHHhN&pageType=column&tagId=%E4%BF%A1%E6%81%AF%E5%88%97%E8%A1%A8&editType=null&pageId=MUKS1cCFmT39NDRQgDYop",
+    "label": "중국 상무부 대변인 발표(Spokesman's Remarks)"
   }
 ]
