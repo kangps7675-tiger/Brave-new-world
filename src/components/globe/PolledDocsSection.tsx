@@ -34,6 +34,13 @@ function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean })
           </a>
         ))}
       </p>
+      {doc.fileAvailable && doc.issuerId === "gb" ? (
+        <p className="mt-0.5 text-micro text-[#5c4020]/70">
+          <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank" rel="noopener noreferrer" className="underline">
+            Contains public sector information licensed under the Open Government Licence v3.0.
+          </a>
+        </p>
+      ) : null}
       {doc.fileSha256 ? (
         <p className="mt-0.5 text-micro text-[#5c4020]/70">
           {en ? "Saved " : "보관 "}

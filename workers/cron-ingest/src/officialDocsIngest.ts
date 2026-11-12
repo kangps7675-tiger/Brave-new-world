@@ -17,6 +17,7 @@ import { japanMofaDetailDate } from "../../../src/lib/officialDocs/listPages";
 import { translateDoc, type Translator } from "../../../src/lib/officialDocs/translate";
 import { translateWithProviders } from "../../../src/lib/translateProviders";
 import { rareTagsOf } from "../../../src/lib/news/eventScenarios";
+import { canFetchArticle } from "../../../src/lib/news/robotsTxt";
 import { FILE_MAX_BYTES, archiveSaveUrl, archiveUrlOf, fileKeyOf, isPdfBytes, isPdfUrl, pdfLinksOf, sha256Hex } from "../../../src/lib/officialDocs/capture";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
@@ -196,6 +197,11 @@ async function capturePending(env: IngestEnv): Promise<number> {
   let done = 0;
   for (const row of rows) {
     try {
+      // robots.txt가 막은 주소·경로는 받지 않는다(프로젝트 저작권 점검 O-3과 같은 규칙). 확인을 못 한 경우도 보수적으로 막힌 것으로 본다.
+      if (!(await canFetchArticle(row.url, CAPTURE_UA))) {
+        await retry(row.id);
+        continue;
+      }
       const page = await fetch(row.url, { headers: { "User-Agent": CAPTURE_UA, Accept: "text/html,application/pdf,*/*" }, redirect: "follow", signal: AbortSignal.timeout(25_000) });
       if (!page.ok) {
         await retry(row.id);
@@ -212,6 +218,10 @@ async function capturePending(env: IngestEnv): Promise<number> {
           continue;
         }
         fileUrl = links[0];
+        if (!(await canFetchArticle(fileUrl, CAPTURE_UA))) {
+          await retry(row.id);
+          continue;
+        }
         const f = await fetch(fileUrl, { headers: { "User-Agent": CAPTURE_UA, Accept: "application/pdf,*/*" }, redirect: "follow", signal: AbortSignal.timeout(30_000) });
         const len = Number(f.headers.get("content-length") ?? 0);
         if (!f.ok || len > FILE_MAX_BYTES) {
