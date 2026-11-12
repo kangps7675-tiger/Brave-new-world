@@ -2,9 +2,12 @@
 
 import { OfficialDocCard } from "@/components/globe/OfficialDocCard";
 import { SipriArmsRecord } from "@/components/globe/SipriArmsRecord";
+import { AnalysisSection } from "@/components/globe/AnalysisSection";
 import { PolledDocsSection } from "@/components/globe/PolledDocsSection";
 import { OFFICIAL_DOCS } from "@/data/officialDocs";
+import { useAnalysisItems } from "@/hooks/useAnalysisItems";
 import { usePolledOfficialDocs } from "@/hooks/usePolledOfficialDocs";
+import { analysisForFlash } from "@/lib/analysis/match";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import { polledDocsForFlash } from "@/lib/officialDocs/matchPolled";
 import { compareFlight, flightFiguresOf, formatRangeKm, missileRangeForText } from "@/lib/missileRange";
@@ -26,6 +29,8 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const missile = missileRangeForText(text);
   const figures = flightFiguresOf(text);
   const cmp = missile ? compareFlight(missile.spec, figures) : null;
+  const analysisItems = useAnalysisItems();
+  const analysisMatches = analysisForFlash(text, at, analysisItems);
   const polled = usePolledOfficialDocs();
   const polledMatches = polledDocsForFlash(text, at, polled, { excludeUrls: new Set(docs.map((d) => d.sourceUrl)) });
 
@@ -71,6 +76,7 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
         </section>
       ) : null}
       <PolledDocsSection matches={polledMatches} en={en} />
+      <AnalysisSection matches={analysisMatches} en={en} />
       {articles.length > 0 ? (
         <section>
           <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{en ? "Related press reports" : "관련 언론 기사"}</p>
