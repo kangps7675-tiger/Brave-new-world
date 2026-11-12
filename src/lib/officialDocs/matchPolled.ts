@@ -1,6 +1,7 @@
 import { ACTOR_OF_ISSUER } from "@/lib/officialDocs/match";
 import { topicsOf } from "@/lib/officialDocs/federalRegister";
 import { actorsOf, rareTagsOf } from "@/lib/news/eventScenarios";
+import { activeRivalPairs, rivalPairOf } from "@/lib/officialDocs/rivals";
 
 /**
  * 워커가 자동으로 모은 공식 문서(`/api/official-docs`)를 속보에 붙이는 규칙.
@@ -12,6 +13,8 @@ import { actorsOf, rareTagsOf } from "@/lib/news/eventScenarios";
  *  - 문서를 낸 나라가 속보에 당사자로 나온다 → 1
  *  - 제목에 같은 고유한 단어(회사·품목·조약 이름 등)가 1개 → 1, 2개 이상 → 2
  *  - 발행일이 속보 14일 전 ~ 3일 후 범위 밖이면 점수와 상관없이 뺀다
+ *
+ * 고를 때는 점수순으로 보되 한 나라(issuerId)에서 2건까지만 담아, 당사국이 둘 이상이면 양쪽 입장이 같이 보이게 한다(최대 4건).
  */
 
 export type PolledDoc = {
@@ -37,11 +40,15 @@ export type PolledDocMatch = {
   doc: PolledDoc;
   score: number;
   /** 왜 붙었는지(화면에 그대로 보여 준다) */
-  reasons: { places: string[]; topics: string[]; terms: string[]; actor: boolean };
+  reasons: { places: string[]; topics: string[]; terms: string[]; actor: boolean; rival?: boolean };
 };
 
-const MAX_DOCS = 3;
+/** 한 속보에 붙이는 문서 수. 한 나라(기관)가 자리를 독차지하지 않도록 나라별로도 상한을 둔다 */
+const MAX_DOCS = 4;
+const MAX_PER_SIDE = 2;
 const MIN_SCORE = 3;
+/** 속보에 맞서는 두 당사국이 모두 나왔을 때, 그 두 나라가 낸 문서에만 적용하는 낮은 기준(당사자 1 + 겹치는 단서 하나) */
+const MIN_SCORE_RIVAL = 2;
 const BEFORE_MS = 14 * 86_400_000;
 const AFTER_MS = 3 * 86_400_000;
 
@@ -84,6 +91,8 @@ export function polledDocsForFlash(
   const actors = new Set(actorsOf(text));
   const flashTopics = new Set(topicsOf(text, "").filter((t) => t !== "geopolitics"));
   const flashTerms = termsOf(text);
+  // 속보에 서로 맞서는 두 나라가 함께 나오면, 그 두 나라의 문서는 상대 입장으로서 약간 느슨하게 받는다
+  const rivalIssuers = new Set(activeRivalPairs(actors).flat());
 
   const out: PolledDocMatch[] = [];
   for (const doc of docs) {
@@ -103,10 +112,64 @@ export function polledDocsForFlash(
     if (sameTopics.length > 0) score += 1;
     if (actor) score += 1;
     score += Math.min(sameTerms.length, 2);
-    if (score < MIN_SCORE) continue;
-    out.push({ doc, score, reasons: { places: samePlaces, topics: sameTopics, terms: sameTerms.slice(0, 3), actor } });
+    const rival = score < MIN_SCORE && score >= MIN_SCORE_RIVAL && actor && rivalIssuers.has(doc.issuerId);
+    if (score < MIN_SCORE && !rival) continue;
+    out.push({ doc, score, reasons: { places: samePlaces, topics: sameTopics, terms: sameTerms.slice(0, 3), actor, ...(rival ? { rival: true } : {}) } });
   }
-  return out
-    .sort((a, b) => b.score - a.score || (b.doc.publishedAt ?? "").localeCompare(a.doc.publishedAt ?? ""))
-    .slice(0, MAX_DOCS);
+  out.sort((a, b) => b.score - a.score || (b.doc.publishedAt ?? "").localeCompare(a.doc.publishedAt ?? ""));
+  const perSide = new Map<string, number>();
+  const picked: PolledDocMatch[] = [];
+  const take = (m: PolledDocMatch): boolean => {
+    const n = perSide.get(m.doc.issuerId) ?? 0;
+    if (picked.length >= MAX_DOCS || n >= MAX_PER_SIDE || picked.includes(m)) return false;
+    perSide.set(m.doc.issuerId, n + 1);
+    picked.push(m);
+    return true;
+  };
+  // 맞서는 두 나라가 모두 나온 속보는 양쪽 문서를 먼저 한 건씩 확보한다(한쪽 점수가 높다고 상대 쪽이 밀려나지 않게)
+  for (const [a, b] of activeRivalPairs(actors)) {
+    const bestA = out.find((m) => m.doc.issuerId === a);
+    const bestB = out.find((m) => m.doc.issuerId === b);
+    if (bestA && bestB) {
+      take(bestA);
+      take(bestB);
+    }
+  }
+  for (const m of out) take(m);
+  return picked;
+}
+
+/**
+ * 붙은 문서를 낸 나라(기관)별로 묶는다. 순서는 점수가 가장 높은 문서를 낸 나라부터.
+ * 나라가 둘 이상이면 화면이 "당사국별 공식 입장"으로 나란히 보여 준다.
+ */
+export function groupBySide(matches: readonly PolledDocMatch[]): Array<{ issuerId: string; matches: PolledDocMatch[] }> {
+  const groups = new Map<string, PolledDocMatch[]>();
+  for (const m of matches) {
+    const list = groups.get(m.doc.issuerId);
+    if (list) list.push(m);
+    else groups.set(m.doc.issuerId, [m]);
+  }
+  return [...groups].map(([issuerId, list]) => ({ issuerId, matches: list }));
+}
+
+/**
+ * 붙은 문서 중 서로 맞서는 두 나라(RIVAL_PAIRS)가 모두 있으면 그 쌍과 나머지 묶음으로 나눈다. 없으면 pair는 null.
+ * 화면이 맞서는 양측을 좌우로 나란히 놓는 데 쓴다.
+ */
+export function splitRivalSides(groups: ReadonlyArray<{ issuerId: string; matches: PolledDocMatch[] }>): {
+  pair: [{ issuerId: string; matches: PolledDocMatch[] }, { issuerId: string; matches: PolledDocMatch[] }] | null;
+  rest: Array<{ issuerId: string; matches: PolledDocMatch[] }>;
+} {
+  for (let i = 0; i < groups.length; i++) {
+    for (let j = i + 1; j < groups.length; j++) {
+      const pair = rivalPairOf(groups[i].issuerId, groups[j].issuerId);
+      if (!pair) continue;
+      // 쌍에 적힌 순서(예: 미국 → 중국)대로 왼쪽·오른쪽을 정한다
+      const first = groups[i].issuerId === pair[0] ? groups[i] : groups[j];
+      const second = first === groups[i] ? groups[j] : groups[i];
+      return { pair: [first, second], rest: groups.filter((g) => g !== first && g !== second) };
+    }
+  }
+  return { pair: null, rest: [...groups] };
 }
