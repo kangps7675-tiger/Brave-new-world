@@ -215,5 +215,10 @@
     "issuerId": "tw",
     "url": "https://english.president.gov.tw/RSSNEWS.aspx",
     "label": "대만 총통부 소식"
+  },
+  {
+    "issuerId": "au",
+    "url": "https://www.foreignminister.gov.au/rss.xml",
+    "label": "호주 외교장관(페니 웡) 보도자료"
   }
 ]
