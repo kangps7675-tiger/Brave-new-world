@@ -19,7 +19,7 @@ export function isValidIssuerId(id: string): boolean {
 
 /** 1차 범위(피드·이름을 미리 정리해 둔 곳) */
 export const ISSUER_IDS: readonly IssuerId[] = [
-  "us", "cn", "ru", "jp", "kr", "tw", "in", "ir", "tr", "ua", "au", "gb", "fr", "de", "it", "nato", "eu",
+  "us", "cn", "ru", "jp", "kr", "tw", "in", "ir", "tr", "ua", "au", "gb", "fr", "de", "it", "il", "sa", "pl", "pk", "nato", "eu", "un", "iaea",
 ];
 
 export type OfficialFeed = {
@@ -46,7 +46,7 @@ function issuer(id: IssuerId, kind: Issuer["kind"], nameKo: string, nameEn: stri
   return { id, kind, nameKo, nameEn, feeds, terms: UNCHECKED };
 }
 
-/** 1차 범위: 15개국 + 나토·EU. 피드가 비어 있는 곳은 수동으로 넣는다. */
+/** 1차 범위: 지정학 플레이어 19개국 + 나토·EU·유엔·IAEA. 피드가 비어 있는 곳은 수동으로 넣는다. */
 export const ISSUERS: readonly Issuer[] = [
   issuer("us", "country", "미국", "United States"),
   issuer("cn", "country", "중국", "China"),
@@ -65,10 +65,16 @@ export const ISSUERS: readonly Issuer[] = [
   issuer("fr", "country", "프랑스", "France"),
   issuer("de", "country", "독일", "Germany"),
   issuer("it", "country", "이탈리아", "Italy"),
+  issuer("il", "country", "이스라엘", "Israel"),
+  issuer("sa", "country", "사우디아라비아", "Saudi Arabia"),
+  issuer("pl", "country", "폴란드", "Poland"),
+  issuer("pk", "country", "파키스탄", "Pakistan"),
   issuer("nato", "organization", "나토", "NATO"),
   issuer("eu", "organization", "EU", "European Union", [
     { url: "https://www.consilium.europa.eu/en/rss/pressreleases.ashx", label: "EU 이사회 보도자료", verified: false },
   ]),
+  issuer("un", "organization", "유엔", "United Nations"),
+  issuer("iaea", "organization", "IAEA", "International Atomic Energy Agency"),
 ];
 
 export type DocKind = "factsheet" | "joint-statement" | "readout" | "statement" | "press-release" | "remarks" | "treaty";

@@ -11,6 +11,10 @@ export type DocCandidate = {
   kind: DocKind;
   weight: DocWeight;
   summary: string;
+  /** 문서를 낸 기관(예: "Bureau of Industry and Security"). 모르면 없음. */
+  agency?: string;
+  /** 안보화된 주제 id(semiconductor·defense-industry…). 연방관보 읽기 함수가 붙인다. */
+  topics?: string[];
 };
 
 function tag(block: string, name: string): string {

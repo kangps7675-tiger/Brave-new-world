@@ -1,0 +1,47 @@
+[
+  {
+    "issuerId": "nato",
+    "url": "https://www.nato.int/cps/en/natohq/official_texts.htm",
+    "label": "나토 공식 문서 목록"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://en.mofa.gov.tw/",
+    "label": "대만 외교부 첫 화면 소식"
+  },
+  {
+    "issuerId": "fr",
+    "url": "https://www.diplomatie.gouv.fr/en/press/news",
+    "label": "프랑스 외교부 소식"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.mofa.go.kr/eng/brd/m_5676/list.do",
+    "label": "한국 외교부 영문 보도자료"
+  },
+  {
+    "issuerId": "jp",
+    "url": "https://japan.kantei.go.jp/",
+    "label": "일본 총리관저 성명·연설"
+  },
+  {
+    "issuerId": "fr",
+    "url": "https://www.elysee.fr/toutes-les-actualites",
+    "label": "프랑스 대통령실(엘리제) 소식"
+  },
+  {
+    "issuerId": "cn",
+    "url": "https://www.fmprc.gov.cn/eng/xw/zyxw/",
+    "label": "중국 외교부 주요 소식(Top Stories)"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://en.mfa.ir/portal/newsarchive/699",
+    "label": "이란 외무부 성명(Statements) 보관함"
+  },
+  {
+    "issuerId": "jp",
+    "url": "https://www.mofa.go.jp/press/release/index.html",
+    "label": "일본 외무성 보도발표"
+  }
+]

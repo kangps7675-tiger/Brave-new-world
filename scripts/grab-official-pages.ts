@@ -25,6 +25,8 @@ const DEFAULTS = [
   "https://www.mofa.go.jp/press/release/index.html",
   "https://japan.kantei.go.jp/",
   "https://mfa.gov.ua/en/news",
+  "https://www.elysee.fr/toutes-les-actualites",
+  "https://www.fmprc.gov.cn/eng/xw/zyxw/",
   "https://www.mid.ru/en/press_service/",
 ];
 

@@ -2,6 +2,7 @@
  * 각국 정부·기구의 공식 문서 새 글 → D1 `official_doc_feed`.
  *
  *  - 소스: `src/data/officialFeeds.json`(등록한 피드) + ISSUERS에 내장된 피드(영국·EU)
+ *    + `src/data/officialListPages.json`(RSS 없는 사이트의 목록 페이지: 나토·대만·프랑스·한국·일본 총리관저)
  *  - 합의문·팩트시트·회담 요약·성명·조약만 남긴다(`worthKeeping`). 연설·일반 보도자료는 버린다.
  *  - 원문은 저장하지 않는다. 제목 + 링크 + 요약 280자 + 읽힌 지명 태그만(이용 조건이 사이트마다 다르다).
  *  - 30분 최소 간격 자체 스로틀. 피드별 성공·실패를 `official_doc_poll`에 남긴다
@@ -11,9 +12,12 @@
 
 import type { IngestEnv } from "./env";
 import { rowsFromOfficialFeed, officialFeedSources, type OfficialDocFeedWriteRow } from "../../../src/lib/officialDocs/ingestRows";
+import { japanMofaDetailDate, parseListPage } from "../../../src/lib/officialDocs/listPages";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
+/** 상세 페이지로 연도를 확정하는 일본 외무성 항목: 새로 보는 것만, 한 번에 이 개수까지 */
+const DETAIL_DATE_MAX_PER_RUN = 20;
 
 async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<boolean> {
   try {
@@ -31,17 +35,65 @@ async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<b
 async function upsertRows(db: D1Database, rows: OfficialDocFeedWriteRow[]): Promise<void> {
   if (rows.length === 0) return;
   const ingestedAt = new Date().toISOString();
-  const stmts = rows.map((r) =>
-    db
-      .prepare(
-        `INSERT INTO official_doc_feed (id, issuer_id, kind, weight, title, url, published_at, summary, tags, feed, ingested_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
-         ON CONFLICT(id) DO NOTHING`,
-      )
-      .bind(r.id, r.issuer_id, r.kind, r.weight, r.title, r.url, r.published_at, r.summary, r.tags, r.feed, ingestedAt),
-  );
-  for (let i = 0; i < stmts.length; i += 50) {
-    await db.batch(stmts.slice(i, i + 50));
+  const build = (withAgency: boolean) =>
+    rows.map((r) =>
+      withAgency
+        ? db
+            .prepare(
+              `INSERT INTO official_doc_feed (id, issuer_id, kind, weight, title, url, published_at, summary, tags, feed, agency, ingested_at)
+               VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+               ON CONFLICT(id) DO NOTHING`,
+            )
+            .bind(r.id, r.issuer_id, r.kind, r.weight, r.title, r.url, r.published_at, r.summary, r.tags, r.feed, r.agency, ingestedAt)
+        : db
+            .prepare(
+              `INSERT INTO official_doc_feed (id, issuer_id, kind, weight, title, url, published_at, summary, tags, feed, ingested_at)
+               VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+               ON CONFLICT(id) DO NOTHING`,
+            )
+            .bind(r.id, r.issuer_id, r.kind, r.weight, r.title, r.url, r.published_at, r.summary, r.tags, r.feed, ingestedAt),
+    );
+  const run = async (stmts: D1PreparedStatement[]) => {
+    for (let i = 0; i < stmts.length; i += 50) await db.batch(stmts.slice(i, i + 50));
+  };
+  try {
+    await run(build(true));
+  } catch (e) {
+    // 0043(agency 칸)이 아직 적용되지 않은 D1이면 칸 없이 저장한다 — 수집이 멈추지 않게
+    if (e instanceof Error && /agency/i.test(e.message)) await run(build(false));
+    else throw e;
+  }
+}
+
+/**
+ * 일본 외무성 목록은 날짜에 연도가 없어 추정값이 들어 있다. DB에 아직 없는 새 항목만 상세 페이지를 열어 연도까지 확정한다
+ * (이미 저장한 항목은 다시 받지 않는다). 실패하면 추정값을 그대로 쓴다.
+ */
+async function refineJapanDates(db: D1Database, rows: OfficialDocFeedWriteRow[]): Promise<void> {
+  const jp = rows.filter((r) => /(^|\.)mofa\.go\.jp$/i.test(new URL(r.url).hostname));
+  if (jp.length === 0) return;
+  const known = new Set<string>();
+  try {
+    for (let i = 0; i < jp.length; i += 50) {
+      const ids = jp.slice(i, i + 50).map((r) => r.id);
+      const res = await db
+        .prepare(`SELECT id FROM official_doc_feed WHERE id IN (${ids.map((_, k) => `?${k + 1}`).join(",")})`)
+        .bind(...ids)
+        .all<{ id: string }>();
+      for (const r of res.results ?? []) known.add(r.id);
+    }
+  } catch {
+    return;
+  }
+  for (const row of jp.filter((r) => !known.has(r.id)).slice(0, DETAIL_DATE_MAX_PER_RUN)) {
+    try {
+      const res = await fetch(row.url, { headers: { "User-Agent": UA }, redirect: "follow" });
+      if (!res.ok) continue;
+      const date = japanMofaDetailDate(await res.text());
+      if (date) row.published_at = date;
+    } catch {
+      /* 추정 날짜 유지 */
+    }
   }
 }
 
@@ -83,7 +135,12 @@ export async function fetchAndUpsertOfficialDocs(env: IngestEnv): Promise<{
           redirect: "follow",
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const rows = await rowsFromOfficialFeed(await res.text(), source);
+        const body = await res.text();
+        const rows = await rowsFromOfficialFeed(body, source);
+        // 목록 페이지는 구조가 바뀌면 0건이 되므로, 읽는 함수가 아무것도 못 읽었을 때를 실패로 남긴다
+        if (source.page && parseListPage(body, source.url, source.issuerId).length === 0) {
+          throw new Error("목록 페이지에서 0건 — 구조가 바뀌었거나 막힌 응답");
+        }
         await recordPoll(env.DB, source.label, true, rows.length, null).catch(() => undefined);
         return rows;
       } catch (e) {
@@ -105,6 +162,7 @@ export async function fetchAndUpsertOfficialDocs(env: IngestEnv): Promise<{
 
   const unique = [...new Map(all.map((r) => [r.id, r])).values()];
   try {
+    await refineJapanDates(env.DB, unique);
     await upsertRows(env.DB, unique);
     const cutoff = new Date(Date.now() - RETENTION_DAYS * 86_400_000).toISOString();
     await env.DB.prepare(`DELETE FROM official_doc_feed WHERE ingested_at < ?1`).bind(cutoff).run();

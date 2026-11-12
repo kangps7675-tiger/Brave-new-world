@@ -32,6 +32,8 @@ const SPECIAL: Array<[RegExp, string]> = [
   [/(?:^|\.)(?:mfa|president|leader|irna|mod)\.ir$/, "ir"],
   [/(?:^|\.)(?:gov|mfa|mod)\.il$/, "il"],
   [/(?:^|\.)(?:mofa|mod)\.gov\.sa$/, "sa"],
+  [/(?:^|\.)korea\.kr$/, "kr"],
+  [/(?:^|\.)(?:pib|mea)\.gov\.in$/, "in"],
 ];
 
 /** 국제기구·동맹. 나라가 아니라 기구 id로 돌려준다. */

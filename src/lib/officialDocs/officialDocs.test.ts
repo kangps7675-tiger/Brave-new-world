@@ -24,9 +24,9 @@ describe("공식 문서 종류·무게", () => {
   });
 
   it("17곳이 모두 있고 id가 겹치지 않는다", () => {
-    expect(ISSUERS).toHaveLength(17);
-    expect(new Set(ISSUERS.map((row) => row.id)).size).toBe(17);
-    expect(ISSUER_IDS).toHaveLength(17);
+    expect(ISSUERS).toHaveLength(23);
+    expect(new Set(ISSUERS.map((row) => row.id)).size).toBe(23);
+    expect(ISSUER_IDS).toHaveLength(23);
     expect(ISSUERS.find((row) => row.id === "nato")?.kind).toBe("organization");
   });
 });
@@ -117,5 +117,10 @@ describe("승인 검사", () => {
   it("한 나라만 낸 문서를 합의문서로 못 올린다(나토·EU 제외)", () => {
     expect(validateDocMeta({ ...ok, kind: "statement", weight: "agreed" })).not.toEqual([]);
     expect(validateDocMeta({ ...ok, kind: "joint-statement", weight: "agreed", issuerIds: ["nato"] })).toEqual([]);
+  });
+
+  it("남이 낸 공동성명을 반박하는 글은 합의문이 아니라 성명이다", () => {
+    expect(classifyDocKind("MOFA solemnly refutes false claims regarding ROC (Taiwan) in China-Gabon joint statement")).toBe("statement");
+    expect(classifyDocKind("Joint statement by the foreign ministers of Japan and Korea")).toBe("joint-statement");
   });
 });
