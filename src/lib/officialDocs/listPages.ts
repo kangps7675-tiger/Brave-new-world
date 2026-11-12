@@ -348,6 +348,26 @@ function saudiMofa(html: string, pageUrl: string, issuerId: IssuerId): DocCandid
 }
 
 /**
+ * 파키스탄 외교부 보도자료(/press-releases): 카드 하나가 `<a href=".../press-releases/슬러그"> … <h5>제목</h5> … 03 Nov 2026`
+ * 모양이다(2026-11-12 실제 페이지 확인). 대변인 주간 브리핑 기록과 사전 안내(Curtain Raiser)도 같은 목록에 올라온다.
+ */
+function pakistanMofa(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const seen = new Set<string>();
+  const out: DocCandidate[] = [];
+  for (const m of html.matchAll(/<a\s+href="([^"]*\/press-releases\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = absolute(m[1], pageUrl);
+    const t = /<h5[^>]*>([\s\S]*?)<\/h5>/i.exec(m[2]);
+    const title = t ? clean(t[1]) : "";
+    if (!url || !title || seen.has(url)) continue;
+    seen.add(url);
+    const d = /\b(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{4})\b/i.exec(m[2]);
+    const month = d ? Object.entries(MONTHS).find(([name]) => name.startsWith(d[2].toLowerCase()))?.[1] : null;
+    out.push(candidate(issuerId, title, url, d && month ? `${d[3]}-${month}-${pad(d[1])}` : null));
+  }
+  return out;
+}
+
+/**
  * 일본 외무성 보도발표 목록: `<dt class="list-title">November 12</dt>` 다음 `<dd>`에 그날 링크들이 들어 있다(2026-11-12 실제 페이지 확인).
  * 날짜에 연도가 없어서 올해로 놓고, 오늘보다 하루 넘게 미래면 작년으로 돌린다(연말·연초 걸침 대비).
  */
@@ -395,6 +415,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)mfa\.ir$/i, iranMfa],
   [/(^|\.)mofa\.go\.jp$/i, japanMofa],
   [/(^|\.)mofa\.gov\.sa$/i, saudiMofa],
+  [/(^|\.)mofa\.gov\.pk$/i, pakistanMofa],
 ];
 
 /** 이 주소의 목록 페이지를 읽는 함수가 있는가 */

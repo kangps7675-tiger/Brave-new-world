@@ -103,5 +103,10 @@
     "issuerId": "sa",
     "url": "https://www.mofa.gov.sa/en/ministry/news/Pages/default.aspx",
     "label": "사우디 외교부 소식(장관 면담·회담)"
+  },
+  {
+    "issuerId": "pk",
+    "url": "https://mofa.gov.pk/press-releases",
+    "label": "파키스탄 외교부 보도자료·대변인 브리핑"
   }
 ]
