@@ -106,6 +106,37 @@ function koreaMofa(html: string, pageUrl: string, issuerId: IssuerId): DocCandid
   return out;
 }
 
+/**
+ * 한국 외교부 국문 보도자료 목록(/www/brd/m_4080/list.do): `<tr>`마다 `f_view('seq')` 링크와 `<span class="date"> 2026-11-12</span>`.
+ * 2026-11-12 실제 페이지에서 확인. 상세 주소는 게시판 규칙(view.do?seq=)으로 만든다.
+ */
+function koreaMofaKo(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const row of html.split(/<tr\b/i).slice(1)) {
+    const link = row.match(/f_view\('(\d+)'\)[^>]*>([\s\S]*?)<\/a>/i);
+    if (!link) continue;
+    const date = row.match(/<span class="date">\s*(\d{4}-\d{2}-\d{2})\s*<\/span>/i)?.[1] ?? null;
+    const url = absolute(`/www/brd/m_4080/view.do?seq=${link[1]}`, pageUrl);
+    const title = clean(link[2]).replace(/^NEW\s+/, "");
+    if (url && title) out.push(candidate(issuerId, title, url, date));
+  }
+  return out;
+}
+
+/** 국방부 보도자료 목록(/mnd/167/subview.do): `td-title`의 `/bbs/mnd/13000005/…/artclView.do` 링크와 `td-date` "2026.11.12". 2026-11-12 실제 페이지 확인 */
+function koreaMnd(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  for (const row of html.split(/<tr\b/i).slice(1)) {
+    const link = row.match(/<a\s+href="(\/bbs\/mnd\/\d+\/[^"]+\/artclView\.do)"[^>]*>([\s\S]*?)<\/a>/i);
+    if (!link) continue;
+    const d = row.match(/class="td-date">\s*(\d{4})\.(\d{2})\.(\d{2})\s*</i);
+    const url = absolute(link[1], pageUrl);
+    const title = clean(link[2]).replace(/\s*새글\s*$/, "");
+    if (url && title) out.push(candidate(issuerId, title, url, d ? `${d[1]}-${d[2]}-${d[3]}` : null));
+  }
+  return out;
+}
+
 /** 일본 총리관저 영문 첫 화면: /statement/·/speech/ 글만. 날짜는 주소(202611/1111statement.html = 11월 11일)에서 읽는다. */
 function japanKantei(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
   const re = new RegExp(
@@ -230,7 +261,8 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)nato\.int$/i, natoOfficialTexts],
   [/(^|\.)mofa\.gov\.tw$/i, taiwanMofa],
   [/(^|\.)diplomatie\.gouv\.fr$/i, franceDiplomatie],
-  [/(^|\.)mofa\.go\.kr$/i, koreaMofa],
+  [/(^|\.)mofa\.go\.kr$/i, (html, pageUrl, issuerId) => (/\/www\//.test(pageUrl) ? koreaMofaKo(html, pageUrl, issuerId) : koreaMofa(html, pageUrl, issuerId))],
+  [/(^|\.)mnd\.go\.kr$/i, koreaMnd],
   [/(^|\.)kantei\.go\.jp$/i, japanKantei],
   [/(^|\.)elysee\.fr$/i, elysee],
   [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],

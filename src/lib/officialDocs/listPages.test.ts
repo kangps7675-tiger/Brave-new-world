@@ -27,6 +27,22 @@ const JP = `<li><a href="https://japan.kantei.go.jp/105/statement/202611/1111sta
 <li><a href="/105/speech/202611/05kaiken.html" class="panel-article__link"><div class="panel-article__title">Press Conference on the Summit Telephone Meeting with President Macron</div></a></li>
 <li><a href="/105/actions/202611/09hyoukei.html" class="panel-article__link"><div class="panel-article__title">Courtesy Call</div></a></li>`;
 
+const KR_KO = `<tr> <td data-before="번호"><div>22884</div></td> <td data-before="제목"> <div> <a href="./view.do?seq=377761&amp;page=1&amp;pitem=10" onclick="javascript:f_view('377761'); return false;"> <span class="krds-badge outline-primary">NEW</span> 제9차 외교부-시민사회 정책대화 개최 </a> </div> </td> <td data-before="작성일"><div> <span class="date"> 2026-11-12</span> </div></td> </tr>`;
+
+const MND = `<tr> <td class="td-num"> 13445 </td> <td class="td-title alignL"> <a href="/bbs/mnd/13000005/DPIM_124632/artclView.do" onclick="jf_viewArtcl('mnd', '13000005', 'DPIM_124632')"> <strong><span>국방 분야 혁신제품 최초 지정, 민간 혁신기술의 군 활용 확대 </span></strong> <span class="new">새글</span> </a> </td> <td class="td-write"> 김채명 </td> <td class="td-date">2026.11.12</td> </tr>`;
+
+describe("한국 국문 목록 페이지", () => {
+  it("외교부 국문 보도자료: 제목·날짜·상세 주소", () => {
+    const rows = parseListPage(KR_KO, "https://www.mofa.go.kr/www/brd/m_4080/list.do", "kr");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ title: "제9차 외교부-시민사회 정책대화 개최", publishedAt: "2026-11-12", url: "https://www.mofa.go.kr/www/brd/m_4080/view.do?seq=377761" });
+  });
+  it("국방부 보도자료: 새글 표시를 떼고 날짜를 읽는다", () => {
+    const rows = parseListPage(MND, "https://www.mnd.go.kr/mnd/167/subview.do", "kr");
+    expect(rows[0]).toMatchObject({ title: "국방 분야 혁신제품 최초 지정, 민간 혁신기술의 군 활용 확대", publishedAt: "2026-11-12", url: "https://www.mnd.go.kr/bbs/mnd/13000005/DPIM_124632/artclView.do" });
+  });
+});
+
 describe("목록 페이지 읽기", () => {
   it("나토: 주소에서 날짜를 읽고 정상선언을 공동성명으로, 일반 문서는 성명으로 둔다", () => {
     const rows = parseListPage(NATO, "https://www.nato.int/en/about-us/official-texts-and-resources", "nato");

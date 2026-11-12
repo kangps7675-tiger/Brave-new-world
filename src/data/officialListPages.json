@@ -43,5 +43,15 @@
     "issuerId": "jp",
     "url": "https://www.mofa.go.jp/press/release/index.html",
     "label": "일본 외무성 보도발표"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.mofa.go.kr/www/brd/m_4080/list.do",
+    "label": "한국 외교부 국문 보도자료"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.mnd.go.kr/mnd/167/subview.do",
+    "label": "한국 국방부 보도자료"
   }
 ]

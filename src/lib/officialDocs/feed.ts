@@ -70,8 +70,9 @@ export function parseOfficialFeed(xml: string, issuerId: IssuerId): DocCandidate
  * 합의문·팩트시트·회담 요약·성명·조약만 남긴다. 연설·기자회견과 일반 보도자료는 --all일 때만.
  * 예외: 러시아 외무부는 사건이 생기면 보도자료("Press release on summoning the Ambassador of …")·대변인 브리핑·
  * 장관 발언으로 입장을 내므로, 러시아 문서는 종류와 상관없이 모두 남긴다.
+ * 한국도 같다: 정책브리핑 RSS가 중단돼(2026-07-01) 외교부·국방부 보도자료 목록이 유일한 한국 수집원이고, 국문 제목은 분류기가 종류를 못 가른다.
  */
 export function worthKeeping(row: DocCandidate): boolean {
-  if (row.issuerId === "ru") return true;
+  if (row.issuerId === "ru" || row.issuerId === "kr") return true;
   return row.kind !== "remarks" && row.kind !== "press-release";
 }
