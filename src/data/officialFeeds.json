@@ -220,5 +220,10 @@
     "issuerId": "au",
     "url": "https://www.foreignminister.gov.au/rss.xml",
     "label": "호주 외교장관(페니 웡) 보도자료"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://president.ir/en/rss/all",
+    "label": "이란 대통령실 소식(영문)"
   }
 ]
