@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hasListPageReader, parseListPage } from "./listPages";
+import { hasListPageReader, japanMofaDetailDate, parseListPage } from "./listPages";
 
 const NATO = `
 <a href="/en/about-us/organization/nato-structure/nato-military-committee">NATO Military Committee portal</a>
@@ -105,5 +105,10 @@ describe("목록 페이지 읽기", () => {
     const rows = parseListPage(html, "https://www.mofa.go.jp/press/release/index.html", "jp", new Date("2026-11-12T03:00:00Z"));
     expect(rows.map((r) => r.publishedAt)).toEqual(["2026-11-12", "2026-11-11", "2026-11-11", "2025-12-30"]);
     expect(rows[0].url).toBe("https://www.mofa.go.jp/press/release/pressite_000001_02843.html");
+  });
+
+  it("일본 외무성 상세 페이지의 연도 포함 날짜를 읽는다", () => {
+    expect(japanMofaDetailDate("Prefecture e-mail Print November 11, 2026 Japanese On November 11, from 2:35 PM")).toBe("2026-11-11");
+    expect(japanMofaDetailDate("no date here")).toBeNull();
   });
 });

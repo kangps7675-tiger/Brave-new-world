@@ -217,6 +217,15 @@ function japanMofa(html: string, pageUrl: string, issuerId: IssuerId, now: Date)
   return out;
 }
 
+/**
+ * 일본 외무성 보도발표 상세 페이지의 "November 11, 2026" 꼴 날짜 → YYYY-MM-DD. 목록에는 연도가 없어서,
+ * 새로 보는 항목에 한해 상세 페이지로 연도까지 확정할 때 쓴다(2026-11-12 실제 페이지 확인).
+ */
+export function japanMofaDetailDate(html: string): string | null {
+  const m = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\b/.exec(html);
+  return m ? `${m[3]}-${MONTHS[m[1].toLowerCase()]}-${pad(m[2])}` : null;
+}
+
 const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId, now: Date) => DocCandidate[]]> = [
   [/(^|\.)nato\.int$/i, natoOfficialTexts],
   [/(^|\.)mofa\.gov\.tw$/i, taiwanMofa],
