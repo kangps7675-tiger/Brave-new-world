@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compareFlight, flightFiguresOf, missileRangeForText, rangeShape, missileRangeGeoJson, formatRangeKm } from "./missileRange";
+import { unregisteredMissileMentions, compareFlight, flightFiguresOf, missileRangeForText, rangeShape, missileRangeGeoJson, formatRangeKm } from "./missileRange";
 
 const RAD = Math.PI / 180;
 function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -87,5 +87,27 @@ describe("발표 비행 수치", () => {
     const fc = missileRangeGeoJson(39, 125.7, spec, { distanceKm: 1000 });
     expect(fc.features.map((f) => f.properties.part)).toEqual(["fill", "line", "flown"]);
     expect(fc.features[2].properties.km).toBe(1000);
+  });
+});
+
+describe("unregisteredMissileMentions", () => {
+  const item = (title: string, link: string, pubDate = "2026-11-10T00:00:00Z") => ({ title, link, pubDate });
+  it("발사 글에서 표에 없는 기종 이름을 세고, 표에 있는 기종은 뺀다", () => {
+    const rows = unregisteredMissileMentions([
+      item("North Korea launches Hwasong-20 ICBM", "https://a/1"),
+      item("Hwasong-20 launch condemned by Seoul and Tokyo; missile flew 1,000 km", "https://a/2", "2026-11-11T00:00:00Z"),
+      item("North Korea launches Hwasong-18 ICBM", "https://a/3"),
+      item("Russia fires new Burevestnik cruise missile in test", "https://a/4"),
+    ]);
+    expect(rows.map((r) => [r.name, r.count])).toEqual([["Hwasong-20", 2], ["Burevestnik", 1]]);
+    expect(rows[0].latestUrl).toBe("https://a/2");
+  });
+  it("발사 글이 아니거나 같은 기사 중복, 일반 수식어는 후보로 삼지 않는다", () => {
+    const rows = unregisteredMissileMentions([
+      item("Analysis: the Hwasong-20 program", "https://a/5"),
+      item("Iranian missile launched at Israel", "https://a/6"),
+      item("Iranian missile launched at Israel", "https://a/6"),
+    ]);
+    expect(rows).toEqual([]);
   });
 });

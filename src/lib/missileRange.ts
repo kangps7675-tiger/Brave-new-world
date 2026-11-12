@@ -177,3 +177,54 @@ export function formatRangeKm(spec: MissileRangeSpec): string {
   const f = (n: number) => n.toLocaleString("en-US");
   return lo === hi ? `약 ${f(hi)}km` : `${f(lo)}~${f(hi)}km`;
 }
+
+export type UnregisteredMissile = { name: string; count: number; latestTitle: string; latestUrl: string; latestAt: string | null };
+
+const MISSILE_WORD = /\b(missiles?|icbm|irbm|srbm|mrbm|slbm)\b|미사일/i;
+/** 이름처럼 보이는 것만 후보로 삼는다: 하이픈+숫자형(Hwasong-20, Shahab-4), 한글 화성-숫자, "<고유명> missile" */
+const MODEL_TOKENS: RegExp[] = [
+  /\b[A-Z][A-Za-z]{2,}-\d{1,3}[A-Za-z]?\b/g,
+  /\b[A-Z]{2,3}-\d{1,3}[A-Za-z]?\b/g,
+  /화성포?-?\s?\d{1,2}\s?[형가나다]?/g,
+  /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s(?:ballistic |cruise |hypersonic |intermediate-range |intercontinental )?missile/g,
+];
+const NOT_A_MODEL = new Set(
+  "russian iranian ukrainian chinese american israeli korean north south japanese syrian houthi yemeni indian pakistani turkish british french german the this that new another second third first its their a an us uk eu un nato".split(" "),
+);
+
+/**
+ * 발사 글인데 우리 사거리 표에 없는 기종 이름을 모아 센다 — 표를 언제 보강할지 알려 주는 용도.
+ * 기사 제목·요약 목록(최신순이면 latest가 가장 최근 것)을 받는다. 표에 있는 기종이 읽히는 글은 건드리지 않는다.
+ */
+export function unregisteredMissileMentions(
+  items: ReadonlyArray<{ title: string; summary?: string | null; link: string; pubDate?: string | null }>,
+): UnregisteredMissile[] {
+  const seenLinks = new Set<string>();
+  const found = new Map<string, UnregisteredMissile>();
+  for (const it of items) {
+    if (seenLinks.has(it.link)) continue;
+    seenLinks.add(it.link);
+    const text = `${it.title}. ${it.summary ?? ""}`;
+    if (!LAUNCH.test(text) || !MISSILE_WORD.test(text)) continue;
+    if (missileRangeForText(text)) continue;
+    const names = new Set<string>();
+    for (const re of MODEL_TOKENS) {
+      for (const m of text.matchAll(re)) {
+        const name = (m[1] ?? m[0]).trim().replace(/\s+/g, " ");
+        const first = name.split(/[\s-]/)[0].toLowerCase();
+        if (name.length < 4 || NOT_A_MODEL.has(first) || NOT_A_MODEL.has(name.toLowerCase())) continue;
+        names.add(name);
+      }
+    }
+    for (const name of names) {
+      const key = name.toLowerCase();
+      const cur = found.get(key);
+      if (!cur) found.set(key, { name, count: 1, latestTitle: it.title, latestUrl: it.link, latestAt: it.pubDate ?? null });
+      else {
+        cur.count += 1;
+        if ((it.pubDate ?? "") > (cur.latestAt ?? "")) Object.assign(cur, { latestTitle: it.title, latestUrl: it.link, latestAt: it.pubDate ?? null });
+      }
+    }
+  }
+  return [...found.values()].sort((a, b) => b.count - a.count || (b.latestAt ?? "").localeCompare(a.latestAt ?? ""));
+}
