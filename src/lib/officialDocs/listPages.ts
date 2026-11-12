@@ -327,6 +327,27 @@ function iranMfa(html: string, pageUrl: string, issuerId: IssuerId): DocCandidat
 }
 
 /**
+ * 사우디 외교부 영문 성명(/en/ministry/statements/)·소식(/en/ministry/news/) 목록: 항목마다 `<article class="card">` 안에
+ * `card-title`(제목), 날짜 칸("Wednesday, July 29, 2026"), "Read More" 링크가 있다(2026-11-12 실제 페이지 확인).
+ * 링크 끝에 붙는 세션용 `csrt` 값은 때마다 달라 중복 판정을 깨므로 떼어 낸다. 성명 목록은 성명(statement)으로 분류한다.
+ */
+function saudiMofa(html: string, pageUrl: string, issuerId: IssuerId): DocCandidate[] {
+  const out: DocCandidate[] = [];
+  const kind = /\/statements\//i.test(pageUrl) ? "statement" : undefined;
+  for (const block of html.split(/<article\b[^>]*class="card"/i).slice(1)) {
+    const t = /class="card-title"[^>]*>([\s\S]*?)<\/h2>/i.exec(block);
+    const a = /<a\b[^>]*href="([^"]+)"/i.exec(block);
+    if (!t || !a) continue;
+    const url = absolute(a[1].replace(/[?&]csrt=\d+/i, ""), pageUrl);
+    const title = clean(t[1]);
+    if (!url || !title) continue;
+    const d = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\b/.exec(block);
+    out.push(candidate(issuerId, title, url, d ? `${d[3]}-${MONTHS[d[1].toLowerCase()]}-${pad(d[2])}` : null, kind));
+  }
+  return out;
+}
+
+/**
  * 일본 외무성 보도발표 목록: `<dt class="list-title">November 12</dt>` 다음 `<dd>`에 그날 링크들이 들어 있다(2026-11-12 실제 페이지 확인).
  * 날짜에 연도가 없어서 올해로 놓고, 오늘보다 하루 넘게 미래면 작년으로 돌린다(연말·연초 걸침 대비).
  */
@@ -373,6 +394,7 @@ const READERS: Array<[RegExp, (html: string, pageUrl: string, issuerId: IssuerId
   [/(^|\.)(fmprc|mfa)\.gov\.cn$/i, chinaMfa],
   [/(^|\.)mfa\.ir$/i, iranMfa],
   [/(^|\.)mofa\.go\.jp$/i, japanMofa],
+  [/(^|\.)mofa\.gov\.sa$/i, saudiMofa],
 ];
 
 /** 이 주소의 목록 페이지를 읽는 함수가 있는가 */

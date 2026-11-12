@@ -84,6 +84,8 @@ export function worthKeeping(row: DocCandidate): boolean {
   if (row.issuerId === "au" && /(^|\.)(foreignminister|defence)\.gov\.au\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   // 이란 대통령실 소식은 대통령의 회담·성명이고, 국영통신 IRNA는 이란 정부 입장을 전하는 당사자 매체라 모두 남긴다(라벨에 국영 매체임을 표시)
   if (row.issuerId === "ir" && /(^|\.)(president\.ir|en\.irna\.ir)\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
+  // 사우디 외교부 성명·소식은 장관 면담·공동선언·성명이 대부분이라 모두 남긴다
+  if (row.issuerId === "sa" && /(^|\.)mofa\.gov\.sa\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   // 대만: 국방부(중국 군 활동 일일 발표·보도자료)와 총통부는 속보 근거로 직접적이라 모두 남긴다(외교부는 기존 규칙)
   if (row.issuerId === "tw" && /(^|\.)(mnd\.gov\.tw|president\.gov\.tw)\//i.test(row.url.replace(/^https?:\/\//, ""))) return true;
   return row.kind !== "remarks" && row.kind !== "press-release";

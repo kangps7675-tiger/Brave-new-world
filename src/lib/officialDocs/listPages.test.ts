@@ -170,6 +170,17 @@ describe("목록 페이지 읽기", () => {
     expect(rows[1].publishedAt).toBe("2026-11-10");
   });
 
+  it("사우디 외교부: 카드 제목·날짜를 읽고 csrt 값은 떼며, 성명 목록의 일반 제목은 성명으로 분류한다", () => {
+    const card = (title: string, date: string, href: string) => `<article class="card"><div class="card-body placeholder-glow"><div><h2 class="card-title">${title}</h2><p class="card-text">${title} ...</p></div><small><span>${date}</span></small><div><a class="btn btn-primary" href="${href}">Read More</a></div></div></article>`;
+    const html =
+      card("Joint Declaration by the Ministers of Foreign Affairs of the Kingdom of Saudi Arabia and the Italian Republic", "Wednesday, July 29, 2026", "https://www.mofa.gov.sa/en/ministry/statements/Pages/Joint-Declaration-.aspx?csrt=10495061656260767707") +
+      card("Kingdom welcomes the agreement", "Monday, July 6, 2026", "/en/ministry/statements/Pages/N674.aspx");
+    const rows = parseListPage(html, "https://www.mofa.gov.sa/en/ministry/statements/Pages/default.aspx", "sa");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ url: "https://www.mofa.gov.sa/en/ministry/statements/Pages/Joint-Declaration-.aspx", publishedAt: "2026-07-29", kind: "joint-statement" });
+    expect(rows[1]).toMatchObject({ url: "https://www.mofa.gov.sa/en/ministry/statements/Pages/N674.aspx", publishedAt: "2026-07-06", kind: "statement" });
+  });
+
   it("일본 외무성: 날짜 제목 아래 링크를 읽고, 연도 없는 날짜는 오늘 기준으로 정한다", () => {
     const html = `<dl class="title-list"><dt class="list-title">November 12</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02843.html">Dinner hosted by State Minister</a></li></ul></dd>
 <dt class="list-title">November 11</dt><dd><ul class="link-list"><li><a href="/press/release/pressite_000001_02842.html">Courtesy Call on Vice-Minister</a></li><li><a href="/press/release/pressite_000001_02841.html">Reception for Italy anniversary</a></li></ul></dd>
