@@ -230,5 +230,20 @@
     "issuerId": "ir",
     "url": "https://en.irna.ir/rss",
     "label": "이란 국영통신 IRNA(영문, 국영 매체 보도)"
+  },
+  {
+    "issuerId": "lv",
+    "url": "https://www.mfa.gov.lv/en/rss/articles",
+    "label": "라트비아 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "fi",
+    "url": "https://um.fi/o/rss?dctype=asset&lang=en_US&aid=gc654PySnjTX&plid=709011",
+    "label": "핀란드 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "md",
+    "url": "https://mfa.gov.md/en/press/feed.xml",
+    "label": "몰도바 외교부 보도자료(영문)"
   }
 ]

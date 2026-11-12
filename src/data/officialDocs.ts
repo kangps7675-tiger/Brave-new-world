@@ -19,7 +19,7 @@ export function isValidIssuerId(id: string): boolean {
 
 /** 1차 범위(피드·이름을 미리 정리해 둔 곳) */
 export const ISSUER_IDS: readonly IssuerId[] = [
-  "us", "cn", "ru", "jp", "kr", "tw", "in", "ir", "tr", "ua", "au", "gb", "fr", "de", "it", "il", "sa", "pl", "pk", "qa", "nato", "eu", "un", "iaea",
+  "us", "cn", "ru", "jp", "kr", "tw", "in", "ir", "tr", "ua", "au", "gb", "fr", "de", "it", "il", "sa", "pl", "pk", "qa", "lv", "fi", "md", "nato", "eu", "un", "iaea",
 ];
 
 export type OfficialFeed = {
@@ -70,6 +70,9 @@ export const ISSUERS: readonly Issuer[] = [
   issuer("pl", "country", "폴란드", "Poland"),
   issuer("pk", "country", "파키스탄", "Pakistan"),
   issuer("qa", "country", "카타르", "Qatar"),
+  issuer("lv", "country", "라트비아", "Latvia"),
+  issuer("fi", "country", "핀란드", "Finland"),
+  issuer("md", "country", "몰도바", "Moldova"),
   issuer("nato", "organization", "나토", "NATO"),
   issuer("eu", "organization", "EU", "European Union", [
     { url: "https://www.consilium.europa.eu/en/rss/pressreleases.ashx", label: "EU 이사회 보도자료", verified: false },
