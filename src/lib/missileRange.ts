@@ -13,10 +13,11 @@ const RAD = Math.PI / 180;
 export type MissileRangeHit = { spec: MissileRangeSpec };
 
 /** 발사 글이고 기종이 읽히면 그 기종. 여러 기종이 나오면 글에서 가장 먼저 나온 것 하나. */
-export function missileRangeForText(text: string): MissileRangeHit | null {
+export function missileRangeForText(text: string, extra: readonly MissileRangeSpec[] = []): MissileRangeHit | null {
   if (!text || !LAUNCH.test(text)) return null;
   let best: { spec: MissileRangeSpec; at: number } | null = null;
-  for (const spec of MISSILE_RANGES) {
+  // 공식 표가 먼저: 같은 위치에서 겹치면 표 항목이 이긴다(자동 추출은 표에 없는 기종용)
+  for (const spec of [...MISSILE_RANGES, ...extra]) {
     const m = spec.pattern.exec(text);
     if (m && (best == null || m.index < best.at)) best = { spec, at: m.index };
   }

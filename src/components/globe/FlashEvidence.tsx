@@ -10,6 +10,8 @@ import { usePolledOfficialDocs } from "@/hooks/usePolledOfficialDocs";
 import { analysisForFlash } from "@/lib/analysis/match";
 import { articlesForFlash, docsForFlash } from "@/lib/officialDocs/match";
 import { polledDocsForFlash } from "@/lib/officialDocs/matchPolled";
+import { useAutoMissileRanges } from "@/hooks/useAutoMissileRanges";
+import { impactClaimsOf } from "@/lib/missileRangeAuto";
 import { compareFlight, flightFiguresOf, formatRangeKm, missileRangeForText } from "@/lib/missileRange";
 import type { NewsStreamItem } from "@/lib/news/types";
 
@@ -26,7 +28,9 @@ type Props = {
 export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   const docs = docsForFlash(text, OFFICIAL_DOCS);
   const articles = articlesForFlash(text, at, newsPool, ownUrl);
-  const missile = missileRangeForText(text);
+  const autoRanges = useAutoMissileRanges();
+  const missile = missileRangeForText(text, autoRanges);
+  const impact = missile ? impactClaimsOf(text) : [];
   const figures = flightFiguresOf(text);
   const cmp = missile ? compareFlight(missile.spec, figures) : null;
   const analysisItems = useAnalysisItems();
@@ -49,7 +53,7 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
       ) : null}
       {missile ? (
         <section data-missile-range>
-          <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{en ? "Missile range (open-source estimate)" : "미사일 사거리 (공개 추정)"}</p>
+          <p className="px-0.5 text-micro font-semibold text-[#5c4020]">{missile.spec.auto ? (en ? "Missile range (auto-extracted from news · not reviewed)" : "미사일 사거리 (뉴스에서 자동 추출 · 검수 전)") : en ? "Missile range (open-source estimate)" : "미사일 사거리 (공개 추정)"}</p>
           <div className="mt-1 rounded-sm border border-[#6b4a22]/20 bg-[#f7edd4]/70 px-2 py-1">
             <p className="text-micro leading-snug">
               {missile.spec.name} · {formatRangeKm(missile.spec)}
@@ -61,6 +65,23 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
                 {figures.apogeeKm != null ? (en ? ` · apogee about ${figures.apogeeKm.toLocaleString("en-US")}km` : ` · 정점 고도 약 ${figures.apogeeKm.toLocaleString("en-US")}km`) : ""}
                 {cmp?.lofted ? (en ? " · apogee is higher than the distance flown, which reads as a lofted launch" : " · 정점이 비행거리보다 높아 고각 발사로 읽힘") : ""}
                 {cmp?.exceedsMax ? (en ? " · reported distance exceeds this source's max range" : " · 발표 비행거리가 이 출처의 최대 사거리보다 김(수치 확인 필요)") : ""}
+              </p>
+            ) : null}
+            {impact.length > 0 ? (
+              <p className="mt-0.5 text-micro leading-snug">
+                {en ? "Landing, as the report words it" : "발표문의 낙하 서술"}: {impact.join(" / ")}
+                {en ? " (not plotted: the text gives no coordinates)" : " (좌표가 없어 지도에는 찍지 않음)"}
+              </p>
+            ) : null}
+            {missile.spec.auto ? (
+              <p className="mt-0.5 text-micro leading-snug text-[#5c4020]">
+                {en ? "Sources: " : "근거 기사: "}
+                {missile.spec.auto.links.map((l, i) => (
+                  <span key={l.url}>
+                    {i > 0 ? " · " : ""}
+                    <a href={l.url} target="_blank" rel="noopener noreferrer" className="underline">{l.title.slice(0, 40)}</a>
+                  </span>
+                ))}
               </p>
             ) : null}
             <p className="mt-0.5 text-micro text-[#5c4020]">

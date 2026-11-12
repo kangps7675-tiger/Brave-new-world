@@ -13,7 +13,7 @@ export type MissileRangeSpec = {
   id: string;
   /** 표시 이름 */
   name: string;
-  country: "kp" | "ir" | "cn" | "ru";
+  country: "kp" | "ir" | "cn" | "ru" | "unknown";
   /** 사거리 [최소, 최대] km. 단일 수치면 둘이 같다. */
   rangeKm: [number, number];
   /** 출처가 정식 수치가 아니라 서술·주장임을 알릴 때 */
@@ -21,6 +21,8 @@ export type MissileRangeSpec = {
   source: MissileRangeSource;
   /** 속보 글(영어·한글)에서 이 기종을 읽는 패턴 */
   pattern: RegExp;
+  /** 표가 아니라 뉴스 서술에서 자동으로 뽑은 값(검수 전). 공식 표 항목에는 없다 */
+  auto?: { count: number; links: { title: string; url: string }[] };
 };
 
 const CSIS_DPRK: MissileRangeSource = { name: "CSIS Missile Threat", url: "https://missilethreat.csis.org/country/dprk/" };
