@@ -33,17 +33,33 @@ async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<b
 async function upsertRows(db: D1Database, rows: OfficialDocFeedWriteRow[]): Promise<void> {
   if (rows.length === 0) return;
   const ingestedAt = new Date().toISOString();
-  const stmts = rows.map((r) =>
-    db
-      .prepare(
-        `INSERT INTO official_doc_feed (id, issuer_id, kind, weight, title, url, published_at, summary, tags, feed, ingested_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
-         ON CONFLICT(id) DO NOTHING`,
-      )
-      .bind(r.id, r.issuer_id, r.kind, r.weight, r.title, r.url, r.published_at, r.summary, r.tags, r.feed, ingestedAt),
-  );
-  for (let i = 0; i < stmts.length; i += 50) {
-    await db.batch(stmts.slice(i, i + 50));
+  const build = (withAgency: boolean) =>
+    rows.map((r) =>
+      withAgency
+        ? db
+            .prepare(
+              `INSERT INTO official_doc_feed (id, issuer_id, kind, weight, title, url, published_at, summary, tags, feed, agency, ingested_at)
+               VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+               ON CONFLICT(id) DO NOTHING`,
+            )
+            .bind(r.id, r.issuer_id, r.kind, r.weight, r.title, r.url, r.published_at, r.summary, r.tags, r.feed, r.agency, ingestedAt)
+        : db
+            .prepare(
+              `INSERT INTO official_doc_feed (id, issuer_id, kind, weight, title, url, published_at, summary, tags, feed, ingested_at)
+               VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+               ON CONFLICT(id) DO NOTHING`,
+            )
+            .bind(r.id, r.issuer_id, r.kind, r.weight, r.title, r.url, r.published_at, r.summary, r.tags, r.feed, ingestedAt),
+    );
+  const run = async (stmts: D1PreparedStatement[]) => {
+    for (let i = 0; i < stmts.length; i += 50) await db.batch(stmts.slice(i, i + 50));
+  };
+  try {
+    await run(build(true));
+  } catch (e) {
+    // 0043(agency 칸)이 아직 적용되지 않은 D1이면 칸 없이 저장한다 — 수집이 멈추지 않게
+    if (e instanceof Error && /agency/i.test(e.message)) await run(build(false));
+    else throw e;
   }
 }
 

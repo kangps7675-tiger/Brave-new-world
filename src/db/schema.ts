@@ -1340,6 +1340,8 @@ export const officialDocFeed = sqliteTable(
     /** 쉼표로 이은 희귀 지명 태그(hormuz,gaza…) */
     tags: text("tags").notNull().default(""),
     feed: text("feed").notNull(),
+    /** 문서를 낸 기관(`drizzle/0043`). 한 목록에 여러 기관이 섞인 소스(연방관보)용. */
+    agency: text("agency").notNull().default(""),
     ingestedAt: text("ingested_at").notNull(),
   },
   (t) => ({

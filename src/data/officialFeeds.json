@@ -38,5 +38,47 @@
     "issuerId": "it",
     "url": "https://www.esteri.it/en/feed/",
     "label": "이탈리아 외무부 발표"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Btype%5D%5B%5D=PRESDOCU&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 대통령 문서(행정명령·포고문·메모)",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=foreign-assets-control-office&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 재무부 해외자산통제국(OFAC) 제재·지정",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=industry-and-security-bureau&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 상무부 산업안보국(BIS) 수출통제·엔티티 리스트",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=state-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 국무부 고시·제재",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=defense-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 국방부 규칙·고시",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=justice-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 법무부 규칙·고시",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=homeland-security-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 국토안보부 규칙·고시",
+    "format": "federal-register"
   }
 ]

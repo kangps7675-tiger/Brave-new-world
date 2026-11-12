@@ -11,6 +11,8 @@ export type DocCandidate = {
   kind: DocKind;
   weight: DocWeight;
   summary: string;
+  /** 문서를 낸 기관(예: "Bureau of Industry and Security"). 모르면 없음. */
+  agency?: string;
 };
 
 function tag(block: string, name: string): string {
