@@ -82,16 +82,6 @@
     "format": "federal-register"
   },
   {
-    "issuerId": "kr",
-    "url": "https://www.korea.kr/rss/pressrelease.xml",
-    "label": "한국 정책브리핑 · 전 부처 보도자료"
-  },
-  {
-    "issuerId": "kr",
-    "url": "https://www.korea.kr/rss/policy.xml",
-    "label": "한국 정책브리핑 · 정책 뉴스"
-  },
-  {
     "issuerId": "in",
     "url": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3",
     "label": "인도 PIB · 전 부처 보도자료"

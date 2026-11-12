@@ -48,6 +48,17 @@ describe("피드 읽기", () => {
     expect(worthKeeping(rows[1])).toBe(false);
   });
 
+  it("러시아 외무부의 \"Press release on …\"은 남기고 브리핑·장관 발언은 버린다", () => {
+    const row = (issuerId: string, title: string) => {
+      const kind = classifyDocKind(title);
+      return { issuerId, title, url: "u", publishedAt: null, kind, weight: weightOf(kind), summary: "" } as Parameters<typeof worthKeeping>[0];
+    };
+    expect(worthKeeping(row("ru", "Press release on summoning the Ambassador of Moldova to the Foreign Ministry"))).toBe(true);
+    expect(worthKeeping(row("ru", "Briefing by Foreign Ministry Spokeswoman Maria Zakharova, Moscow, November 11, 2026"))).toBe(false);
+    expect(worthKeeping(row("ru", "Foreign Minister Sergey Lavrov’s remarks at a Joint Meeting of the Council"))).toBe(false);
+    expect(worthKeeping(row("fr", "Press release on summoning the Ambassador"))).toBe(false);
+  });
+
   it("RSS와 HTML 오류 페이지를 구분한다", () => {
     const rss = `<rss><channel><item><title>Fact Sheet: X</title><link>https://example.gov/a</link><pubDate>Fri, 12 May 2023 00:00:00 GMT</pubDate></item></channel></rss>`;
     expect(parseOfficialFeed(rss, "us")[0].publishedAt).toBe("2023-05-12");
