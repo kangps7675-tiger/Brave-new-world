@@ -2,9 +2,10 @@
  * 지도 위 속보 지점(네온)과, 그 지점 양피지에 붙는 "같은 지역 최근 사건".
  * 최근 6시간 안의 것은 밝게, 그보다 오래된 건 흐리게 남긴다.
  */
-export type NeonCategory = "ship" | "strike" | "charge" | "exercise" | "closure" | "posture" | "front";
+export type NeonCategory = "flash" | "ship" | "strike" | "charge" | "exercise" | "closure" | "posture" | "front";
 
 export const NEON_COLOR: Record<NeonCategory, string> = {
+  flash: "#9dff6b",
   strike: "#ff4d5e",
   ship: "#ff9a3c",
   charge: "#b58cff",

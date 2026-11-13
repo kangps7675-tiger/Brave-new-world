@@ -6,7 +6,7 @@ import { deskCategory, type DeskCategory } from "@/components/globe/LiveFlashDes
 import { useLocalizedTextMap } from "@/hooks/useLocalizedTextMap";
 import { useTr } from "@/hooks/useTr";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import { stackSourceName, type StackItem } from "@/lib/incidentStack/build";
+import { hasStackLocation, stackSourceName, type StackItem } from "@/lib/incidentStack/build";
 import { isMajorConfirmedStrike } from "@/lib/liveuamap/majorStrike";
 import { classifyRegionalPosture } from "@/lib/liveuamap/regionalPosture";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
@@ -16,6 +16,7 @@ import type { NewsStreamItem } from "@/lib/news/types";
 import { fetchShipPhotos } from "@/lib/shipPhoto";
 
 const CAT: Record<DeskCategory, { ko: string; en: string; cls: string }> = {
+  flash: { ko: "속보", en: "Flash", cls: "bg-red-500/30 text-red-100" },
   ship: { ko: "선박", en: "Ship", cls: "bg-orange-500/25 text-orange-100" },
   strike: { ko: "타격", en: "Strike", cls: "bg-rose-500/30 text-rose-100" },
   charge: { ko: "기소", en: "Charge", cls: "bg-violet-500/25 text-violet-100" },
@@ -330,7 +331,7 @@ function FeedDetail({
 
       <p className="text-micro tabular-nums text-slate-500">
         {en ? "Source" : "출처"}: {stackSourceName(item)} · {new Date(item.at).toISOString().slice(0, 16).replace("T", " ")} UTC ·{" "}
-        {item.lat.toFixed(3)}, {item.lng.toFixed(3)}
+        {hasStackLocation(item) ? `${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}` : null}
         {item.url && /^https?:\/\//i.test(item.url) ? (
           <>
             {" · "}
