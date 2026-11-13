@@ -25,6 +25,14 @@ function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean })
   const primary = doc.fileAvailable
     ? { href: `/api/official-docs/file/${doc.id}`, label: en ? "Read the original (PDF)" : "원문 보기 (PDF)" }
     : { href: doc.url, label: en ? "Read the original" : "원문 보기" };
+  // 열 수 있는 주소가 없으면 링크만 비우지 않고, 무엇이 있는지(제목·기관·날짜)는 그대로 보이게 한다
+  if (!primary.href) {
+    return (
+      <p className="mt-0.5 text-micro text-[#5c4020]/80">
+        {en ? "No link to the original is available. Title, issuer and date above are all we have." : "원문 링크가 없습니다. 위의 제목·발행 기관·날짜만 확인할 수 있습니다."}
+      </p>
+    );
+  }
   const others: Array<{ href: string; label: string }> = [];
   if (doc.fileAvailable) others.push({ href: doc.url, label: en ? "Publisher's page" : "발행 기관 페이지" });
   if (doc.archiveUrl) others.push({ href: doc.archiveUrl, label: en ? "Web Archive snapshot" : "웹 아카이브 보관본" });
@@ -82,9 +90,13 @@ export function DocItem({ match, en }: { match: PolledDocMatch; en: boolean }) {
   return (
     <li className="rounded-sm border border-[#6b4a22]/20 bg-[#f7edd4]/70 px-2 py-1">
       <p className="text-micro leading-snug">
-        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="underline">
-          {shown.title}
-        </a>
+        {doc.url ? (
+          <a href={doc.url} target="_blank" rel="noopener noreferrer" className="underline">
+            {shown.title}
+          </a>
+        ) : (
+          shown.title
+        )}
         {shown.translated ? <span className="ml-1 text-[#5c4020]/70">{en ? "(auto-translated)" : "(자동 번역)"}</span> : null}
       </p>
       {shown.summary ? <p className="mt-0.5 line-clamp-2 text-micro leading-snug text-[#5c4020]">{shown.summary}</p> : null}

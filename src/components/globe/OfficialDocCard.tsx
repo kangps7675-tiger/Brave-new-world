@@ -74,10 +74,19 @@ export function OfficialDocCard({ doc, en, tone = "parchment" }: { doc: Official
       <p className={`mt-0.5 text-micro ${c.sub}`}>
         {doc.publishedAt}
         {" · "}
-        <a href={doc.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">
-          {en ? "Original" : "원본 링크"}
-        </a>
-        {" · "}
+        {doc.sourceUrl ? (
+          <>
+            <a href={doc.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">
+              {en ? "Original" : "원본 링크"}
+            </a>
+            {" · "}
+          </>
+        ) : (
+          <>
+            {en ? "No original link" : "원본 링크 없음"}
+            {" · "}
+          </>
+        )}
         <button type="button" className="underline" aria-expanded={open} onClick={toggle}>
           {open ? (en ? "Hide text" : "원문 접기") : en ? "Read full text" : "원문 전체 보기"}
         </button>
