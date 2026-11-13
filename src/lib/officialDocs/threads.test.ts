@@ -81,3 +81,27 @@ describe("buildDiplomacyThreads", () => {
     expect(threads).toHaveLength(2);
   });
 });
+
+describe("제3자·당사자 단서", () => {
+  it("중재 표현 가까이에 나온 나라를 중재 단서로 센다(가닥 당사자 목록에 없는 나라 포함)", () => {
+    const threads = buildDiplomacyThreads(
+      [
+        doc("us", "United States and Iran hold talks mediated by Oman", "2026-11-09"),
+        doc("ir", "Iran welcomes Oman mediation in talks with United States", "2026-11-10"),
+      ],
+      NOW,
+    );
+    expect(threads).toHaveLength(1);
+    expect(threads[0].mediators.map((m) => m.key)).toContain("om");
+    // 같은 문장에 함께 나온 협상 당사국은 중재 단서로 세지 않는다
+    expect(threads[0].mediators.map((m) => m.key)).not.toContain("iran");
+    expect(threads[0].mediators.map((m) => m.key)).not.toContain("us");
+    expect(threads[0].roles["iran"].spoke).toBe(1);
+    expect(threads[0].roles["us"].named).toBeGreaterThanOrEqual(1);
+  });
+
+  it("중재 표현이 없으면 중재 단서를 만들지 않는다", () => {
+    const threads = buildDiplomacyThreads([doc("us", "United States and Iran talks on enrichment", "2026-11-10")], NOW);
+    expect(threads[0].mediators).toEqual([]);
+  });
+});

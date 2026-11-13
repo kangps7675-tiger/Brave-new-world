@@ -107,6 +107,39 @@ export function DiplomacyThreadView({ thread, en, onBack }: { thread: DiplomacyT
             : "공식 성명·발표를 이름이 나온 당사자, 주제, 날짜로 자동으로 묶었습니다. 검수 전이며, 어느 쪽이 맞는지는 가리지 않습니다."}
         </p>
       </div>
+      <div className="rounded-sm border border-[#6b4a22]/25 bg-[#f7edd4]/70 px-2 py-1.5" data-diplomacy-roles>
+        <p className="text-micro font-semibold text-[#5c4020]">{en ? "Countries in this thread" : "이 가닥에 나온 나라"}</p>
+        <ul className="mt-0.5 grid gap-0.5">
+          {thread.actors.map((a) => {
+            const r = thread.roles[a];
+            const bits = [
+              r?.spoke ? (en ? `issued ${r.spoke}` : `직접 발표 ${r.spoke}건`) : null,
+              r?.named ? (en ? `named in others' statements ${r.named}` : `다른 나라 발표에 언급 ${r.named}건`) : null,
+              r?.mediation ? (en ? `near mediation wording ${r.mediation}` : `중재·주선 표현 가까이 ${r.mediation}건`) : null,
+            ].filter(Boolean);
+            return (
+              <li key={a} className="text-micro leading-snug">
+                <span className="font-semibold">{actorLabel(a, en)}</span>
+                {bits.length > 0 ? <span className="text-[#5c4020]"> · {bits.join(" · ")}</span> : null}
+              </li>
+            );
+          })}
+        </ul>
+        {thread.mediators.filter((m) => !thread.actors.includes(m.key)).length > 0 ? (
+          <p className="mt-1 text-micro leading-snug text-[#3d2a12]">
+            {en ? "Named next to mediation wording: " : "중재·주선 표현 가까이에 이름이 나온 나라: "}
+            {thread.mediators
+              .filter((m) => !thread.actors.includes(m.key))
+              .map((m) => `${actorLabel(m.key, en)}(${m.count}${en ? "" : "건"})`)
+              .join(", ")}
+          </p>
+        ) : null}
+        <p className="mt-1 text-micro leading-snug text-[#5c4020]/80">
+          {en
+            ? "Whether a country is a direct party or a third party (mediator, host, commentator) is not decided automatically. Issuing a statement does not make a country a party, and being named does not make it a third party."
+            : "직접 당사자인지 제3자(중재·개최·논평)인지는 자동으로 가르지 않습니다. 발표를 냈다고 당사자인 것도, 이름이 나왔다고 제3자인 것도 아닙니다."}
+        </p>
+      </div>
       {silent.length > 0 ? (
         <p className="rounded-sm border border-dashed border-[#6b4a22]/40 px-2 py-1 text-micro leading-snug text-[#3d2a12]" data-diplomacy-silent>
           {en
