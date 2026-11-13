@@ -365,6 +365,25 @@ export function LiveFlashDesk({
           <p className="-mt-2 text-micro text-[#5c4020]/70" data-flash-verdict-note>
             {flashVerdictNote(en ? "en" : "ko")}
           </p>
+          <h2 className="text-base font-semibold leading-snug">{title}</h2>
+          {body ? <p className="whitespace-pre-line text-meta leading-relaxed text-[#3d2a12]">{body}</p> : null}
+          <CrossCheckSlots
+            en={en}
+            item={item}
+            place={cat}
+            vessels={vessels}
+            fires={fires}
+            aircraft={aircraft}
+            posts={posts}
+            front={front}
+          />
+          <FlashEvidence
+            en={en}
+            text={`${item.title} ${item.liveua?.title ?? ""} ${item.liveua?.body ?? ""} ${item.detail ?? ""}`}
+            at={item.at}
+            ownUrl={item.liveua?.sourceUrl}
+            newsPool={newsPool}
+          />
           {ev?.videoUrl ? (
             <video
               className="aspect-[16/9] w-full rounded-sm bg-black object-contain"
@@ -432,25 +451,6 @@ export function LiveFlashDesk({
             lang={en ? "en" : "ko"}
             kindLabel={en ? CAT_LABEL[cat].en : CAT_LABEL[cat].ko}
             heightClass="h-40"
-          />
-          <h2 className="text-base font-semibold leading-snug">{title}</h2>
-          {body ? <p className="whitespace-pre-line text-meta leading-relaxed text-[#3d2a12]">{body}</p> : null}
-          <CrossCheckSlots
-            en={en}
-            item={item}
-            place={cat}
-            vessels={vessels}
-            fires={fires}
-            aircraft={aircraft}
-            posts={posts}
-            front={front}
-          />
-          <FlashEvidence
-            en={en}
-            text={`${item.title} ${item.liveua?.title ?? ""} ${item.liveua?.body ?? ""} ${item.detail ?? ""}`}
-            at={item.at}
-            ownUrl={item.liveua?.sourceUrl}
-            newsPool={newsPool}
           />
           <EventScenarioBoard variant="accordion" lang={en ? "en" : "ko"} items={newsPool} />
           {nearby.length > 0 ? (
