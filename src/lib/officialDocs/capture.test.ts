@@ -66,3 +66,15 @@ describe("표시 허용 발행처", () => {
     expect(fileDisplayAllowed("cn")).toBe(false);
   });
 });
+
+describe("찍어 둔 사본 구분", () => {
+  it("우리가 찍은 사본만 rendered로 읽고, 브라우저 촬영은 열람 허용 발행처만 한다", async () => {
+    const { isRenderedFileType, renderAllowed, RENDERED_FILE_TYPE } = await import("@/lib/officialDocs/capture");
+    expect(isRenderedFileType(RENDERED_FILE_TYPE)).toBe(true);
+    expect(isRenderedFileType("application/pdf")).toBe(false);
+    expect(isRenderedFileType(undefined)).toBe(false);
+    expect(renderAllowed("us")).toBe(true);
+    expect(renderAllowed("gb")).toBe(true);
+    expect(renderAllowed("cn")).toBe(false);
+  });
+});

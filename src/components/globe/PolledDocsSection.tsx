@@ -23,7 +23,10 @@ export function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boo
   // 눈에 띄는 링크는 하나만 — 우리 보관본(원본 파일)이 있으면 그것, 없으면 발행 기관 페이지.
   // 나머지 보관본과 보관 정보(시각·해시)는 접어 두어, 한 문서에 링크가 줄줄이 보이지 않게 한다.
   const primary = doc.fileAvailable
-    ? { href: `/api/official-docs/file/${doc.id}`, label: en ? "Read the original (PDF)" : "원문 보기 (PDF)" }
+    ? {
+        href: `/api/official-docs/file/${doc.id}`,
+        label: doc.fileRendered ? (en ? "View the saved page (PDF)" : "저장해 둔 원문 화면 보기 (PDF)") : en ? "Read the original (PDF)" : "원문 보기 (PDF)",
+      }
     : { href: doc.url, label: en ? "Read the original" : "원문 보기" };
   // 열 수 있는 주소가 없으면 링크만 비우지 않고, 무엇이 있는지(제목·기관·날짜)는 그대로 보이게 한다
   if (!primary.href) {
@@ -64,6 +67,13 @@ export function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boo
             </p>
           ) : null}
         </details>
+      ) : null}
+      {doc.fileAvailable && doc.fileRendered ? (
+        <p className="mt-0.5 text-micro text-[#5c4020]/70">
+          {en
+            ? "We saved the publisher's web page as a PDF on the date shown. It is our copy of the page, not a file the publisher posted."
+            : "발행 기관의 웹페이지를 위 시각에 우리가 PDF로 저장해 둔 사본입니다. 기관이 올린 파일 자체는 아닙니다."}
+        </p>
       ) : null}
       {doc.fileAvailable && doc.issuerId === "gb" ? (
         <p className="mt-0.5 text-micro text-[#5c4020]/70">
