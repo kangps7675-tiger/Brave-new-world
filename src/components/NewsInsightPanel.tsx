@@ -1,5 +1,6 @@
 "use client";
 
+import { FlashEvidence } from "@/components/globe/FlashEvidence";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNewsStreamContext } from "@/components/BottomIntelStack";
 import type { NewsInsightSelectionItem } from "@/lib/news/newsInsightTypes";
@@ -123,7 +124,18 @@ export function NewsInsightPanel({
 }: NewsInsightPanelProps) {
   const en = lang === "en";
   const article = item.article;
-  const { localizedTitle, localizedSummary } = useNewsStreamContext();
+  const { localizedTitle, localizedSummary, payload: streamPayload } = useNewsStreamContext();
+  // 근거 창이 같은 사건의 다른 기사를 찾는 후보(속보 데스크와 같은 구성)
+  const evidencePool = useMemo(
+    () =>
+      [
+        ...(streamPayload?.hero ? [streamPayload.hero] : []),
+        ...(streamPayload?.flashHeroes ?? []),
+        ...(streamPayload?.verified ?? []),
+        ...(streamPayload?.stateMedia ?? []),
+      ],
+    [streamPayload],
+  );
   // 한글 모드: 스트림 로컬라이즈(서버+클라이언트)를 우선 — raw EN displayTitle 고착 방지
   const title = en
     ? (item.displayTitle ?? article.title)
@@ -295,6 +307,20 @@ export function NewsInsightPanel({
           ))
         )}
       </section>
+
+      {mode === "conflict" ? (
+        // 정세 기사: 기사에서 출발해 사진·싱크탱크·공식 원문까지 내려가는 근거 창(속보 데스크와 같은 구성)
+        <div className="rounded-md bg-[#f3e6c8] p-2 text-[#2a1c0a]" data-news-evidence>
+          <FlashEvidence
+            key={article.id}
+            en={en}
+            text={`${article.title}. ${title}. ${article.summary ?? ""}`}
+            at={Number.isFinite(Date.parse(article.pubDate)) ? Date.parse(article.pubDate) : Date.now()}
+            ownUrl={article.link}
+            newsPool={evidencePool}
+          />
+        </div>
+      ) : null}
 
       <section className="space-y-2 rounded-lg border border-amber-400/20 bg-amber-950/20 p-3">
         <div className="flex flex-wrap items-center gap-2">
