@@ -155,7 +155,7 @@ UI: Intel 관련 시장 패널 · 경제 허브 패널에 “왜 이 심볼?” 
 
 ## 8. 비목표
 
-- Strait Desk = 증권 앱
+- conflict-view = 증권 앱
 - 푸시로 매수 타이밍 알림
 - Telegram 기반 자동 트레이딩 시그널
 

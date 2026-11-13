@@ -1,11 +1,11 @@
-# Strait Desk
+# conflict-view
 
 **해협을 지켜보는 해운 위험 상황실.** 홍해·호르무즈·말라카 같은 해운 길목에서 어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료와 날씨가 어느 쪽으로 움직이는지를 3D 지구본 한 화면에 모았습니다.
 
 > 피격 경보가 뜬 직후 "이 바다는 지금 다닐 만한가"라는 질문에 근거를 갖춘 답을 가장 먼저 건네는 것이 목표입니다.
 
 - **상태:** 베타 — 지금은 가입 없이 볼 수 있습니다. 정식 출시 후 알림·해역 판단 같은 일부 기능은 유료가 될 예정입니다.
-- **이름:** Strait Desk. 패키지명 `strait-desk`, localStorage 키 `straitdesk-*`, 설정 파일 `straitdesk.config.ts`.
+- **이름:** conflict-view(임시). 인프라 식별자는 옛 이름 그대로 둔다: 패키지명 `strait-desk`, localStorage 키 `straitdesk-*`, 설정 파일 `straitdesk.config.ts`.
 - **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · Tailwind CSS
 - **언어:** UI 기본 한국어, 레이어 패널에서 English 전환
 - **출처 표기 의무:** [출처 표기 · 라이선스 공개 의무](#출처-표기--라이선스-공개-의무) · 앱 「출처」 패널 · [`docs/copyright-checklist.md`](docs/copyright-checklist.md)

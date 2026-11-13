@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-19  
 **Status:** Validated (brainstorming)  
-**Product:** Strait Desk — Korea-first **지정학 + 지경학** explainer
+**Product:** conflict-view — Korea-first **지정학 + 지경학** explainer
 
 ---
 
