@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
+import { useTr } from "@/hooks/useTr";
 import { buildEventScenarioBoard, type EventScenario, type ScenarioPath } from "@/lib/news/eventScenarios";
 import type { NewsStreamItem } from "@/lib/news/types";
 
@@ -30,7 +31,8 @@ const PATH_EN: Record<ScenarioPath, string> = {
   sanction: "Sanctions or a blockade",
 };
 
-function line(row: EventScenario, en: boolean): string {
+/** 당사자 매체가 한 말이라는 단서처럼 기사마다 다른 주의만 남긴다. 아무 기사에나 붙는 상투 문구는 쓰지 않는다. */
+function line(row: EventScenario, en: boolean): string | null {
   const path = en ? PATH_EN[row.path] : PATH_KO[row.path];
   const actor = en ? row.actorEn : row.actorKo;
   if (row.stance === "initiative" && actor) {
@@ -44,7 +46,7 @@ function line(row: EventScenario, en: boolean): string {
   if (row.stance === "initiative") {
     return en ? "A party outlet said this. It is a statement, not confirmation." : "당사자 매체가 한 말이다. 성명이지, 확인이 아니다.";
   }
-  return en ? `This report states ${path.toLowerCase()}. Only that sentence is used.` : `이 기사가 말한 ${path}이다. 이 문장 밖으로 나가지 않는다.`;
+  return null;
 }
 
 /** 한 사건, 출처가 말한 갈래. 지역 네 갈래가 아니다. */
@@ -52,6 +54,13 @@ export function EventScenarioBoard({ lang, items, variant = "panel" }: Props) {
   const en = lang === "en";
   const board = buildEventScenarioBoard([...items]);
   const [open, setOpen] = useState(false);
+  // 한글 모드에서는 기사 제목의 한국어 해석을 보여 준다(번역이 오기 전엔 원문 그대로라 해석 줄을 숨긴다)
+  const tr = useTr(board ? [board.eventTitle, ...board.scenarios.map((r) => r.title)] : [], lang);
+  const reading = (row: EventScenario) => {
+    if (en) return null;
+    const t = tr(row.title);
+    return t !== row.title ? t : null;
+  };
 
   if (variant === "accordion") {
     if (board == null) return null;
@@ -87,7 +96,8 @@ export function EventScenarioBoard({ lang, items, variant = "panel" }: Props) {
                     {row.stance === "initiative" ? (en ? " · their initiative" : " · 그 나라 이니셔티브") : ""}
                   </p>
                   <p className="mt-0.5 text-micro leading-snug">{row.title}</p>
-                  <p className="mt-0.5 text-micro leading-snug text-[#5c4020]">{line(row, en)}</p>
+                  {reading(row) ? <p className="mt-0.5 text-micro leading-snug text-[#3d2a12]">{reading(row)}</p> : null}
+                  {line(row, en) ? <p className="mt-0.5 text-micro leading-snug text-[#5c4020]">{line(row, en)}</p> : null}
                   <p className="mt-0.5 text-micro">
                     {row.source}
                     {" · "}
@@ -141,7 +151,8 @@ export function EventScenarioBoard({ lang, items, variant = "panel" }: Props) {
                   {row.stance === "initiative" ? (en ? " · their initiative" : " · 그 나라 이니셔티브") : ""}
                 </p>
                 <p className="mt-0.5 text-micro leading-snug">{row.title}</p>
-                <p className="mt-0.5 text-micro leading-snug text-[#5c4020]">{line(row, en)}</p>
+                {reading(row) ? <p className="mt-0.5 text-micro leading-snug text-[#3d2a12]">{reading(row)}</p> : null}
+                {line(row, en) ? <p className="mt-0.5 text-micro leading-snug text-[#5c4020]">{line(row, en)}</p> : null}
                 <p className="mt-0.5 text-micro">
                   {row.source}
                   {" · "}
