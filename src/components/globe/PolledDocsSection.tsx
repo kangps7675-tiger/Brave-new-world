@@ -19,7 +19,7 @@ export const TOPIC_EN: Record<string, string> = {
  * 원본을 확인하는 길. 우리 서버가 보관한 원본 PDF(이용 조건을 확인한 나라만), 발행 기관의 원본 링크, 시각이 찍힌 웹 아카이브 보관본.
  * 보관본이 있으면 받은 시각과 SHA-256 앞자리를 같이 적는다 — 나중에 기관이 파일을 바꿨는지 가릴 때 쓴다.
  */
-function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean }) {
+export function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean }) {
   // 눈에 띄는 링크는 하나만 — 우리 보관본(원본 파일)이 있으면 그것, 없으면 발행 기관 페이지.
   // 나머지 보관본과 보관 정보(시각·해시)는 접어 두어, 한 문서에 링크가 줄줄이 보이지 않게 한다.
   const primary = doc.fileAvailable
