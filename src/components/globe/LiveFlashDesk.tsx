@@ -259,6 +259,68 @@ export function LiveFlashDesk({
   const verdictShown = evidenceDocCount > 0 && verdictInfo.verdict === "nodata" ? { ...verdictInfo, partyOnly: true } : verdictInfo;
   const nearby = nearbyItems(item, sorted, now);
 
+  // 3단(사진·영상): 근거 창 안에서 보여 준다. 원 보도에 첨부된 것이 없으면 null.
+  const mediaCount = ev?.videoUrl ? 1 : shownPhoto ? photos.length : 0;
+  const mediaNode = mediaCount > 0 ? (
+ev?.videoUrl ? (
+            <video
+              className="aspect-[16/9] w-full rounded-sm bg-black object-contain"
+              src={ev.videoUrl}
+              poster={photos[0]}
+              controls
+              muted
+              playsInline
+              preload="metadata"
+            />
+          ) : shownPhoto ? (
+            <div>
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={shownPhoto} alt="" className="max-h-72 w-full rounded-sm bg-black/80 object-contain" />
+                {photoNotice ? (
+                  <span
+                    className="absolute left-1.5 top-1.5 rounded-sm bg-black/75 px-1.5 py-0.5 text-micro font-semibold text-amber-100"
+                    data-flash-photo-notice
+                  >
+                    {photoNotice}
+                  </span>
+                ) : null}
+              </div>
+              {photos.length > 1 ? (
+                <div className="mt-1 flex gap-1 overflow-x-auto">
+                  {photos.map((src, i) => (
+                    <button key={src} type="button" onClick={() => setPhotoIdx(i)} aria-label={`${i + 1}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt=""
+                        className={`h-12 w-16 rounded-sm object-cover ${i === photoIdx ? "ring-2 ring-[#6b4a22]" : "opacity-70"}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <p className="mt-1 text-micro text-[#5c4020]/70">
+                {own.length === 0 && related ? (
+                  <>
+                    {en ? "Related photo · " : "연관 사진 · "}
+                    <a href={related.articleUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                      {related.outlet}: {tr(related.articleTitle)}
+                    </a>
+                    {en ? " (not verified as a photo of the scene)" : " (이 사건의 현장 사진으로 확인되지 않음)"}
+                  </>
+                ) : ev
+                  ? en
+                    ? "Photos come from the original posts cited by Liveuamap; rights belong to their owners."
+                    : "사진은 Liveuamap이 인용한 원 게시물의 것으로, 권리는 원 소유자에게 있습니다."
+                  : en
+                    ? "Reference photo of the named vessel (Wikimedia Commons), not from the incident."
+                    : "선박명으로 찾은 참고 사진(위키미디어)이며 사건 현장 사진이 아닙니다."}
+              </p>
+            </div>
+          ) : null
+  ) : null;
+
   if (minimized) {
     return (
       <button
@@ -394,68 +456,9 @@ export function LiveFlashDesk({
             at={item.at}
             ownUrl={item.liveua?.sourceUrl}
             newsPool={newsPool}
+            media={mediaNode}
+            mediaCount={mediaCount}
           />
-          {ev?.videoUrl ? (
-            <video
-              className="aspect-[16/9] w-full rounded-sm bg-black object-contain"
-              src={ev.videoUrl}
-              poster={photos[0]}
-              controls
-              muted
-              playsInline
-              preload="metadata"
-            />
-          ) : shownPhoto ? (
-            <div>
-              <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={shownPhoto} alt="" className="max-h-72 w-full rounded-sm bg-black/80 object-contain" />
-                {photoNotice ? (
-                  <span
-                    className="absolute left-1.5 top-1.5 rounded-sm bg-black/75 px-1.5 py-0.5 text-micro font-semibold text-amber-100"
-                    data-flash-photo-notice
-                  >
-                    {photoNotice}
-                  </span>
-                ) : null}
-              </div>
-              {photos.length > 1 ? (
-                <div className="mt-1 flex gap-1 overflow-x-auto">
-                  {photos.map((src, i) => (
-                    <button key={src} type="button" onClick={() => setPhotoIdx(i)} aria-label={`${i + 1}`}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={src}
-                        alt=""
-                        className={`h-12 w-16 rounded-sm object-cover ${i === photoIdx ? "ring-2 ring-[#6b4a22]" : "opacity-70"}`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-              <p className="mt-1 text-micro text-[#5c4020]/70">
-                {own.length === 0 && related ? (
-                  <>
-                    {en ? "Related photo · " : "연관 사진 · "}
-                    <a href={related.articleUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                      {related.outlet}: {tr(related.articleTitle)}
-                    </a>
-                    {en ? " (not verified as a photo of the scene)" : " (이 사건의 현장 사진으로 확인되지 않음)"}
-                  </>
-                ) : ev
-                  ? en
-                    ? "Photos come from the original posts cited by Liveuamap; rights belong to their owners."
-                    : "사진은 Liveuamap이 인용한 원 게시물의 것으로, 권리는 원 소유자에게 있습니다."
-                  : en
-                    ? "Reference photo of the named vessel (Wikimedia Commons), not from the incident."
-                    : "선박명으로 찾은 참고 사진(위키미디어)이며 사건 현장 사진이 아닙니다."}
-              </p>
-            </div>
-          ) : (
-            <p className="rounded-sm border border-dashed border-[#6b4a22]/40 px-2 py-6 text-center text-micro text-[#5c4020]/70">
-              {en ? "No photo attached to the original report." : "원 보도에 첨부된 사진이 없습니다."}
-            </p>
-          )}
           <IncidentMiniMap
             item={item}
             others={sorted}
