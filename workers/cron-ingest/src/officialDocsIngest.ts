@@ -18,7 +18,8 @@ import { translateDoc, type Translator } from "../../../src/lib/officialDocs/tra
 import { translateWithProviders } from "../../../src/lib/translateProviders";
 import { rareTagsOf } from "../../../src/lib/news/eventScenarios";
 import { canFetchArticle } from "../../../src/lib/news/robotsTxt";
-import { FILE_MAX_BYTES, archiveSaveUrl, archiveUrlOf, fileKeyOf, isPdfBytes, isPdfUrl, pdfLinksOf, sha256Hex } from "../../../src/lib/officialDocs/capture";
+import puppeteer from "@cloudflare/puppeteer";
+import { FILE_MAX_BYTES, RENDERED_FILE_TYPE, archiveSaveUrl, archiveUrlOf, fileKeyOf, isPdfBytes, isPdfUrl, pdfLinksOf, renderAllowed, sha256Hex } from "../../../src/lib/officialDocs/capture";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
 const RETENTION_DAYS = 180;
@@ -38,6 +39,8 @@ const CAPTURE_MAX_TRIES = 3;
 const ARCHIVE_MAX_TRIES = 2;
 /** file_tries 가 이 값이면 이 문서에는 받을 PDF가 없다는 뜻 — 다시 시도하지 않는다 */
 const NO_FILE = 99;
+/** 한 번의 실행에서 브라우저로 찍는 문서 수(브라우저 사용 시간이 비용이라 적게 잡는다) */
+const RENDER_MAX_PER_RUN = 2;
 const CAPTURE_UA = "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world; official-docs archive)";
 
 async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<boolean> {
@@ -162,25 +165,43 @@ async function translatePending(db: D1Database, vars: Record<string, string | un
   return done;
 }
 
+/** 문서 웹페이지를 화면 그대로(기관 로고·머리글 포함) PDF로 찍는다. 실패하면 null. */
+async function renderPagePdf(browser: Fetcher, url: string): Promise<ArrayBuffer | null> {
+  const b = await puppeteer.launch(browser);
+  try {
+    const page = await b.newPage();
+    await page.setUserAgent(CAPTURE_UA);
+    await page.emulateMediaType("screen");
+    await page.goto(url, { waitUntil: "networkidle0", timeout: 30_000 });
+    const pdf = await page.pdf({ format: "A4", printBackground: true });
+    return pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.byteLength) as ArrayBuffer;
+  } catch {
+    return null;
+  } finally {
+    await b.close().catch(() => undefined);
+  }
+}
+
 /**
  * 문서에 붙은 원본 파일(PDF)을 받아 R2에 보관하고 받은 시각·SHA-256을 남긴다. 어느 나라 문서든 같은 규칙.
  *  - 문서 주소가 PDF이면 그 파일, HTML 페이지이면 같은 사이트의 첫 PDF 링크. PDF가 없는 문서는 한 번만 보고 포기(NO_FILE).
+ *  - 단, 우리 서버에서 보여 줘도 되는 발행처(미·영)의 HTML 문서는 브라우저로 페이지를 PDF로 찍어 보관한다(BROWSER 바인딩이 있을 때).
  *  - 파일이 %PDF- 로 시작하지 않으면(차단·로그인 화면) 저장하지 않고 시도 횟수만 올린다.
  *  - 0045 마이그레이션 전이거나 R2 바인딩이 없으면 조용히 건너뛴다.
  */
 async function capturePending(env: IngestEnv): Promise<number> {
   const bucket = env.DATA_BUCKET;
   if (!bucket) return 0;
-  let rows: Array<{ id: string; url: string }>;
+  let rows: Array<{ id: string; url: string; issuerId: string }>;
   try {
     const res = await env.DB
       .prepare(
-        `SELECT id, url FROM official_doc_feed
+        `SELECT id, url, issuer_id AS issuerId FROM official_doc_feed
          WHERE file_tries < ?1 AND file_fetched_at = '' AND published_at >= date('now', ?2)
          ORDER BY published_at DESC LIMIT ?3`,
       )
       .bind(CAPTURE_MAX_TRIES, `-${CAPTURE_WINDOW_DAYS} days`, CAPTURE_MAX_PER_RUN)
-      .all<{ id: string; url: string }>();
+      .all<{ id: string; url: string; issuerId: string }>();
     rows = res.results ?? [];
   } catch {
     return 0; // 0045가 아직 적용되지 않음
@@ -195,7 +216,9 @@ async function capturePending(env: IngestEnv): Promise<number> {
     env.DB.prepare(`UPDATE official_doc_feed SET file_tries = file_tries + 1 WHERE id = ?1`).bind(id).run().catch(() => undefined);
 
   let done = 0;
+  let rendersLeft = RENDER_MAX_PER_RUN;
   for (const row of rows) {
+    let rendered = false;
     try {
       // robots.txt가 막은 주소·경로는 받지 않는다(프로젝트 저작권 점검 O-3과 같은 규칙). 확인을 못 한 경우도 보수적으로 막힌 것으로 본다.
       if (!(await canFetchArticle(row.url, CAPTURE_UA))) {
@@ -214,21 +237,34 @@ async function capturePending(env: IngestEnv): Promise<number> {
       } else {
         const links = pdfLinksOf(await page.text(), page.url);
         if (links.length === 0) {
-          await fail(row.id, true);
-          continue;
+          // PDF 링크가 없는 웹페이지: 미·영 문서는 브라우저로 페이지를 PDF로 찍는다. 그 밖이거나 브라우저가 없으면 더 시도하지 않는다.
+          if (!renderAllowed(row.issuerId) || !env.BROWSER) {
+            await fail(row.id, true);
+            continue;
+          }
+          if (rendersLeft <= 0) continue; // 다음 실행으로 미룬다(횟수는 올리지 않는다)
+          rendersLeft -= 1;
+          const pdf = await renderPagePdf(env.BROWSER, page.url);
+          if (!pdf || !isPdfBytes(pdf)) {
+            await retry(row.id);
+            continue;
+          }
+          bytes = pdf;
+          rendered = true;
+        } else {
+          fileUrl = links[0];
+          if (!(await canFetchArticle(fileUrl, CAPTURE_UA))) {
+            await retry(row.id);
+            continue;
+          }
+          const f = await fetch(fileUrl, { headers: { "User-Agent": CAPTURE_UA, Accept: "application/pdf,*/*" }, redirect: "follow", signal: AbortSignal.timeout(30_000) });
+          const len = Number(f.headers.get("content-length") ?? 0);
+          if (!f.ok || len > FILE_MAX_BYTES) {
+            await (len > FILE_MAX_BYTES ? fail(row.id, true) : retry(row.id));
+            continue;
+          }
+          bytes = await f.arrayBuffer();
         }
-        fileUrl = links[0];
-        if (!(await canFetchArticle(fileUrl, CAPTURE_UA))) {
-          await retry(row.id);
-          continue;
-        }
-        const f = await fetch(fileUrl, { headers: { "User-Agent": CAPTURE_UA, Accept: "application/pdf,*/*" }, redirect: "follow", signal: AbortSignal.timeout(30_000) });
-        const len = Number(f.headers.get("content-length") ?? 0);
-        if (!f.ok || len > FILE_MAX_BYTES) {
-          await (len > FILE_MAX_BYTES ? fail(row.id, true) : retry(row.id));
-          continue;
-        }
-        bytes = await f.arrayBuffer();
       }
       if (bytes.byteLength > FILE_MAX_BYTES) {
         await fail(row.id, true);
@@ -240,13 +276,13 @@ async function capturePending(env: IngestEnv): Promise<number> {
       }
       const sha = await sha256Hex(bytes);
       const key = fileKeyOf(row.id, sha);
-      await bucket.put(key, bytes, { httpMetadata: { contentType: "application/pdf" }, customMetadata: { docId: row.id, sourceUrl: fileUrl, sha256: sha } });
+      await bucket.put(key, bytes, { httpMetadata: { contentType: "application/pdf" }, customMetadata: { docId: row.id, sourceUrl: fileUrl, sha256: sha, ...(rendered ? { rendered: "1" } : {}) } });
       await env.DB
         .prepare(
-          `UPDATE official_doc_feed SET file_key = ?2, file_type = 'application/pdf', file_bytes = ?3, file_sha256 = ?4,
+          `UPDATE official_doc_feed SET file_key = ?2, file_type = ?7, file_bytes = ?3, file_sha256 = ?4,
              file_fetched_at = ?5, file_source_url = ?6 WHERE id = ?1`,
         )
-        .bind(row.id, key, bytes.byteLength, sha, new Date().toISOString(), fileUrl)
+        .bind(row.id, key, bytes.byteLength, sha, new Date().toISOString(), fileUrl, rendered ? RENDERED_FILE_TYPE : "application/pdf")
         .run();
       done += 1;
     } catch {

@@ -16,6 +16,7 @@ import { useTr } from "@/hooks/useTr";
 import type { FrontMap } from "@/lib/crossCheck/witnessFeeds";
 import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
 import { FlashEvidence } from "@/components/globe/FlashEvidence";
+import { NewDocView, NewDocsNavGroup, useNewOfficialDocs } from "@/components/globe/NewDocsDesk";
 import { DiplomacyNavGroup, DiplomacyThreadView, useDiplomacyThreads } from "@/components/globe/DiplomacyThreads";
 import { nearbyItems } from "@/lib/flashNeon";
 import {
@@ -200,10 +201,23 @@ export function LiveFlashDesk({
   // 외교·협상 가닥: 왼쪽 목록에서 고르면 오른쪽에 속보 대신 시간순 양측 성명을 보여 준다. 다른 속보를 고르면 닫힌다.
   const diplomacyThreads = useDiplomacyThreads();
   const [threadId, setThreadId] = useState<string | null>(null);
+  // 신규 공식 문서: 왼쪽 목록에서 고르면 오른쪽에 속보 대신 문서(제목·요약·원문)를 보여 준다. 좌표가 없어 지도 항목은 만들지 않는다.
+  const newDocs = useNewOfficialDocs();
+  const [docId, setDocId] = useState<string | null>(null);
   useEffect(() => {
     setThreadId(null);
+    setDocId(null);
   }, [item?.id]);
   const openThread = diplomacyThreads.find((t) => t.id === threadId) ?? null;
+  const openDoc = newDocs.find((d) => d.id === docId) ?? null;
+  const selectThread = (id: string) => {
+    setDocId(null);
+    setThreadId(id);
+  };
+  const selectDoc = (id: string) => {
+    setThreadId(null);
+    setDocId(id);
+  };
   if (!item) return null;
 
   const ev = item.liveua;
@@ -401,7 +415,8 @@ ev?.videoUrl ? (
           })}
           </div>
         ))}
-        <DiplomacyNavGroup threads={diplomacyThreads} en={en} selectedId={openThread?.id ?? null} onSelect={setThreadId} />
+        <NewDocsNavGroup docs={newDocs} en={en} selectedId={openDoc?.id ?? null} onSelect={selectDoc} />
+        <DiplomacyNavGroup threads={diplomacyThreads} en={en} selectedId={openThread?.id ?? null} onSelect={selectThread} />
       </nav>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -419,7 +434,8 @@ ev?.videoUrl ? (
           </span>
         </header>
         {openThread ? <DiplomacyThreadView thread={openThread} en={en} onBack={() => setThreadId(null)} /> : null}
-        <div className={`min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3${openThread ? " hidden" : ""}`}>
+        {openDoc ? <NewDocView doc={openDoc} en={en} onBack={() => setDocId(null)} /> : null}
+        <div className={`min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3${openThread || openDoc ? " hidden" : ""}`}>
           <div className="flex flex-wrap items-center gap-2" data-flash-verdict={verdictShown.verdict}>
             <span
               className={`rounded-sm px-1.5 py-0.5 text-micro font-semibold text-white ${VERDICT_CLS[verdictShown.verdict]}`}

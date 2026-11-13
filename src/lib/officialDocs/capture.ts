@@ -18,6 +18,18 @@ export const FILE_MAX_BYTES = 15 * 1024 * 1024;
  */
 export const FILE_DISPLAY_ISSUERS: ReadonlySet<string> = new Set(["us", "gb"]);
 
+/** 웹페이지를 우리가 PDF로 찍은 사본의 file_type. 발행 기관이 올린 파일 자체와 구분하려고 따로 적는다. */
+export const RENDERED_FILE_TYPE = "application/pdf;rendered";
+
+export function isRenderedFileType(fileType: unknown): boolean {
+  return typeof fileType === "string" && fileType === RENDERED_FILE_TYPE;
+}
+
+/** 브라우저로 찍는 건 비용이 들어서 우리 서버에서 보여 줘도 되는 발행처의 문서만 찍는다. */
+export function renderAllowed(issuerId: string): boolean {
+  return fileDisplayAllowed(issuerId);
+}
+
 export function fileDisplayAllowed(issuerId: string): boolean {
   return FILE_DISPLAY_ISSUERS.has(issuerId);
 }
