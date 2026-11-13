@@ -1819,9 +1819,46 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const handleMapClick = useCallback(
     (event: {
       lngLat: { lat: number; lng: number };
+      point?: { x: number; y: number };
       features?: { layer?: { id?: string }; properties?: { index?: number; id?: unknown } }[];
     }) => {
       const features = event.features ?? [];
+
+      /**
+       * 속보 네온 점은 반지름이 3~5px라 정확히 그 픽셀을 눌러야만 잡힌다 — 빗나가면 면(국가) 클릭으로 처리돼
+       * 속보 창이 안 열렸다. 정확히 맞은 점·항공기·선박 등이 없으면, 주변 12px 안의 네온 중 가장 가까운 것을 연다.
+       */
+      const flashHit = features.find((f) => f.layer?.id === "flash-neon");
+      const preciseHit = features.some((f) => {
+        const id = f.layer?.id;
+        return id != null && id !== "map-polygons-fill" && !id.endsWith("-countries-fill");
+      });
+      if (!flashHit && !preciseHit && event.point && onFlashNeonClick) {
+        const map = mapRef.current?.getMap();
+        if (map?.getLayer("flash-neon")) {
+          const { x, y } = event.point;
+          const near = map.queryRenderedFeatures(
+            [
+              [x - 12, y - 12],
+              [x + 12, y + 12],
+            ],
+            { layers: ["flash-neon"] },
+          );
+          let best: { index: number; d: number } | null = null;
+          for (const f of near) {
+            const index = Number(f.properties?.index);
+            const pt = flashNeonData[index];
+            if (!pt) continue;
+            const px = map.project([pt.lng, pt.lat]);
+            const d = Math.hypot(px.x - x, px.y - y);
+            if (!best || d < best.d) best = { index, d };
+          }
+          if (best) {
+            onFlashNeonClick(flashNeonData[best.index].id);
+            return;
+          }
+        }
+      }
 
       /**
        * 모바일엔 호버가 없다 — 기지를 탭하면 같은 방식으로 선이 드러나고,
@@ -1881,8 +1918,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       onGlobeClick?.({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     },
     [
+      flashNeonData,
       hoveredIslandBaseId,
       onAisSymbolClick,
+      onFlashNeonClick,
       onGlobeClick,
       onPathClick,
       onPointClick,
