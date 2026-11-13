@@ -531,6 +531,7 @@ import {
   INCIDENT_STACK_MAX,
   mergeStackItems,
   splitShipAndFront,
+  stackItemFromFlashHero,
   stackItemFromLiveua,
   stackItemFromUkmto,
   type StackItem,
@@ -1285,9 +1286,17 @@ export function GlobeDashboard({
     [incidentStackItems, liveuaReadIds],
   );
   /** 실시간 속보창: 선박 사건 + 전선·정세 소식을 최신순으로 한 줄에 */
+  /** RSS 신속속보(거시)도 같은 속보창에서 한 건씩 연다 — 좌표가 없으면 지도 핀만 빠진다 */
+  const flashRssItems = useMemo(
+    () =>
+      [...(newsStreamPayload?.hero ? [newsStreamPayload.hero] : []), ...(newsStreamPayload?.flashHeroes ?? [])]
+        .map((h) => stackItemFromFlashHero(h, layerPrefs.labelLanguage !== "en"))
+        .filter((x): x is StackItem => x !== null),
+    [newsStreamPayload?.hero, newsStreamPayload?.flashHeroes, layerPrefs.labelLanguage],
+  );
   const liveDeskItems = useMemo(
-    () => mergeStackItems([incidentStackItems, frontNewsItems], INCIDENT_STACK_MAX * 2),
-    [incidentStackItems, frontNewsItems],
+    () => mergeStackItems([incidentStackItems, frontNewsItems, flashRssItems], INCIDENT_STACK_MAX * 2),
+    [incidentStackItems, frontNewsItems, flashRssItems],
   );
   const deskNewsPool = useMemo(
     () => [

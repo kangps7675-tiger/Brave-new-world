@@ -1,6 +1,7 @@
 import { peelUrlsFromText } from "@/lib/liveuamap/peelTitleUrls";
 import type { CaseFile, Verdict } from "@/lib/caseFile/types";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
+import type { HeroBreakingItem } from "@/lib/news/types";
 import { parseTime, type ProvenanceTimes } from "@/lib/provenance";
 import { localizeUkmtoIncidentType, localizeUkmtoPlaceText } from "@/lib/ukmtoHatch";
 import {
@@ -67,6 +68,48 @@ export function seaForPoint(lat: number, lng: number): StackSea | null {
     }
   }
   return null;
+}
+
+/**
+ * 속보 층 — flash: RSS·뉴스피드 거시 속보(좌표가 약하거나 없을 수 있음) / field: 전선·해역 미시 속보(좌표 정확).
+ * 심층기사는 시간순 속보가 아니라 이 스택에 넣지 않는다.
+ */
+export type StackTier = "flash" | "field";
+
+export function stackTier(item: Pick<StackItem, "source">): StackTier {
+  return item.source === "rss" || item.source === "newfeeds" ? "flash" : "field";
+}
+
+/** 좌표가 있는 건만 지도 이동·좌표 표기를 쓴다. RSS 거시 속보는 좌표가 없을 수 있다(lat/lng = NaN). */
+export function hasStackLocation(item: Pick<StackItem, "lat" | "lng">): boolean {
+  return Number.isFinite(item.lat) && Number.isFinite(item.lng);
+}
+
+/**
+ * RSS 신속속보 → 스택 한 건. 좌표를 모르면 NaN으로 두고 지도 핀만 생략한다(속보창에는 들어간다).
+ * liveuamap 출신 히어로는 이미 liveua 항목으로 들어오므로 중복을 피해 null.
+ */
+export function stackItemFromFlashHero(h: HeroBreakingItem, ko: boolean): StackItem | null {
+  if (h.flashSource === "liveuamap") return null;
+  const at = Date.parse(h.pubDate);
+  if (!Number.isFinite(at)) return null;
+  const raw = (ko ? h.titleKo?.trim() : "") || h.title;
+  const lat = typeof h.lat === "number" && Number.isFinite(h.lat) ? h.lat : Number.NaN;
+  const lng = typeof h.lng === "number" && Number.isFinite(h.lng) ? h.lng : Number.NaN;
+  return {
+    id: h.id,
+    source: "rss",
+    at,
+    title: peelUrlsFromText(raw).text || raw,
+    place: h.theater,
+    lat,
+    lng,
+    sea: seaForPoint(lat, lng),
+    detail: (ko ? h.bodyKo?.trim() : "") || h.summary || null,
+    sourceLabel: h.publisher || h.source,
+    url: h.link,
+    times: { publishedAt: at },
+  };
 }
 
 /** 속보 텍스트에서 읽은 선박명·선종 — 확실하지 않으면 비운다 */

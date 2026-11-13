@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LabelLanguage } from "@/lib/layerPrefs";
-import { stackSourceName, type StackItem } from "@/lib/incidentStack/build";
+import { hasStackLocation, stackSourceName, type StackItem } from "@/lib/incidentStack/build";
 import { isMajorConfirmedStrike } from "@/lib/liveuamap/majorStrike";
 import { classifyRegionalPosture } from "@/lib/liveuamap/regionalPosture";
 import { splitLiveuaTitleBody } from "@/lib/liveuamap/peelTitleUrls";
@@ -31,10 +31,11 @@ import { EventScenarioBoard } from "@/components/globe/EventScenarioBoard";
 import { IncidentMiniMap } from "@/components/globe/IncidentMiniMap";
 import { zc } from "@/lib/uiStack";
 
-export type DeskCategory = "ship" | "strike" | "posture" | "front" | "exercise" | "charge" | "closure";
+export type DeskCategory = "flash" | "ship" | "strike" | "posture" | "front" | "exercise" | "charge" | "closure";
 
 export function deskCategory(item: StackItem, isShip: boolean): DeskCategory {
   if (isShip) return "ship";
+  if (item.source === "rss" || item.source === "newfeeds") return "flash";
   const ev = item.liveua;
   if (ev && isMajorConfirmedStrike(ev)) return "strike";
   const posture = classifyRegionalPosture(
@@ -45,9 +46,10 @@ export function deskCategory(item: StackItem, isShip: boolean): DeskCategory {
   return "front";
 }
 
-export const DESK_CATEGORY_ORDER: readonly DeskCategory[] = ["strike", "ship", "charge", "exercise", "closure", "posture", "front"];
+export const DESK_CATEGORY_ORDER: readonly DeskCategory[] = ["strike", "flash", "ship", "charge", "exercise", "closure", "posture", "front"];
 
 const CAT_LABEL: Record<DeskCategory, { ko: string; en: string; cls: string }> = {
+  flash: { ko: "속보", en: "Flash", cls: "bg-red-500/30 text-red-100" },
   ship: { ko: "선박", en: "Ship", cls: "bg-orange-500/25 text-orange-100" },
   strike: { ko: "타격", en: "Strike", cls: "bg-rose-500/30 text-rose-100" },
   charge: { ko: "기소", en: "Charge", cls: "bg-violet-500/25 text-violet-100" },
@@ -377,16 +379,19 @@ export function LiveFlashDesk({
           </p>
           <h2 className="text-base font-semibold leading-snug">{title}</h2>
           {body ? <p className="whitespace-pre-line text-meta leading-relaxed text-[#3d2a12]">{body}</p> : null}
-          <CrossCheckSlots
-            en={en}
-            item={item}
-            place={cat}
-            vessels={vessels}
-            fires={fires}
-            aircraft={aircraft}
-            posts={posts}
-            front={front}
-          />
+          {/* 거시 속보(flash)는 좌표·센서 대조 대상이 아니다 — 독립 매체 수 판정(verdict)과 아래 근거만 보여 준다 */}
+          {cat !== "flash" ? (
+            <CrossCheckSlots
+              en={en}
+              item={item}
+              place={cat}
+              vessels={vessels}
+              fires={fires}
+              aircraft={aircraft}
+              posts={posts}
+              front={front}
+            />
+          ) : null}
           <FlashEvidence
             key={item.id}
             en={en}
@@ -499,22 +504,24 @@ export function LiveFlashDesk({
             </div>
           ) : null}
           <p className="text-micro tabular-nums text-[#5c4020]/80">
-            {en ? "Source" : "출처"}: {stackSourceName(item)} · {when} UTC · {item.lat.toFixed(3)},{" "}
-            {item.lng.toFixed(3)}
+            {en ? "Source" : "출처"}: {stackSourceName(item)} · {when} UTC
+            {hasStackLocation(item) ? ` · ${item.lat.toFixed(3)}, ${item.lng.toFixed(3)}` : ""}
           </p>
         </div>
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#6b4a22]/30 px-3 py-1.5">
           <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              className={btn}
-              onClick={() => {
-                onGoToLocation(item);
-                if (collapseOnAction) setMinimized(true);
-              }}
-            >
-              {en ? "Go to location" : "위치로 가기"}
-            </button>
+            {hasStackLocation(item) ? (
+              <button
+                type="button"
+                className={btn}
+                onClick={() => {
+                  onGoToLocation(item);
+                  if (collapseOnAction) setMinimized(true);
+                }}
+              >
+                {en ? "Go to location" : "위치로 가기"}
+              </button>
+            ) : null}
             {item.url && /^https?:\/\//i.test(item.url) ? (
               <a href={item.url} target="_blank" rel="noopener noreferrer" className={btn}>
                 {en ? "Source" : "원문"}
