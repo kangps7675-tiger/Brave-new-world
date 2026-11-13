@@ -19,6 +19,7 @@ import { translateWithProviders } from "../../../src/lib/translateProviders";
 import { rareTagsOf } from "../../../src/lib/news/eventScenarios";
 import { canFetchArticle } from "../../../src/lib/news/robotsTxt";
 import puppeteer from "@cloudflare/puppeteer";
+import { isShownKind } from "../../../src/lib/officialDocs/newDocs";
 import { FILE_MAX_BYTES, RENDERED_FILE_TYPE, archiveSaveUrl, archiveUrlOf, fileKeyOf, isPdfBytes, isPdfUrl, pdfLinksOf, renderAllowed, sha256Hex } from "../../../src/lib/officialDocs/capture";
 
 const UA = "Mozilla/5.0 (compatible; StraitDesk-Ingest/1.0; official-docs monitor)";
@@ -39,8 +40,6 @@ const CAPTURE_MAX_TRIES = 3;
 const ARCHIVE_MAX_TRIES = 2;
 /** file_tries 가 이 값이면 이 문서에는 받을 PDF가 없다는 뜻 — 다시 시도하지 않는다 */
 const NO_FILE = 99;
-/** 한 번의 실행에서 브라우저로 찍는 문서 수(브라우저 사용 시간이 비용이라 적게 잡는다) */
-const RENDER_MAX_PER_RUN = 2;
 const CAPTURE_UA = "ConflictViewBot/1.0 (+https://github.com/kangps7675-tiger/Brave-new-world; official-docs archive)";
 
 async function shouldPoll(db: D1Database, minIntervalMinutes: number): Promise<boolean> {
@@ -185,23 +184,25 @@ async function renderPagePdf(browser: Fetcher, url: string): Promise<ArrayBuffer
 /**
  * 문서에 붙은 원본 파일(PDF)을 받아 R2에 보관하고 받은 시각·SHA-256을 남긴다. 어느 나라 문서든 같은 규칙.
  *  - 문서 주소가 PDF이면 그 파일, HTML 페이지이면 같은 사이트의 첫 PDF 링크. PDF가 없는 문서는 한 번만 보고 포기(NO_FILE).
- *  - 단, 우리 서버에서 보여 줘도 되는 발행처(미·영)의 HTML 문서는 브라우저로 페이지를 PDF로 찍어 보관한다(BROWSER 바인딩이 있을 때).
+ *  - 단, 우리 서버에서 보여 줘도 되는 발행처(미·영)의 HTML 문서 중 속보창에 올라오는 종류(공동성명·조약·팩트시트·회담 요약·성명)는
+ *    브라우저로 페이지를 PDF로 찍어 보관한다(BROWSER 바인딩이 있을 때). 일반 보도자료는 찍지 않는다. 고르는 기준은 개수가 아니라 "사용자가 보게 되는 문서인가"다.
  *  - 파일이 %PDF- 로 시작하지 않으면(차단·로그인 화면) 저장하지 않고 시도 횟수만 올린다.
  *  - 0045 마이그레이션 전이거나 R2 바인딩이 없으면 조용히 건너뛴다.
  */
 async function capturePending(env: IngestEnv): Promise<number> {
   const bucket = env.DATA_BUCKET;
   if (!bucket) return 0;
-  let rows: Array<{ id: string; url: string; issuerId: string }>;
+  let rows: Array<{ id: string; url: string; issuerId: string; kind: string }>;
   try {
     const res = await env.DB
       .prepare(
-        `SELECT id, url, issuer_id AS issuerId FROM official_doc_feed
+        `SELECT id, url, issuer_id AS issuerId, kind FROM official_doc_feed
          WHERE file_tries < ?1 AND file_fetched_at = '' AND published_at >= date('now', ?2)
-         ORDER BY published_at DESC LIMIT ?3`,
+         ORDER BY CASE kind WHEN 'joint-statement' THEN 0 WHEN 'treaty' THEN 0 WHEN 'factsheet' THEN 1 WHEN 'readout' THEN 1 WHEN 'statement' THEN 2 ELSE 3 END,
+                  published_at DESC LIMIT ?3`,
       )
       .bind(CAPTURE_MAX_TRIES, `-${CAPTURE_WINDOW_DAYS} days`, CAPTURE_MAX_PER_RUN)
-      .all<{ id: string; url: string; issuerId: string }>();
+      .all<{ id: string; url: string; issuerId: string; kind: string }>();
     rows = res.results ?? [];
   } catch {
     return 0; // 0045가 아직 적용되지 않음
@@ -216,7 +217,6 @@ async function capturePending(env: IngestEnv): Promise<number> {
     env.DB.prepare(`UPDATE official_doc_feed SET file_tries = file_tries + 1 WHERE id = ?1`).bind(id).run().catch(() => undefined);
 
   let done = 0;
-  let rendersLeft = RENDER_MAX_PER_RUN;
   for (const row of rows) {
     let rendered = false;
     try {
@@ -238,12 +238,10 @@ async function capturePending(env: IngestEnv): Promise<number> {
         const links = pdfLinksOf(await page.text(), page.url);
         if (links.length === 0) {
           // PDF 링크가 없는 웹페이지: 미·영 문서는 브라우저로 페이지를 PDF로 찍는다. 그 밖이거나 브라우저가 없으면 더 시도하지 않는다.
-          if (!renderAllowed(row.issuerId) || !env.BROWSER) {
+          if (!renderAllowed(row.issuerId) || !isShownKind(row.kind) || !env.BROWSER) {
             await fail(row.id, true);
             continue;
           }
-          if (rendersLeft <= 0) continue; // 다음 실행으로 미룬다(횟수는 올리지 않는다)
-          rendersLeft -= 1;
           const pdf = await renderPagePdf(env.BROWSER, page.url);
           if (!pdf || !isPdfBytes(pdf)) {
             await retry(row.id);
