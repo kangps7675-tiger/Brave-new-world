@@ -57,7 +57,7 @@ export function FlashEvidence({ en, text, at, ownUrl, newsPool }: Props) {
   ].filter(Boolean);
 
   return (
-    <div className="space-y-2 empty:hidden" data-flash-evidence>
+    <div className="evidence-cascade space-y-2 empty:hidden" data-flash-evidence>
       {counts.length > 0 ? (
         <div className="rounded-sm bg-[#6b4a22]/10 px-2 py-1" data-flash-evidence-head>
           <p className="text-meta font-semibold text-[#3d2a12]">
