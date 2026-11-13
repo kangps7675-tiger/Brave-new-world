@@ -16,6 +16,7 @@ import { useTr } from "@/hooks/useTr";
 import type { FrontMap } from "@/lib/crossCheck/witnessFeeds";
 import { CrossCheckSlots } from "@/components/globe/CrossCheckSlots";
 import { FlashEvidence } from "@/components/globe/FlashEvidence";
+import { DiplomacyNavGroup, DiplomacyThreadView, useDiplomacyThreads } from "@/components/globe/DiplomacyThreads";
 import { nearbyItems } from "@/lib/flashNeon";
 import {
   computeFlashVerdict,
@@ -194,6 +195,13 @@ export function LiveFlashDesk({
     [...sorted.map((i) => i.title), trSrc?.title, trSrc?.body, related?.articleTitle, ...trBasis],
     lang,
   );
+  // 외교·협상 가닥: 왼쪽 목록에서 고르면 오른쪽에 속보 대신 시간순 양측 성명을 보여 준다. 다른 속보를 고르면 닫힌다.
+  const diplomacyThreads = useDiplomacyThreads();
+  const [threadId, setThreadId] = useState<string | null>(null);
+  useEffect(() => {
+    setThreadId(null);
+  }, [item?.id]);
+  const openThread = diplomacyThreads.find((t) => t.id === threadId) ?? null;
   if (!item) return null;
 
   const ev = item.liveua;
@@ -329,6 +337,7 @@ export function LiveFlashDesk({
           })}
           </div>
         ))}
+        <DiplomacyNavGroup threads={diplomacyThreads} en={en} selectedId={openThread?.id ?? null} onSelect={setThreadId} />
       </nav>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -345,7 +354,8 @@ export function LiveFlashDesk({
             </button>
           </span>
         </header>
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
+        {openThread ? <DiplomacyThreadView thread={openThread} en={en} onBack={() => setThreadId(null)} /> : null}
+        <div className={`min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3${openThread ? " hidden" : ""}`}>
           <div className="flex flex-wrap items-center gap-2" data-flash-verdict={verdictShown.verdict}>
             <span
               className={`rounded-sm px-1.5 py-0.5 text-micro font-semibold text-white ${VERDICT_CLS[verdictShown.verdict]}`}

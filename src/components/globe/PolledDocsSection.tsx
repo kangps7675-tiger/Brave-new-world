@@ -6,11 +6,11 @@ import type { DocKind } from "@/data/officialDocs";
 import { groupBySide, splitRivalSides, type PolledDocMatch } from "@/lib/officialDocs/matchPolled";
 import { localizedDoc } from "@/lib/officialDocs/translate";
 
-const TOPIC_KO: Record<string, string> = {
+export const TOPIC_KO: Record<string, string> = {
   semiconductor: "반도체", "ai-compute": "AI 연산", "defense-industry": "방산", "export-control": "수출통제", sanctions: "제재",
   "investment-screening": "투자심사", "critical-minerals": "핵심광물", "tech-supply-chain": "기술 공급망", "biotech-quantum": "바이오·양자",
 };
-const TOPIC_EN: Record<string, string> = {
+export const TOPIC_EN: Record<string, string> = {
   semiconductor: "semiconductors", "ai-compute": "AI compute", "defense-industry": "defense", "export-control": "export controls", sanctions: "sanctions",
   "investment-screening": "investment screening", "critical-minerals": "critical minerals", "tech-supply-chain": "tech supply chain", "biotech-quantum": "biotech/quantum",
 };
@@ -68,7 +68,7 @@ function OriginalLinks({ doc, en }: { doc: PolledDocMatch["doc"]; en: boolean })
   );
 }
 
-function DocItem({ match, en }: { match: PolledDocMatch; en: boolean }) {
+export function DocItem({ match, en }: { match: PolledDocMatch; en: boolean }) {
   const { doc, reasons } = match;
   const issuer = en ? issuerNameEn(doc.issuerId) : issuerNameKo(doc.issuerId);
   const kind = en ? doc.kind.replace("-", " ") : (KIND_KO[doc.kind as DocKind] ?? doc.kind);
