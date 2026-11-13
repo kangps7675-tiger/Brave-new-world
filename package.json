@@ -183,7 +183,6 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
     "@block65/webcrypto-web-push": "^1.0.2",
-    "@cloudflare/puppeteer": "^1.4.0",
     "@deck.gl/core": "^9.4.1",
     "@deck.gl/geo-layers": "^9.4.1",
     "@deck.gl/mapbox": "^9.4.1",
@@ -216,6 +215,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@cloudflare/puppeteer": "^1.4.0",
     "@cloudflare/workers-types": "^5.20261108.1",
     "@opennextjs/cloudflare": "1.15.1",
     "@playwright/test": "^1.65.0",
