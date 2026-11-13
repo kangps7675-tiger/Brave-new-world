@@ -169,3 +169,4 @@ scripts/data/official-doc-draft-*.json
 scripts/data/official-docs-check-report.json
 scripts/data/doc-match-sample.md
 scripts/data/grab/
+scripts/data/evidence-coverage-report.json
