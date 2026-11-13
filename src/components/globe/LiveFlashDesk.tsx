@@ -378,6 +378,7 @@ export function LiveFlashDesk({
             front={front}
           />
           <FlashEvidence
+            key={item.id}
             en={en}
             text={`${item.title} ${item.liveua?.title ?? ""} ${item.liveua?.body ?? ""} ${item.detail ?? ""}`}
             at={item.at}
