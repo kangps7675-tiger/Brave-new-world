@@ -5,7 +5,7 @@ import { officialDocFeed, officialDocPoll } from "@/db/schema";
 import { isApiStubMode } from "@/lib/apiStubMode";
 import { isValidIssuerId } from "@/data/officialDocs";
 import { buildFeedStatus } from "@/lib/officialDocs/health";
-import { fileDisplayAllowed } from "@/lib/officialDocs/capture";
+import { fileDisplayAllowed, isRenderedFileType } from "@/lib/officialDocs/capture";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,8 +20,12 @@ function publicDoc(row: Record<string, unknown>): Record<string, unknown> {
   const { fileKey, fileTries, archiveTries, fileType, ...rest } = row;
   void fileTries;
   void archiveTries;
-  void fileType;
-  return { ...rest, fileAvailable: Boolean(fileKey) && fileDisplayAllowed(String(row.issuerId ?? "")) };
+  return {
+    ...rest,
+    fileAvailable: Boolean(fileKey) && fileDisplayAllowed(String(row.issuerId ?? "")),
+    /** 기관이 올린 파일이 아니라 우리가 웹페이지를 PDF로 찍은 사본 */
+    fileRendered: isRenderedFileType(fileType),
+  };
 }
 
 export async function GET(request: Request) {

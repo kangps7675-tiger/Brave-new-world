@@ -36,6 +36,8 @@ export type PolledDoc = {
   summaryEn?: string;
   /** 원본 파일(PDF) 보관(0045 이후). fileAvailable = 우리 서버에서 직접 열어 보여 줘도 되는 나라의 문서이고 파일이 있다 */
   fileAvailable?: boolean;
+  /** true면 기관이 올린 파일이 아니라 우리가 웹페이지를 PDF로 찍은 사본 */
+  fileRendered?: boolean;
   fileBytes?: number;
   fileSha256?: string;
   fileFetchedAt?: string;
