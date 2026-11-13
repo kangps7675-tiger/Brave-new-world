@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildEventScenarioBoard } from "@/lib/news/eventScenarios";
+import { actorsOf, buildEventScenarioBoard } from "@/lib/news/eventScenarios";
 import type { NewsStreamItem } from "@/lib/news/types";
 
 const NOW = Date.parse("2026-11-10T12:00:00Z");
@@ -121,5 +121,18 @@ describe("buildEventScenarioBoard", () => {
     );
     expect(board!.scenarios).toHaveLength(1);
     expect(board!.scenarios[0]?.title).toBe("Israel vows retaliation for the Rafah strike");
+  });
+});
+
+describe("actorsOf: 형용사형 국적어도 당사자로 읽는다", () => {
+  it("Russian·Israeli·Iranian·Ukrainian·American을 각 나라로 읽는다", () => {
+    expect(actorsOf("Russian drone strike hits Mykolaiv")).toContain("russia");
+    expect(actorsOf("Palestinian teen freed from Israeli jail")).toContain("israel");
+    expect(actorsOf("UN watchdog warns over Iranian nuclear site")).toContain("iran");
+    expect(actorsOf("Ukrainian forces advance")).toContain("ukraine");
+    expect(actorsOf("American destroyer, Chinese coast guard")).toEqual(expect.arrayContaining(["us", "china"]));
+  });
+  it("관련 없는 글은 여전히 아무도 읽지 않는다", () => {
+    expect(actorsOf("Local election results announced")).toEqual([]);
   });
 });

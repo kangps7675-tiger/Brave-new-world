@@ -61,15 +61,15 @@ const RARE: Array<[RegExp, string]> = [
 ];
 
 const ACTORS: Array<[RegExp, string]> = [
-  [/\biran\b|\btehran\b|이란|테헤란/i, "iran"],
-  [/\bisrael\b|이스라엘/i, "israel"],
-  [/\brussia\b|\bmoscow\b|\bkremlin\b|러시아|모스크바/i, "russia"],
-  [/\bukraine\b|\bkyiv\b|\bkiev\b|우크라이/i, "ukraine"],
-  [/\bchina\b|\bbeijing\b|중국|베이징/i, "china"],
-  [/\btaiwan\b|대만/i, "taiwan"],
+  [/\biran(?:ian)?s?\b|\btehran\b|\birgc\b|이란|테헤란/i, "iran"],
+  [/\bisrael(?:i|is)?\b|\bidf\b|이스라엘/i, "israel"],
+  [/\brussia(?:n|ns)?\b|\bmoscow\b|\bkremlin\b|러시아|모스크바/i, "russia"],
+  [/\bukraine\b|\bukrainians?\b|\bkyiv\b|\bkiev\b|우크라이/i, "ukraine"],
+  [/\bchina\b|\bchinese\b|\bbeijing\b|중국|베이징/i, "china"],
+  [/\btaiwan(?:ese)?\b|대만/i, "taiwan"],
   [/north korea|\bdprk\b|\bpyongyang\b|북한|평양/i, "dprk"],
   [/south korea|\bseoul\b|한국|서울/i, "rok"],
-  [/united states|\bu\.?s\.?\b|\bamerica\b|\bwashington\b|미국|워싱턴/i, "us"],
+  [/united states|\bu\.?s\.?\b|\bamerica(?:n|ns)?\b|\bwashington\b|\bpentagon\b|미국|워싱턴/i, "us"],
   [/\bnato\b|나토/i, "nato"],
   [/houthis?|후티/i, "houthi"],
   [/hezbollah|헤즈볼라/i, "hezbollah"],
