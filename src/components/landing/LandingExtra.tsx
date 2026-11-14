@@ -105,7 +105,7 @@ export function ExtraEdition() {
         <p className="m-0 text-[14px] font-semibold tracking-[0.02em] text-[#5eead4]">
           {pick(lang, "공식 글에 적힌 일정", "Dates written in official texts")}
         </p>
-        <h2 className="mb-0 mt-4 max-w-[860px] text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white">
+        <h2 className="mb-0 mt-4 uppercase max-w-[860px] text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white">
           {pick(lang, "다음 일정은 이렇게 이어집니다.", "The next dates run like this.")}
         </h2>
         <p className="mb-0 mt-5 max-w-[720px] text-[18px] leading-[1.75] text-[#a3b3bf]">

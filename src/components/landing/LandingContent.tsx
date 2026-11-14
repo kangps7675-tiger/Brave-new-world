@@ -39,7 +39,7 @@ export type EnterPlace = "nav" | "hero" | "footer";
 
 const MONO = "font-[family-name:var(--font-jetbrains-mono)]";
 const EYEBROW = "m-0 text-[14px] font-semibold tracking-[0.02em] text-[#5eead4]";
-const H2 = "mt-4 mb-0 text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white";
+const H2 = "mt-4 mb-0 uppercase text-[clamp(30px,3.7vw,50px)] font-extrabold leading-[1.2] tracking-[-0.035em] text-white";
 const WRAP = "mx-auto max-w-[1200px] px-6";
 const MUTED = "text-[#a3b3bf]";
 const ENTER_CLASS: Record<EnterPlace, string> = {
@@ -162,7 +162,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
         <div className={`${WRAP} relative flex flex-wrap items-center gap-x-12 gap-y-10 pb-20 pt-14`}>
         <div className="min-w-0 flex-[1.1_1_480px]">
           <p className={EYEBROW}>{copy.heroEyebrow}</p>
-          <h1 className="mb-0 mt-5 text-[clamp(38px,4.6vw,64px)] font-bold leading-[1.14] tracking-[-0.035em] text-white">
+          <h1 className="mb-0 mt-5 uppercase text-[clamp(38px,4.6vw,64px)] font-bold leading-[1.14] tracking-[-0.035em] text-white">
             <DecodeText key={`${lang}-1`} text={copy.heroLine1} />
             <br className="hidden sm:block" />{" "}
             <span className="landing-glitch is-live text-[#f5c451]" data-text={copy.heroLine2}>
@@ -513,7 +513,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
       <section id="join" className="border-t border-white/10 bg-[#081019]">
         <div className={`${WRAP} flex flex-wrap items-start gap-12 pb-24 pt-20`}>
           <div className="min-w-0 flex-[1_1_420px]">
-            <h2 className="m-0 text-[clamp(30px,3.8vw,48px)] font-bold leading-[1.28] tracking-[-0.03em] text-white">
+            <h2 className="m-0 uppercase text-[clamp(30px,3.8vw,48px)] font-bold leading-[1.28] tracking-[-0.03em] text-white">
               {copy.ctaTitle1}
               <br />
               {copy.ctaTitle2}
