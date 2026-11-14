@@ -303,7 +303,14 @@ export function useGlobeOverlayModel(options: UseGlobeOverlayModelOptions): UseG
       ...strategicOverviewCalloutMarkers,
     ];
     // MapLibre는 htmlAltitude 미지원 — 사망자·콜아웃·뉴스네온이 한 좌표에 묶이지 않게 분리
-    return deconflictTheaterHtmlOverlays(markers);
+    // 좌표가 NaN/∞인 마커가 하나라도 <Marker>까지 가면 MapLibre setLngLat이 던져
+    // ErrorBoundary(globe-boot)가 지구본 전체를 다시 띄운다 → 화면이 튄다. 여기서 걸러낸다.
+    const valid = markers.filter((m) => {
+      const lat = m.displayKind === "recon-sat-html" ? (m.orbitLat ?? m.lat) : m.lat;
+      const lng = m.displayKind === "recon-sat-html" ? (m.orbitLng ?? m.lng) : m.lng;
+      return Number.isFinite(lat) && Number.isFinite(lng);
+    });
+    return deconflictTheaterHtmlOverlays(valid);
   }, [
     airportPortHtmlMarkers,
     chinaTheaterIncidentMarkers,
