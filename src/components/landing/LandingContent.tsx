@@ -141,7 +141,7 @@ export function LandingContent({ renderEnter = defaultEnter }: { renderEnter?: (
               <circle cx="14" cy="14" r="6" fill="none" stroke="#5eead4" strokeWidth="2" strokeDasharray="3 3" />
               <circle cx="14" cy="14" r="2" fill="#f5c451" />
             </svg>
-            <span className="text-lg font-bold tracking-[-0.01em]">{BRAND_NAME[lang]}</span>
+            <span className="text-lg font-bold uppercase tracking-[0.04em]">{BRAND_NAME[lang]}</span>
           </a>
           <div className="flex flex-wrap items-center gap-6 text-[15px]">
             <a href="#ask" className="hidden text-[#c9d5dd] no-underline hover:text-white md:inline">{copy.navAsk}</a>
