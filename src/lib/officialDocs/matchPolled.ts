@@ -12,6 +12,7 @@ import { activeRivalPairs, rivalPairOf } from "@/lib/officialDocs/rivals";
  *  - 같은 주제(반도체·제재·수출통제·방산…)가 걸린다 → 1 (주제는 흔해서 혼자서는 모자란다. "지정학" 일반 주제는 제외)
  *  - 문서를 낸 나라가 속보에 당사자로 나온다 → 1
  *  - 제목에 같은 고유한 단어(회사·품목·조약 이름 등)가 1개 → 1, 2개 이상 → 2
+ *  - 점수와 별개로, 같은 희귀 지명이나 같은 고유 단어 2개 이상(맞수 쌍의 상대 입장은 1개)이 있어야 붙는다 — 주제·당사국만 겹친 문서는 근거로 보지 않는다
  *  - 발행일이 속보 14일 전 ~ 3일 후 범위 밖이면 점수와 상관없이 뺀다
  *
  * 고를 때는 점수순으로 보되 한 나라(issuerId)에서 2건까지만 담아, 당사국이 둘 이상이면 양쪽 입장이 같이 보이게 한다(최대 4건).
@@ -123,6 +124,10 @@ export function polledDocsForFlash(
     score += Math.min(sameTerms.length, 2);
     const rival = score < MIN_SCORE && score >= MIN_SCORE_RIVAL && actor && rivalIssuers.has(doc.issuerId);
     if (score < MIN_SCORE && !rival) continue;
+    // 점수만으로는 "주제 + 당사국 + 흔한 단어 하나"처럼 느슨한 조합도 통과한다. 원문이 이 속보의 근거가 되려면
+    // 속보와 직접 맞닿는 단서가 하나는 있어야 한다: 같은 희귀 지명, 같은 고유 단어 둘 이상(맞수 쌍의 상대 입장은 하나).
+    const anchored = samePlaces.length > 0 || sameTerms.length >= 2 || (rival && sameTerms.length >= 1);
+    if (!anchored) continue;
     out.push({ doc, score, reasons: { places: samePlaces, topics: sameTopics, terms: sameTerms.slice(0, 3), actor, ...(rival ? { rival: true } : {}) } });
   }
   out.sort((a, b) => b.score - a.score || (b.doc.publishedAt ?? "").localeCompare(a.doc.publishedAt ?? ""));

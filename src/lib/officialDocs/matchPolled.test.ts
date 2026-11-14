@@ -28,6 +28,11 @@ describe("polledDocsForFlash", () => {
     expect(rows[0].reasons.terms).toContain("rosneft");
   });
 
+  it("주제+당사자+흔한 단어 하나처럼 점수만 채운 조합은 근거로 붙이지 않는다", () => {
+    const loose = doc({ issuerId: "us", tags: "topic:sanctions", title: "Sanctions announcement regarding shipping", url: "https://example.gov/z" });
+    expect(polledDocsForFlash("US imposes sanctions on Rosneft network, Russia says", AT, [loose])).toEqual([]);
+  });
+
   it("나라 이름만 나온 글에는 그 나라 문서를 붙이지 않는다", () => {
     const rows = polledDocsForFlash("US president speaks in Ohio", AT, [doc({ issuerId: "us", title: "Statement by the President" })]);
     expect(rows).toEqual([]);
