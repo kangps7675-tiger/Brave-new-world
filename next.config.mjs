@@ -110,11 +110,7 @@ const MAPLIBRE_VERSION = JSON.parse(
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: { NEXT_PUBLIC_MAPLIBRE_VERSION: MAPLIBRE_VERSION },
-  // Next 14 SWC can emit invalid octal escapes in Cesium's embedded SPZ WASM.
-  // Use Terser so the production globe chunk remains valid JavaScript.
-  swcMinify: false,
   transpilePackages: [
-    "cesium",
     "@deck.gl/core",
     "@deck.gl/mapbox",
     "@deck.gl/geo-layers",

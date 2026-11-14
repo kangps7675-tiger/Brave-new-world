@@ -43,7 +43,6 @@ type UseDailyLampPipelineOptions = {
   lampContentSlot: string;
   viewerMode: ViewerMode;
   isHistoryViewer: boolean;
-  isSatelliteViewer: boolean;
   labelLanguage: LabelLanguage;
   // 부팅 게이트 플래그
   globeReady: boolean;
@@ -114,7 +113,6 @@ export function useDailyLampPipeline({
   lampContentSlot,
   viewerMode,
   isHistoryViewer,
-  isSatelliteViewer,
   labelLanguage,
   globeReady,
   isLoading,
@@ -226,8 +224,8 @@ export function useDailyLampPipeline({
     if (!langChoiceChecked || !langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
     if (hubBriefOpen || frictionEpisodeBrief || econInsightOpen) return;
-    // 역사·관측(세슘 위성) 모드 — 주간 등불/회고 점화 안 함
-    if (isHistoryViewer || isSatelliteViewer) {
+    // 역사 모드 — 주간 등불/회고 점화 안 함
+    if (isHistoryViewer) {
       if (weeklyRecap) setWeeklyRecap(null);
       if (!weeklyRecapSettled) setWeeklyRecapSettled(true);
       return;
@@ -317,7 +315,6 @@ export function useDailyLampPipeline({
     weeklyRecap,
     weeklyRecapSettled,
     isHistoryViewer,
-    isSatelliteViewer,
   ]);
 
   /**
@@ -331,8 +328,8 @@ export function useDailyLampPipeline({
     if (entryGate !== null || showModePicker) return;
     if (!langChoiceChecked || !langChoiceDone) return;
     if (chromeCoachStep || showAirRaidCoach) return;
-    // 역사·관측(세슘 위성) 모드 — 등불(지정학/지경학 lamp-news)은 이 두 모드에서 점화 안 함
-    if (isHistoryViewer || isSatelliteViewer) {
+    // 역사 모드 — 등불(지정학/지경학 lamp-news)은 점화 안 함
+    if (isHistoryViewer) {
       lampModeSwitchPendingRef.current = false;
       if (periodicBriefing) setPeriodicBriefing(null);
       if (foldedPeriodicBriefing) setFoldedPeriodicBriefing(null);
@@ -556,7 +553,6 @@ export function useDailyLampPipeline({
     weeklyExpanded,
     weeklyRecapSettled,
     isHistoryViewer,
-    isSatelliteViewer,
   ]);
 
   // 오늘의 WTI — 사운드 강도·등불 기축 (등불보다 먼저 확보) · asOf 스크럽 시 해당일

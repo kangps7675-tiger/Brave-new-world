@@ -49,7 +49,7 @@ VAPID_SUBJECT = "mailto:kangps7675@gmail.com"
 # 보내는 주소·Resend 키는 시크릿이다 (비어 있으면 구독 메일을 보내지 않는다).
 #   npx wrangler secret put RESEND_API_KEY -c wrangler.ingest.toml
 #   npx wrangler secret put EMAIL_FROM -c wrangler.ingest.toml
-# EMAIL_FROM 예: Strait Desk <digest@example.com>
+# EMAIL_FROM 예: conflict-view <digest@example.com>
 EMAIL_PUBLIC_BASE = "https://conflict-view.vercel.app"
 # NAVAREA TXT 폴링 최소 간격(분). 소스 자체는 이벤트 발행이지만 웹훅 없음 →
 # cron이 확인할 때만 지도에 반영. 15~30 권장 (너무 짧으면 봇 취급 위험).
@@ -71,6 +71,15 @@ binding = "DB"
 database_name = "conflict-view-db"
 database_id = "7e44bacd-d2f1-4c77-84c2-7be6b90fa0ae"
 migrations_dir = "drizzle"
+
+# 공식 문서 원본 파일(PDF) 보관 — 웹앱(wrangler.jsonc)과 같은 버킷, official-docs/ 아래만 쓴다.
+[[r2_buckets]]
+binding = "DATA_BUCKET"
+bucket_name = "conflict-view-data"
+
+# 공식 문서 페이지를 PDF로 찍어 보관하는 데 쓰는 브라우저(Cloudflare Browser Rendering). 없으면 PDF 링크가 있는 문서만 보관한다.
+[browser]
+binding = "BROWSER"
 
 # Every 10 minutes — FIRMS/AIS 등 빠른 레이어용.
 # NAVAREA는 웹훅이 없는 정적 TXT라 폴링이 필요하지만, 정부기관 예우상

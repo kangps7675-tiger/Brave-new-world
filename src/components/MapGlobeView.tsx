@@ -1,5 +1,7 @@
 "use client";
 
+import type { MissileRangeFeatureCollection } from "@/lib/missileRange";
+import type { FlashNeonPoint } from "@/lib/flashNeon";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 import {
   forwardRef,
@@ -225,6 +227,8 @@ export interface MapGlobeViewProps {
   interactiveLayerIds?: readonly string[];
   /** 중국 도련선 · 미군 방어선 · 대만 펄스 */
   showIslandChains?: boolean;
+  /** 열린 속보의 미사일 사거리 도형(칠한 면 + 점선 경계) */
+  missileRangeFc?: MissileRangeFeatureCollection | null;
   /** 인텔(다크 벡터) / 지형(MapLibre OSM 벡터+DEM) — mapStyleUrl 교체로 전환 */
   basemapMode?: BasemapMode;
   /** 도시명 레이어 체크박스 — OFF면 베이스맵 city/capital 라벨도 숨김 */
@@ -314,6 +318,7 @@ const INTERACTIVE_LAYERS = [
   "map-rings-sea",
   "firms-flame",
   "liveua-strikes",
+  "flash-neon",
   "ukraine-macro-fill",
   "ukraine-micro-fill",
   "ukraine-micro-defense",
@@ -421,6 +426,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     mapStyleUrl: mapStyleUrlProp,
     backgroundColor = "#02040a",
     showIslandChains = false,
+    missileRangeFc = null,
   } = props;
   /** index signature로 unknown이 되므로 명시 파싱 */
   const mapStyleUrl =
@@ -1151,6 +1157,22 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     }),
     [liveuaStrikesData],
   );
+  const flashNeonData = useMemo(
+    () => (props.flashNeonData as FlashNeonPoint[] | undefined) ?? [],
+    [props.flashNeonData],
+  );
+  const flashNeonGeoJson = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: flashNeonData.map((p, index) => ({
+        type: "Feature" as const,
+        properties: { index, color: p.color, fresh: p.fresh, selected: p.selected },
+        geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+      })),
+    }),
+    [flashNeonData],
+  );
+  const onFlashNeonClick = props.onFlashNeonClick as ((id: string) => void) | undefined;
   const onLiveuaStrikeClick = props.onLiveuaStrikeClick as ((item: LiveuaStrikeMapItem) => void) | undefined;
   const eventCallout = (props.eventCallout as EventCallout | null | undefined) ?? null;
   const onDismissEventCallout = props.onDismissEventCallout as (() => void) | undefined;
@@ -1386,6 +1408,33 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const handleContextRetry = useCallback(() => {
     window.location.reload();
   }, []);
+
+  /** 속보 네온 깜빡임 — fresh 후광만 천천히 숨 쉬듯. 움직이는 중·숨김 탭·모션 줄이기에선 멈춘다 */
+  useEffect(() => {
+    if (!mapLoaded || flashNeonData.length === 0 || prefersReducedMotion()) return;
+    let raf = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      raf = window.requestAnimationFrame(tick);
+      if (now - last < 120 || movingRef.current || document.hidden) return;
+      last = now;
+      const map = mapRef.current?.getMap();
+      if (!map?.getLayer("flash-neon-glow")) return;
+      const breath = 0.5 + 0.5 * Math.sin(now / 1000 * 3.1);
+      try {
+        map.setPaintProperty("flash-neon-glow", "circle-opacity", [
+          "case",
+          ["==", ["get", "fresh"], 1],
+          0.35 + 0.35 * breath,
+          0.16,
+        ]);
+      } catch {
+        /* style swap mid-frame */
+      }
+    };
+    raf = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(raf);
+  }, [flashNeonData.length, mapLoaded]);
 
   useEffect(() => {
     if (!mapLoaded) return;
@@ -1740,6 +1789,9 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (layerId === "liveua-strikes") {
         return liveuaStrikesData[index] ?? null;
       }
+      if (layerId === "flash-neon") {
+        return flashNeonData[index] ?? null;
+      }
       if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
       if (layerId === "map-polygons-fill") return polygonsData[index] ?? null;
       if (layerId === "map-rings" || layerId === "map-rings-sea") return ringsData[index] ?? null;
@@ -1756,6 +1808,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       aisSymbolModel,
       deferredPathsData,
       firmsFiresData,
+      flashNeonData,
       liveuaStrikesData,
       pointsData,
       polygonsData,
@@ -1766,9 +1819,46 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const handleMapClick = useCallback(
     (event: {
       lngLat: { lat: number; lng: number };
+      point?: { x: number; y: number };
       features?: { layer?: { id?: string }; properties?: { index?: number; id?: unknown } }[];
     }) => {
       const features = event.features ?? [];
+
+      /**
+       * 속보 네온 점은 반지름이 3~5px라 정확히 그 픽셀을 눌러야만 잡힌다 — 빗나가면 면(국가) 클릭으로 처리돼
+       * 속보 창이 안 열렸다. 정확히 맞은 점·항공기·선박 등이 없으면, 주변 12px 안의 네온 중 가장 가까운 것을 연다.
+       */
+      const flashHit = features.find((f) => f.layer?.id === "flash-neon");
+      const preciseHit = features.some((f) => {
+        const id = f.layer?.id;
+        return id != null && id !== "map-polygons-fill" && !id.endsWith("-countries-fill");
+      });
+      if (!flashHit && !preciseHit && event.point && onFlashNeonClick) {
+        const map = mapRef.current?.getMap();
+        if (map?.getLayer("flash-neon")) {
+          const { x, y } = event.point;
+          const near = map.queryRenderedFeatures(
+            [
+              [x - 12, y - 12],
+              [x + 12, y + 12],
+            ],
+            { layers: ["flash-neon"] },
+          );
+          let best: { index: number; d: number } | null = null;
+          for (const f of near) {
+            const index = Number(f.properties?.index);
+            const pt = flashNeonData[index];
+            if (!pt) continue;
+            const px = map.project([pt.lng, pt.lat]);
+            const d = Math.hypot(px.x - x, px.y - y);
+            if (!best || d < best.d) best = { index, d };
+          }
+          if (best) {
+            onFlashNeonClick(flashNeonData[best.index].id);
+            return;
+          }
+        }
+      }
 
       /**
        * 모바일엔 호버가 없다 — 기지를 탭하면 같은 방식으로 선이 드러나고,
@@ -1792,6 +1882,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         if (!item) continue;
         if (layerId === "liveua-strikes") {
           onLiveuaStrikeClick?.(item as LiveuaStrikeMapItem);
+          return;
+        }
+        if (layerId === "flash-neon") {
+          onFlashNeonClick?.((item as FlashNeonPoint).id);
           return;
         }
         if (
@@ -1824,8 +1918,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       onGlobeClick?.({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     },
     [
+      flashNeonData,
       hoveredIslandBaseId,
       onAisSymbolClick,
+      onFlashNeonClick,
       onGlobeClick,
       onPathClick,
       onPointClick,
@@ -2138,6 +2234,25 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     () => islandChainsRadarGeoJson(activeIslandBaseId),
     [activeIslandBaseId],
   );
+
+  /** 미사일 사거리 점선 흐름 — 도련선과 같은 dasharray 시퀀스. 움직임을 줄인 설정이면 정지한 점선 */
+  useEffect(() => {
+    if (!mapLoaded || !missileRangeFc || prefersReducedMotion()) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    let step = 0;
+    const id = window.setInterval(() => {
+      if (movingRef.current || document.hidden) return;
+      if (!map.getLayer("missile-range-line")) return;
+      step = (step + 1) % CHINA_DASH_SEQUENCE.length;
+      try {
+        map.setPaintProperty("missile-range-line", "line-dasharray", CHINA_DASH_SEQUENCE[step]!);
+      } catch {
+        /* 스타일 전환 중 */
+      }
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [mapLoaded, missileRangeFc]);
 
   /** 중국 도련선 점선 흐름 + 대만 펄스 — 100ms (내장 GPU 친화) */
   useEffect(() => {
@@ -3619,6 +3734,47 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           </Source>
         ) : null}
 
+        {flashNeonGeoJson.features.length > 0 ? (
+          <Source id="flash-neon-source" type="geojson" data={flashNeonGeoJson}>
+            {/* 속보 지점 네온 — 범주 색 후광 + 밝은 점. 최근 6시간(fresh)은 크고 밝게 깜빡이고, 오래된 건 작고 흐리게 남는다. */}
+            <Layer
+              id="flash-neon-glow"
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": ["case", ["==", ["get", "fresh"], 1], 15, 9],
+                "circle-blur": 1,
+                "circle-opacity": ["case", ["==", ["get", "fresh"], 1], 0.55, 0.16],
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
+            <Layer
+              id="flash-neon-selected"
+              type="circle"
+              filter={["==", ["get", "selected"], 1]}
+              paint={{
+                "circle-color": "rgba(0,0,0,0)",
+                "circle-radius": 12,
+                "circle-stroke-color": "rgba(255,255,255,0.95)",
+                "circle-stroke-width": 1.8,
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
+            <Layer
+              id="flash-neon"
+              type="circle"
+              paint={{
+                "circle-color": ["get", "color"],
+                "circle-radius": ["case", ["==", ["get", "fresh"], 1], 5, 3.2],
+                "circle-stroke-color": "rgba(255,255,255,0.85)",
+                "circle-stroke-width": ["case", ["==", ["get", "fresh"], 1], 1.2, 0.6],
+                "circle-opacity": ["case", ["==", ["get", "fresh"], 1], 1, 0.5],
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
+          </Source>
+        ) : null}
+
         {liveuaStrikesGeoJson.features.length > 0 ? (
           <Source id="liveua-strikes-source" type="geojson" data={liveuaStrikesGeoJson}>
             {/* 불꽃만 — 작지만 밝게. 넓은 주황 후광 → 노란 후광 → 하얗게 달아오른 심(아이콘) 순으로 겹쳐 실제로 타는 점처럼 보이게 (깜빡임은 아래 이펙트).
@@ -3757,6 +3913,29 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
                 "circle-stroke-width": 1,
                 "circle-stroke-color": ["get", "color"],
               }}
+            />
+          </Source>
+        ) : null}
+
+        {missileRangeFc ? (
+          <Source id="missile-range-source" type="geojson" data={missileRangeFc as unknown as GeoJSON.FeatureCollection}>
+            <Layer
+              id="missile-range-fill"
+              type="fill"
+              filter={["==", ["get", "part"], "fill"]}
+              paint={{ "fill-color": "#ef4444", "fill-opacity": 0.2 }}
+            />
+            <Layer
+              id="missile-range-line"
+              type="line"
+              filter={["==", ["get", "part"], "line"]}
+              paint={{ "line-color": "#ef4444", "line-width": 2, "line-opacity": 0.9, "line-dasharray": [0, 4, 3] }}
+            />
+            <Layer
+              id="missile-flown-line"
+              type="line"
+              filter={["==", ["get", "part"], "flown"]}
+              paint={{ "line-color": "#fbbf24", "line-width": 2.4, "line-opacity": 0.95 }}
             />
           </Source>
         ) : null}

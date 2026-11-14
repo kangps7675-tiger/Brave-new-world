@@ -1,5 +1,5 @@
 /**
- * Strait Desk — 최소 서비스워커
+ * conflict-view — 최소 서비스워커
  *
  * 목적:
  *  1) PWA 설치 조건 (Chrome: fetch 핸들러 필요)
@@ -56,7 +56,7 @@ self.addEventListener("push", (event) => {
     data = { body: event.data ? event.data.text() : "" };
   }
 
-  const title = data.title || "Strait Desk";
+  const title = data.title || "conflict-view";
   const options = {
     body: data.body || "",
     icon: "/brand/icon-512.png",

@@ -11,6 +11,7 @@ import {
 import { absoluteUrl } from "@/lib/siteUrl";
 import WarRiskQuotes from "@/components/chokepoints/WarRiskQuotes";
 import SeaConditions from "@/components/chokepoints/SeaConditions";
+import { KoOnly } from "@/components/i18n/Tx";
 
 /**
  * 초크포인트 상세 — 검색·LLM이 읽는 정적 텍스트 페이지.
@@ -131,7 +132,8 @@ export default function ChokepointPage({ params }: { params: { slug: string } })
           {cp.name.en}
         </h1>
         <p className="mt-1 text-sm text-white/40">
-          {cp.name.ko} · {cp.lat.toFixed(2)}°, {cp.lng.toFixed(2)}°
+          <KoOnly>{cp.name.ko} · </KoOnly>
+          {cp.lat.toFixed(2)}°, {cp.lng.toFixed(2)}°
         </p>
         <p className="mt-5 text-lg leading-relaxed text-white/75">{cp.summary.en}</p>
       </header>
@@ -167,13 +169,17 @@ export default function ChokepointPage({ params }: { params: { slug: string } })
         <article>
           <h2 className="text-xl font-semibold text-white">Why it matters</h2>
           <p className="mt-3 leading-relaxed">{cp.whyItMatters.en}</p>
-          <p className="mt-3 text-sm leading-relaxed text-white/45">{cp.whyItMatters.ko}</p>
+          <KoOnly>
+            <p className="mt-3 text-sm leading-relaxed text-white/45">{cp.whyItMatters.ko}</p>
+          </KoOnly>
         </article>
 
         <article>
           <h2 className="text-xl font-semibold text-white">If it is disrupted</h2>
           <p className="mt-3 leading-relaxed">{cp.ifDisrupted.en}</p>
-          <p className="mt-3 text-sm leading-relaxed text-white/45">{cp.ifDisrupted.ko}</p>
+          <KoOnly>
+            <p className="mt-3 text-sm leading-relaxed text-white/45">{cp.ifDisrupted.ko}</p>
+          </KoOnly>
         </article>
       </section>
 

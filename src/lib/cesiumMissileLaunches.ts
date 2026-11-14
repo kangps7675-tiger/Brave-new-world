@@ -5,9 +5,6 @@
 
 import type { KoreaMissileIncident } from "@/data/koreaMissileIncidentsSeed";
 import { KOREA_MISSILE_LAUNCHES } from "@/data/koreaMissileLaunchesSeed";
-import { startObservePulseLoop } from "@/lib/cesiumObservePulse";
-
-type CesiumNS = typeof import("cesium");
 
 export type CesiumMissileLaunchPoint = Pick<
   KoreaMissileIncident,
@@ -83,17 +80,6 @@ export function ballisticArcSamples(
   return pts;
 }
 
-export function ballisticArcPositions(
-  Cesium: CesiumNS,
-  lat: number,
-  lng: number,
-  kind: string,
-): import("cesium").Cartesian3[] {
-  return ballisticArcSamples(lat, lng, kind).map((sample) =>
-    Cesium.Cartesian3.fromDegrees(sample.lng, sample.lat, sample.heightM),
-  );
-}
-
 /**
  * 관측 지구본에 그릴 발사만. 역대 연표 전체·시설 앵커는 빼고,
  * 라이브 이슈가 있으면 그것만, 없으면 가장 최근 발사 둘만 남긴다.
@@ -112,130 +98,4 @@ export function pickCesiumMissileLaunches<T extends { id: string }>(
   return markers.filter((marker) => newestIds.has(marker.id));
 }
 
-export function syncMissileLaunchEntities(
-  Cesium: CesiumNS,
-  viewer: import("cesium").Viewer,
-  launches: CesiumMissileLaunchPoint[],
-): void {
-  const seen = new Set<string>();
-  for (const launch of launches) {
-    if (!Number.isFinite(launch.lat) || !Number.isFinite(launch.lng)) continue;
-    const id = `nk-missile:${launch.id}`;
-    const arcId = `nk-missile-arc:${launch.id}`;
-    const apexId = `nk-missile-apex:${launch.id}`;
-    seen.add(id);
-    seen.add(arcId);
-    seen.add(apexId);
-    const intensity = Math.min(1, Math.max(0.35, launch.intensity ?? 0.7));
-    const position = Cesium.Cartesian3.fromDegrees(
-      launch.lng,
-      launch.lat,
-      1_200,
-    );
-    const existing = viewer.entities.getById(id);
-    if (existing?.point) {
-      existing.position = new Cesium.ConstantPositionProperty(position);
-      existing.name = launch.titleKo || launch.titleEn;
-    } else {
-      viewer.entities.add({
-        id,
-        name: launch.titleKo || launch.titleEn,
-        position,
-        point: {
-          pixelSize: 9 + intensity * 6,
-          color: Cesium.Color.fromCssColorString("#f97316").withAlpha(0.95),
-          outlineColor: Cesium.Color.fromCssColorString("#fecaca").withAlpha(0.9),
-          outlineWidth: 1.5,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          heightReference: Cesium.HeightReference.NONE,
-        },
-      });
-    }
 
-    const arcPts = ballisticArcPositions(
-      Cesium,
-      launch.lat,
-      launch.lng,
-      launch.kind,
-    );
-    const arcExisting = viewer.entities.getById(arcId);
-    if (arcExisting?.polyline) {
-      arcExisting.polyline.positions = new Cesium.ConstantProperty(arcPts);
-    } else {
-      viewer.entities.add({
-        id: arcId,
-        polyline: {
-          positions: arcPts,
-          width: 2 + intensity * 1.2,
-          material: new Cesium.PolylineGlowMaterialProperty({
-            glowPower: 0.18,
-            taperPower: 0.4,
-            color: Cesium.Color.fromCssColorString("#fb923c").withAlpha(0.82),
-          }),
-          clampToGround: false,
-          arcType: Cesium.ArcType.NONE,
-        },
-      });
-    }
-
-    // 정점 마커 — 포물선 읽기 보조
-    const apexPt = arcPts[Math.floor(arcPts.length / 2)];
-    if (apexPt) {
-      const apexExisting = viewer.entities.getById(apexId);
-      if (apexExisting?.point) {
-        apexExisting.position = new Cesium.ConstantPositionProperty(apexPt);
-      } else {
-        viewer.entities.add({
-          id: apexId,
-          position: apexPt,
-          point: {
-            pixelSize: 4,
-            color: Cesium.Color.fromCssColorString("#fdba74").withAlpha(0.9),
-            outlineColor: Cesium.Color.BLACK.withAlpha(0.35),
-            outlineWidth: 1,
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          },
-        });
-      }
-    }
-  }
-
-  const stale: import("cesium").Entity[] = [];
-  for (const entity of viewer.entities.values) {
-    const id = entity.id;
-    if (typeof id !== "string") continue;
-    if (
-      (id.startsWith("nk-missile:") ||
-        id.startsWith("nk-missile-arc:") ||
-        id.startsWith("nk-missile-apex:")) &&
-      !seen.has(id)
-    ) {
-      stale.push(entity);
-    }
-  }
-  for (const entity of stale) viewer.entities.remove(entity);
-}
-
-/** 발사 지점 플래시 펄스 */
-export function attachMissileLaunchPulse(
-  Cesium: CesiumNS,
-  viewer: import("cesium").Viewer,
-): () => void {
-  return startObservePulseLoop(() => {
-    if (viewer.isDestroyed()) return false;
-    const t = performance.now() / 1000;
-    let any = false;
-    for (const entity of viewer.entities.values) {
-      if (typeof entity.id !== "string" || !entity.id.startsWith("nk-missile:")) {
-        continue;
-      }
-      if (entity.id.includes("-arc:") || entity.id.includes("-apex:")) continue;
-      const pt = entity.point;
-      if (!pt) continue;
-      any = true;
-      const pulse = 0.85 + 0.15 * Math.sin(t * 4.2);
-      pt.pixelSize = new Cesium.ConstantProperty(10 + pulse * 8);
-    }
-    return any;
-  });
-}

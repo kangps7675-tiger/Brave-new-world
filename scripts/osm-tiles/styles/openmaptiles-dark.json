@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "Strait Desk OSM Dark (OpenMapTiles)",
+  "name": "conflict-view OSM Dark (OpenMapTiles)",
   "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
   "sources": {
     "openmaptiles": {

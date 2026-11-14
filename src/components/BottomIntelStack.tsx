@@ -1,5 +1,6 @@
 "use client";
 
+import { flashVerdictBasis, flashVerdictLabel, flashVerdictNote } from "@/lib/news/flashVerdict";
 import {
   createContext,
   forwardRef,
@@ -13,6 +14,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { ArticleReactions } from "@/components/ArticleReactions";
 import { InterestRecommendChips } from "@/components/InterestRecommendChips";
 import { useInterestProfile } from "@/hooks/useInterestProfile";
 import {
@@ -63,7 +65,10 @@ import type { LabelLanguage } from "@/lib/layerPrefs";
 import { useLocale } from "@/contexts/LocaleContext";
 import { theaterLabel } from "@/lib/uiStrings";
 import { bindableImperativeRef } from "@/lib/imperativeRef";
-import { ECONOMY_TIER_LABELS } from "@/lib/news/mediaTiers";
+import { ECONOMY_TIER_LABELS, describeMedia } from "@/lib/news/mediaTiers";
+import { OfficialDocCard } from "@/components/globe/OfficialDocCard";
+import { OFFICIAL_DOCS } from "@/data/officialDocs";
+import { docsForFlash } from "@/lib/officialDocs/match";
 import {
   FRED_ONLY_TICKER_SYMBOLS,
   STOCK_TICKER_SYMBOLS,
@@ -270,7 +275,10 @@ function heroStatusLabel(
   status: HeroBreakingItem["heroStatus"],
   lang: LabelLanguage,
   economy = false,
+  verdict?: HeroBreakingItem["verdict"],
 ): string {
+  // 지정학 속보는 확인·유력·자료 없음(독립 매체 수)로 말한다. 시장 뉴스는 기존 표기 유지.
+  if (!economy && verdict) return flashVerdictLabel(verdict.verdict, lang === "en" ? "en" : "ko");
   const map = economy ? ECONOMY_HERO_STATUS_LABELS : HERO_STATUS_LABELS;
   return lang === "en" ? map[status].en : map[status].ko;
 }
@@ -658,7 +666,7 @@ function HeroHeadlineBanner({
 }) {
   const { lang, t } = useLocale();
   const { localizedTitle } = useNewsStreamContext();
-  const statusText = heroStatusLabel(hero.heroStatus, lang, economy);
+  const statusText = heroStatusLabel(hero.heroStatus, lang, economy, hero.verdict);
   const title = localizedTitle(hero);
   return (
     <div
@@ -689,6 +697,11 @@ function HeroHeadlineBanner({
             </span>
           )}
           <span
+            title={
+              !economy && hero.verdict
+                ? flashVerdictBasis(hero.verdict, lang === "en" ? "en" : "ko")
+                : undefined
+            }
             className={`shrink-0 rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wide ${heroBadgeClass(hero.heroStatus, economy)}`}
           >
             {statusText}
@@ -2230,7 +2243,7 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                       <span
                         className={`rounded-full border px-2 py-0.5 text-micro font-semibold ${heroBadgeClass(hero!.heroStatus, preferEconomyNews)}`}
                       >
-                        {heroStatusLabel(hero!.heroStatus, lang, preferEconomyNews)}
+                        {heroStatusLabel(hero!.heroStatus, lang, preferEconomyNews, hero!.verdict)}
                       </span>
                       <span className="text-meta text-slate-400">
                         {newsStreamTheaterLabel(hero!.theater, lang)}
@@ -2240,6 +2253,15 @@ export const IntelNewsSheet = forwardRef<BottomIntelStackHandle, IntelNewsSheetP
                     <p className="mt-1.5 text-sm font-semibold leading-snug text-slate-50">
                       {localizedTitle(hero!)}
                     </p>
+                    {!preferEconomyNews && hero!.verdict ? (
+                      <p className="mt-1 text-meta leading-snug text-slate-400">
+                        {flashVerdictBasis(hero!.verdict, lang === "en" ? "en" : "ko")}
+                        <span className="mt-0.5 block text-micro text-slate-500">
+                          {flashVerdictNote(lang === "en" ? "en" : "ko")}
+                        </span>
+                      </p>
+                    ) : null}
+                    <ArticleReactions articleId={hero!.id} lang={lang === "en" ? "en" : "ko"} />
                   </div>
                   {(() => {
                     if (!onFlyToMap) return null;
@@ -2545,6 +2567,9 @@ function NewsRow({
           : "속보";
   const displayTitle = localizedTitle(item);
   const displaySummary = localizedSummary(item);
+  const mediaLabel = describeMedia(item.source, item.link).label;
+  const evidenceDocs = docsForFlash(`${item.title} ${item.summary ?? ""}`, OFFICIAL_DOCS);
+  const [docsOpen, setDocsOpen] = useState(false);
   const genre =
     economyMode && item.econGenre
       ? economyGenreLabel(item.econGenre, lang)
@@ -2639,6 +2664,9 @@ function NewsRow({
               </span>
             ) : null}
             <span className="text-meta text-slate-500">{item.source}</span>
+            {mediaLabel ? (
+              <span className="rounded px-1.5 py-0.5 text-micro text-slate-300 ring-1 ring-slate-600/60">{mediaLabel}</span>
+            ) : null}
           </span>
           <span className="line-clamp-2 text-sm font-medium leading-5 text-slate-100">
             {displayTitle}
@@ -2653,6 +2681,28 @@ function NewsRow({
           </span>
         </span>
       </a>
+      {evidenceDocs.length > 0 ? (
+        <div className="px-4 pb-2">
+          <button
+            type="button"
+            className="text-meta text-sky-300 underline"
+            aria-expanded={docsOpen}
+            onClick={() => setDocsOpen((value) => !value)}
+          >
+            {lang === "en" ? `Source documents (${evidenceDocs.length})` : `근거 문서 ${evidenceDocs.length}건`} {docsOpen ? "▲" : "▼"}
+          </button>
+          {docsOpen ? (
+            <ul className="mt-1.5 grid gap-1.5">
+              {evidenceDocs.map((doc) => (
+                <OfficialDocCard key={doc.id} doc={doc} en={lang === "en"} tone="dark" />
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="px-4 pb-2">
+        <ArticleReactions articleId={item.id} lang={lang === "en" ? "en" : "ko"} />
+      </div>
     </li>
   );
 }

@@ -195,7 +195,7 @@ const UI = {
     en: "Temporarily turned off: {names}.",
   },
   layerEvictUndo: { ko: "되돌리기", en: "Undo" },
-  layerClickCautionTag: { ko: "클릭 주의", en: "Click carefully" },
+  layerClickCautionTag: { ko: "부하 큼", en: "Heavy" },
   /** 활성 밀도 표시 — "상한" 단어 비노출 (P2-2) */
   layerCapTag: { ko: "가득", en: "Full" },
   layerCapDetailSuffix: { ko: "활성 {active}/{cap}", en: "on {active}/{cap}" },
@@ -205,8 +205,8 @@ const UI = {
     en: "Active layers {active}/{cap} — enabling more pauses less-used layers",
   },
   layerClickCautionHint: {
-    ko: "컴퓨터 사양이 안 좋으신가요? 빠끄!! Ultra-Lite인데 이거 켜면 렉 각입니다.",
-    en: "Low-spec PC? Hold up!! Turning this on in Ultra-Lite can lag hard.",
+    ko: "저사양 PC에서는 이 레이어를 켜면 화면이 느려질 수 있습니다.",
+    en: "On low-spec PCs, enabling this layer may slow the display.",
   },
   /** 분석 패널 섹션 라벨 (P1-5) */
   analysisOriginalName: { ko: "원본 이름", en: "Original name" },
@@ -1197,26 +1197,6 @@ export const MODE_PICKER_CHROME: Record<
         "Scrub the timeline to see why today connects",
         "Same map spine as geopolitics — history lens",
         "Cliopatria year fills live here",
-      ],
-    },
-  },
-  satellite: {
-    ko: {
-      title: "3D 라이브",
-      tagline: "입체 지구 · 전선 속보",
-      bullets: [
-        "위성·실사 입체 지구에서 전장을 가까이",
-        "항공기·선박 항적과 시세를 같은 자리에서",
-        "여러 전장 속보 — 큰 것만 양피지로 펼침",
-      ],
-    },
-    en: {
-      title: "3D Live",
-      tagline: "Globe · frontline flashes",
-      bullets: [
-        "Satellite / photoreal globe up close on theaters",
-        "Aircraft, ships, and tickers in one place",
-        "Multi-theater flashes — only the big ones open as parchment",
       ],
     },
   },

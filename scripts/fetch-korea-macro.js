@@ -42,7 +42,7 @@ const {
 } = require("./lib/ecos-kosis-parse");
 
 const OUT_DIR = path.join(__dirname, "..", "public", "data");
-const UA = "StraitDesk/0.2 (Strait Desk geopolitics map; kangps7675@gmail.com)";
+const UA = "StraitDesk/0.2 (conflict-view geopolitics map; kangps7675@gmail.com)";
 
 /** ECOS 관심 지표 — 시장 등불에 붙는 것들 */
 const ECOS_SERIES = [

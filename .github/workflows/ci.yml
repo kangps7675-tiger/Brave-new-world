@@ -64,13 +64,19 @@ jobs:
       - name: Install
         run: npm ci --no-fund --no-audit
 
+      # --with-deps 는 apt로 글꼴까지 받는다. 우분투 미러 DNS가 죽으면
+      # 브라우저 받기 전에 전체가 죽는다. 러너에는 실행 라이브러리가 이미 있다.
       - name: Install browsers (PR — chromium only)
         if: github.event_name == 'pull_request'
-        run: npx playwright install --with-deps chromium
+        run: |
+          npx playwright install-deps chromium || echo "OS packages skipped; using libraries already on the runner."
+          npx playwright install chromium
 
       - name: Install browsers (push — chromium · webkit)
         if: github.event_name != 'pull_request'
-        run: npx playwright install --with-deps chromium webkit
+        run: |
+          npx playwright install-deps chromium webkit || echo "OS packages skipped; using libraries already on the runner."
+          npx playwright install chromium webkit
 
       - name: Smoke (PR — chromium)
         if: github.event_name == 'pull_request'

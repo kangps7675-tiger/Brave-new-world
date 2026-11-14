@@ -105,7 +105,7 @@ export function DomainGateOverlay({
           </p>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => onSelect("conflict", ultraLite)}
@@ -114,16 +114,6 @@ export function DomainGateOverlay({
             <span className="text-lg font-semibold text-rose-50">{t("domainConflictTitle", lang)}</span>
             <span className="mt-3 text-sm leading-relaxed text-rose-100/75">
               {t("domainConflictHint", lang)}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onSelect("satellite", ultraLite)}
-            className="flex flex-col rounded-2xl border border-teal-400/35 bg-teal-500/10 px-5 py-8 text-left transition hover:border-teal-300/55 hover:bg-teal-500/15"
-          >
-            <span className="text-lg font-semibold text-teal-50">{t("domainPremiumTitle", lang)}</span>
-            <span className="mt-3 text-sm leading-relaxed text-teal-100/75">
-              {t("domainPremiumHint", lang)}
             </span>
           </button>
           <button

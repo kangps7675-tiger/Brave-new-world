@@ -132,7 +132,13 @@ describe("Baltic / Eastern Europe slot is additive", () => {
     delete process.env.LIVEUAMAP_RESID_MAP;
     const slots = getLiveuamapRegionSlots();
     expect(slots.find((s) => s.id === "nato-east")).toBeUndefined();
+    expect(slots.find((s) => s.id === "taiwan")).toBeUndefined();
+    expect(slots.find((s) => s.id === "korea")).toBeUndefined();
+    expect(slots.find((s) => s.id === "pirates")).toBeUndefined();
+    expect(slots.find((s) => s.id === "emirates")).toBeUndefined();
+    expect(slots.find((s) => s.id === "qatar")).toBeUndefined();
     expect(slots.find((s) => s.id === "ukraine")?.dailyCap).toBe(96);
+    expect(slots.reduce((sum, s) => sum + s.dailyCap, 0)).toBe(178);
   });
 
   it("adds 10 requests without taking from Ukraine, Iran or the Middle East", () => {
@@ -154,6 +160,14 @@ describe("Baltic / Eastern Europe slot is additive", () => {
     expect(idx("ukraine")).toBeLessThan(idx("iran"));
     expect(idx("iran")).toBeLessThan(idx("yemen"));
     expect(idx("israel-palestine")).toBeLessThan(idx("nato-east"));
+  });
+
+  it("moves the retired shipping calls onto Taiwan and Korea", () => {
+    process.env.LIVEUAMAP_RESID_MAP = JSON.stringify({ taiwan: 50, korea: 51 });
+    const slots = getLiveuamapRegionSlots();
+    expect(slots.find((s) => s.id === "taiwan")).toMatchObject({ dailyCap: 12, minIntervalMs: 2 * 60 * 60_000 });
+    expect(slots.find((s) => s.id === "korea")).toMatchObject({ dailyCap: 10, minIntervalMs: 144 * 60_000 });
+    expect(slots.reduce((sum, s) => sum + s.dailyCap, 0)).toBe(200);
   });
 
   it("keeps the daily budget at liveuamap's official 200", () => {

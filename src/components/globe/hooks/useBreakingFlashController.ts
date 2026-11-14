@@ -21,7 +21,6 @@ import type { TheaterSitrepRegionId } from "@/lib/theaterReport/types";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
 const BREAKING_FLASH_AUTO_ADVANCE_MS = 20_000;
-const OBSERVE_BREAKING_FLASH_AUTO_ADVANCE_MS = 10_000;
 /** 접속 시점에 이미 있던 속보라도 이 안쪽이면 "방금 난 속보"로 본다 */
 const BREAKING_FLASH_FRESH_MINUTES = 10;
 
@@ -31,7 +30,6 @@ export type UseBreakingFlashControllerOptions = {
   langChoiceDone: boolean;
   deepDiveSession: DeepDiveSession | null;
   isHistoryViewer: boolean;
-  isSatelliteViewer: boolean;
   isEconomyViewer: boolean;
   theaterSitrepRegion: TheaterSitrepRegionId | null;
   liveuaParchmentIndex: number | null;
@@ -63,7 +61,6 @@ export function useBreakingFlashController({
   langChoiceDone,
   deepDiveSession,
   isHistoryViewer,
-  isSatelliteViewer,
   isEconomyViewer,
   theaterSitrepRegion,
   liveuaParchmentIndex,
@@ -114,11 +111,7 @@ export function useBreakingFlashController({
       if (breakingFlash) setBreakingFlash(null);
       return;
     }
-    if (isSatelliteViewer && liveuaParchmentIndex != null) {
-      if (breakingFlash) setBreakingFlash(null);
-      return;
-    }
-    if (!isSatelliteViewer && (!dailyLampSettled || !weeklyRecapSettled)) return;
+    if (!dailyLampSettled || !weeklyRecapSettled) return;
     if (periodicBriefing || airRaidBriefing || exerciseBriefing || weeklyExpanded) return;
     if (breakingFlash) return;
 
@@ -135,29 +128,21 @@ export function useBreakingFlashController({
       flashHeroes: (newsStreamPayload?.flashHeroes ?? []).filter(isNewHero),
     };
     // 주제 제한 없음 — 등급·신선도 기준(shouldOpenBreakingFlash)만 적용
-    const hero = pickNextBreakingFlashHero(
-      mergedPayload,
-      isEconomyViewer && !isSatelliteViewer,
-    );
+    const hero = pickNextBreakingFlashHero(mergedPayload, isEconomyViewer);
     if (!hero) return;
 
     const flashGate = gateBreakingHero(hero, {
       disconfirmCorpus: intelDisconfirmCorpus,
       windowHours: 72,
     });
-    const publishOk =
-      canPublish("breaking_flash", flashGate.grade) ||
-      (isSatelliteViewer &&
-        flashGate.grade === "low" &&
-        (hero.breakingRank === "S" || hero.breakingRank === "A"));
-    if (!publishOk) return;
+    if (!canPublish("breaking_flash", flashGate.grade)) return;
 
     let cancelled = false;
     void (async () => {
       const briefing = await buildBreakingFlashBriefingForLang(
         hero,
         labelLanguage,
-        isEconomyViewer && !isSatelliteViewer,
+        isEconomyViewer,
         { peaceScienceDomain: peaceScienceFlashDomain },
       );
       if (cancelled) return;
@@ -180,7 +165,6 @@ export function useBreakingFlashController({
     newsStreamPayload?.hero?.summary,
     intelDisconfirmCorpus,
     isEconomyViewer,
-    isSatelliteViewer,
     peaceScienceFlashDomain,
     labelLanguage,
     entryGate,
@@ -201,15 +185,12 @@ export function useBreakingFlashController({
 
   useEffect(() => {
     if (!breakingFlash) return;
-    const ms = isSatelliteViewer
-      ? OBSERVE_BREAKING_FLASH_AUTO_ADVANCE_MS
-      : BREAKING_FLASH_AUTO_ADVANCE_MS;
     const timer = window.setTimeout(() => {
       setBreakingFlash(null);
       setBreakingFlashGate(null);
-    }, ms);
+    }, BREAKING_FLASH_AUTO_ADVANCE_MS);
     return () => window.clearTimeout(timer);
-  }, [breakingFlash, isSatelliteViewer]);
+  }, [breakingFlash]);
 
   return {
     breakingFlash,

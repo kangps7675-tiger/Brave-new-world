@@ -1,5 +1,5 @@
 /**
- * VIINA (ODbL) — Strait Desk 데이터 사용 정책
+ * VIINA (ODbL) — conflict-view 데이터 사용 정책
  *
  * Produced Work(제작물)만 허용: 지도 렌더링·UI 패널 텍스트.
  * 파생 DB 재배포·공개 API export 금지.

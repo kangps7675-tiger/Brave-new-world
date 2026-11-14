@@ -1,3 +1,6 @@
+import { issuerNameKo } from "@/lib/countryName";
+import { mediaByHost, type MediaOwnership } from "@/lib/news/mediaRegistry";
+import { officialSiteFromHost } from "@/lib/officialSites";
 import type { MediaTrustTier } from "@/lib/news/types";
 
 /**
@@ -151,19 +154,28 @@ const TIER3_SOURCE = [
   "u.s. department of defense",
 ];
 
-const TIER1_HOST =
-  /(?:^|\.)((?:reuters|apnews|afp|bbc|nytimes|wsj|theguardian|bloomberg|washingtonpost|kyivindependent|kyivpost|ukrinform|meduza|themoscowtimes|ft)\.)/i;
-
-const TIER3_HOST =
-  /(?:^|\.)((?:presstv|irna|farsnews|tasnimnews|tass|rt\.com|kcna|xinhuanet|news\.cn|globaltimes|sputniknews|centcom|defense)\.)/i;
-
 function normalizeKey(value: string): string {
   return value.toLowerCase().trim();
 }
 
+/**
+ * 짧은 이름("rt", "dod", "pti", "efe"…)은 부분 문자열로 찾으면 주소 안의 "report", "option",
+ * "reference" 같은 단어에 걸려 멀쩡한 매체가 국영(3등급)·와이어(1등급)로 잘못 분류된다.
+ * 그래서 4글자 이하 이름은 단어 경계로만 맞춘다.
+ */
+const SHORT_NEEDLE_MAX = 4;
+
+function escapeRe(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function matchesAny(haystack: string, needles: string[]): boolean {
   const key = normalizeKey(haystack);
-  return needles.some((needle) => key.includes(normalizeKey(needle)));
+  return needles.some((needle) => {
+    const n = normalizeKey(needle);
+    if (n.length > SHORT_NEEDLE_MAX) return key.includes(n);
+    return new RegExp(`(?:^|[^a-z0-9])${escapeRe(n)}(?:$|[^a-z0-9])`).test(key);
+  });
 }
 
 export function extractHostname(link: string): string {
@@ -176,10 +188,18 @@ export function extractHostname(link: string): string {
 
 export function classifyMediaTier(source: string, link = ""): MediaTrustTier {
   const host = extractHostname(link);
-  const blob = `${source} ${host} ${link}`;
 
-  if (TIER3_HOST.test(host) || matchesAny(blob, TIER3_SOURCE)) return 3;
-  if (TIER1_HOST.test(host) || matchesAny(blob, TIER1_SOURCE)) return 1;
+  // 1) 주소가 확실한 경우: 정부·군·기구 공식 도메인, 그리고 등록된 매체 도메인. 이름 조각보다 먼저 본다.
+  const official = officialSiteFromHost(host);
+  if (official) return 3;
+  const registered = mediaByHost(host);
+  if (registered) return registered.tier;
+
+  // 2) 주소가 목록에 없으면 매체 이름으로만 본다. 주소·경로 안의 단어는 보지 않는다
+  //    ("reuters.com.fake.example"나 "/reuters/" 경로에 속지 않는다).
+  const blob = source;
+  if (matchesAny(blob, TIER3_SOURCE)) return 3;
+  if (matchesAny(blob, TIER1_SOURCE)) return 1;
   if (matchesAny(blob, TIER2_SOURCE)) return 2;
 
   // Unknown outlet from Google News aggregation → conservative Tier 2
@@ -217,3 +237,43 @@ export const ECONOMY_TIER_LABELS: Record<
     detailEn: "For reference",
   },
 };
+
+export type MediaProfile = {
+  tier: MediaTrustTier;
+  /** 정부·군·기구 공식 사이트이거나 등록된 매체일 때 그 성격. 모르면 null. */
+  ownership: MediaOwnership | "government" | "military" | "organization" | null;
+  countryCode: string | null;
+  /** 화면에 붙일 짧은 말. 예: "러시아 국영", "미국 정부 발표". 알 수 없으면 null. */
+  label: string | null;
+};
+
+const OWNERSHIP_KO: Record<NonNullable<MediaProfile["ownership"]>, string> = {
+  wire: "통신사",
+  independent: "민간 언론",
+  public: "공영 매체",
+  state: "국영",
+  party: "정파·무장단체 계열",
+  osint: "OSINT",
+  "think-tank": "연구소",
+  government: "정부 1차 원문",
+  military: "군 1차 원문",
+  organization: "기구 1차 원문",
+};
+
+/** 매체·사이트의 성격을 화면용으로 풀어 준다. 이름만 있고 주소가 없으면 라벨을 지어내지 않는다. */
+export function describeMedia(source: string, link = ""): MediaProfile {
+  const tier = classifyMediaTier(source, link);
+  const host = extractHostname(link);
+  const official = officialSiteFromHost(host);
+  if (official) {
+    const name = issuerNameKo(official.issuerId);
+    const label = official.kind === "organization" ? `${name} ${OWNERSHIP_KO.organization}` : `${name} ${OWNERSHIP_KO[official.kind]}`;
+    return { tier, ownership: official.kind, countryCode: official.kind === "organization" ? null : official.issuerId, label };
+  }
+  const registered = mediaByHost(host);
+  if (registered) {
+    const prefix = registered.country && (registered.ownership === "state" || registered.ownership === "party") ? `${issuerNameKo(registered.country)} ` : "";
+    return { tier, ownership: registered.ownership, countryCode: registered.country, label: `${prefix}${OWNERSHIP_KO[registered.ownership]}` };
+  }
+  return { tier, ownership: null, countryCode: null, label: null };
+}

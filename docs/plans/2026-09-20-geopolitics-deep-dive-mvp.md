@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-20  
 **Status:** Implementing (conflict first)  
-**Product:** Strait Desk
+**Product:** conflict-view
 
 ## Goal
 

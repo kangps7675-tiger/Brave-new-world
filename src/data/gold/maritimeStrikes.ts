@@ -9,7 +9,8 @@
  *   필성이 출처를 열어 선명·날짜를 확인하면 true로 바꾼다. 점수는 reviewed=true 만 쓴다
  *   (초안까지 보고 싶으면 평가 스크립트에 --include-draft).
  * - 날짜는 출처마다 하루 어긋나기도 한다(Strinda 12-11/12-12, Eternity C 07-07/07-09). 비교는 ±2일 허용.
- * - 이 표는 후티 홍해·아덴만 사건이다. 호르무즈·흑해는 아직 없다.
+ * - 홍해·아덴만(후티, 2023-11~)과 호르무즈·걸프(2026 이란 전쟁, 2026-03~) 두 구역이다. 흑해는 아직 없다.
+ * - 호르무즈 줄은 선명이 가려진 UKMTO와 맞추려고 좌표(lat/lng)를 붙이기도 했다. 장소 문구에서 환산한 대략값이다.
  *
  * 출처 요약은 웹 페이지를 요약 도구로 읽어 옮긴 것이라 옮기다 틀렸을 수 있다. 그래서 reviewed=false.
  */
@@ -23,12 +24,20 @@ export type GoldStrike = {
   date: string;
   place: string;
   outcome: GoldOutcome;
+  /** 선명이 가려진 UKMTO 기록과 맞출 때 쓰는 대략 좌표 (장소 문구에서 환산, 오차 수십 해리) */
+  lat?: number;
+  lng?: number;
+  region?: "red-sea" | "hormuz";
   sourceUrls: readonly string[];
   reviewed: boolean;
 };
 
 const W = "https://en.wikipedia.org/wiki/Houthi_attacks_on_commercial_vessels";
 const WC = "https://www.wilsoncenter.org/article/timeline-houthi-attacks";
+const IW = "https://en.wikipedia.org/wiki/List_of_ships_attacked_during_the_2026_Iran_war";
+const USNI = "https://news.usni.org/2026/10/22/october-marks-highest-number-of-strait-of-hormuz-attacks";
+const AJ = "https://www.aljazeera.com/news/2026/10/17/us-and-iran-both-claim-control-of-strait-of-hormuz-amid-attacks-on-vessels";
+const IRW = "https://iranwire.com/en/news/157000-oil-tanker-struck-by-three-projectiles-in-strait-of-hormuz/";
 const GC = "https://gcaptain.com/list-notable-houthi-attacks-on-merchant-ships-in-the-red-sea/";
 
 export const MARITIME_GOLD: readonly GoldStrike[] = [
@@ -86,4 +95,28 @@ export const MARITIME_GOLD: readonly GoldStrike[] = [
   { id: "g-2026-08-04-faize-noore-oliya", vessel: "Faize Noore Oliya", flag: "India", date: "2026-08-04", place: "Yemeni waters", outcome: "sunk", sourceUrls: [W], reviewed: false },
   { id: "g-2026-08-05-daisy", vessel: "Daisy", flag: "Dominica", date: "2026-08-05", place: "Gulf of Aden", outcome: "damaged", sourceUrls: [W], reviewed: false },
   { id: "g-2026-08-11-tihamah", vessel: "Tihamah", flag: "Tanzania", date: "2026-08-11", place: "Bab el-Mandeb", outcome: "damaged", sourceUrls: [W], reviewed: false },
+  { id: "g-2026-03-01-skylight", vessel: "Skylight", flag: "Palau (deregistered)", date: "2026-03-01", place: "5 nmi N of Khasab, Oman", outcome: "hit", lat: 26.26, lng: 56.25, region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-01-hercules-star", vessel: "Hercules Star", flag: "Gibraltar", date: "2026-03-01", place: "near Ras Al-Khaimah", outcome: "hit", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-02-stena-imperative", vessel: "Stena Imperative", flag: "United States", date: "2026-03-02", place: "Bahrain", outcome: "hit", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-03-gold-oak", vessel: "Gold Oak", flag: "Panama", date: "2026-03-03", place: "7 nmi E of Fujairah, UAE", outcome: "damaged", lat: 25.12, lng: 56.45, region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-04-safeen-prestige", vessel: "Safeen Prestige", flag: "Malta", date: "2026-03-04", place: "2 nmi off Oman, Strait of Hormuz", outcome: "damaged", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-05-sonangol-namibe", vessel: "Sonangol Namibe", flag: "Bahamas", date: "2026-03-05", place: "30 nmi SE of Mubarak Al-Kabeer, Kuwait", outcome: "damaged", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-06-mussafah-2", vessel: "Mussafah 2", flag: "UAE", date: "2026-03-06", place: "Strait of Hormuz", outcome: "sunk", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-10-mayuree-naree", vessel: "Mayuree Naree", flag: "Thailand", date: "2026-03-10", place: "Oman", outcome: "hit", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-12-safesea-vishnu", vessel: "Safesea Vishnu", flag: "Marshall Islands", date: "2026-03-12", place: "Iraqi waters", outcome: "hit", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-17-gas-al-ahmadiah", vessel: "Gas Al Ahmadiah", flag: "Kuwait", date: "2026-03-17", place: "23 nmi E of Fujairah, UAE", outcome: "damaged", lat: 25.12, lng: 56.75, region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-03-30-al-salmi", vessel: "Al Salmi", flag: "Kuwait", date: "2026-03-30", place: "Port of Dubai", outcome: "hit", lat: 25.27, lng: 55.29, region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-04-22-epaminondas", vessel: "Epaminondas", flag: "Liberia", date: "2026-04-22", place: "Strait of Hormuz", outcome: "seized", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-05-04-jv-innovation", vessel: "JV Innovation", flag: "Marshall Islands", date: "2026-05-04", place: "near Mina Saqr, UAE", outcome: "damaged", lat: 25.98, lng: 56.0, region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-05-10-safesea-neha", vessel: "Safesea Neha", flag: "Marshall Islands", date: "2026-05-10", place: "Doha anchorage, Qatar", outcome: "hit", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-05-13-haji-ali", vessel: "Haji Ali", flag: "India", date: "2026-05-13", place: "off Omani coast", outcome: "sunk", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-05-14-hui-chuan", vessel: "Hui Chuan", flag: "Honduras", date: "2026-05-14", place: "Gulf of Oman", outcome: "seized", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-05-26-olympic-life", vessel: "Olympic Life", flag: "Marshall Islands", date: "2026-05-26", place: "60 nmi off Muscat, Oman", outcome: "damaged", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-07-06-al-rekayyat", vessel: "Al Rekayyat", flag: "Marshall Islands", date: "2026-07-06", place: "coast of Oman", outcome: "damaged", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-07-12-gfs-galaxy", vessel: "GFS Galaxy", flag: "Cyprus", date: "2026-07-12", place: "Strait of Hormuz", outcome: "hit", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-08-31-seeder", vessel: "Seeder", flag: "Saudi Arabia (unconfirmed)", date: "2026-08-31", place: "17 nmi E of Khasab, Oman (name per Fars, not UKMTO)", outcome: "hit", lat: 26.18, lng: 56.56, region: "hormuz", sourceUrls: [IRW], reviewed: false },
+  { id: "g-2026-09-06-kylo", vessel: "Kylo", flag: "Comoros", date: "2026-09-06", place: "Gulf of Oman (US strike)", outcome: "sunk", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-09-08-riesco", vessel: "Riesco", flag: "Zimbabwe", date: "2026-09-08", place: "Gulf of Oman (US strike)", outcome: "sunk", region: "hormuz", sourceUrls: [IW], reviewed: false },
+  { id: "g-2026-10-11-petro-dolphin", vessel: "Petro Dolphin", flag: "Nicaragua", date: "2026-10-11", place: "Hormuz area (suspected Iranian drone)", outcome: "hit", region: "hormuz", sourceUrls: [USNI], reviewed: false },
+  { id: "g-2026-10-15-gfs-pride", vessel: "GFS Pride", flag: null, date: "2026-10-15", place: "Strait of Hormuz", outcome: "sunk", region: "hormuz", sourceUrls: [AJ], reviewed: false },
 ];

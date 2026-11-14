@@ -1,31 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { LandingContent, type EnterPlace } from "@/components/landing/LandingContent";
+import { LandingContent } from "@/components/landing/LandingContent";
+import { BRAND_NAME } from "@/lib/brand";
 import { absoluteUrl } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
-  title: "Strait Desk — 정보기관 상황실처럼, 바다의 위험을 한눈에",
+  title: `${BRAND_NAME.ko} — 지정학 속보, 어디까지 확인됐을까`,
   description:
-    "어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료는 얼마나 올랐는지. 피격 경보·선박 위치·항구 타격·항행경보를 3D 지구본 한 화면에. 공개 정보(OSINT) 기반, 가입 없이 무료.",
+    "지정학 속보의 보도 출처와 위치를 다른 공개 자료와 대조합니다. 확인 상태와 전선, 다음 공식 일정, 헌법 원문을 3D 지구본에서 가입 없이 볼 수 있습니다.",
   alternates: { canonical: absoluteUrl("/landing") },
 };
 
 /** 공유·검색용 독립 랜딩. 첫 화면(/)에서는 같은 내용이 LandingCurtain으로 지구본 위에 덮인다. */
-const ENTER_CLASS: Record<EnterPlace, string> = {
-  nav: "rounded-md bg-[#f5c451] px-[18px] py-3 font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
-  hero: "landing-cta-glow inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
-  footer:
-    "inline-flex h-[54px] items-center rounded-md bg-[#f5c451] px-7 text-[17px] font-bold text-[#05080d] no-underline hover:bg-[#ffd772]",
-};
-
 export default function LandingPage() {
-  return (
-    <LandingContent
-      renderEnter={(place) => (
-        <Link href="/" className={ENTER_CLASS[place]}>
-          지구본 열기
-        </Link>
-      )}
-    />
-  );
+  return <LandingContent />;
 }

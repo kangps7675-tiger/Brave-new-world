@@ -229,7 +229,7 @@ export function tourStepCopy(
   if (viewerMode === "economy") {
     if (en && step.bodyEconomyEn) body = step.bodyEconomyEn;
     if (!en && step.bodyEconomyKo) body = step.bodyEconomyKo;
-  } else if (viewerMode === "satellite" || viewerMode === "live") {
+  } else if (viewerMode === "live") {
     if (en && step.bodySatelliteEn) body = step.bodySatelliteEn;
     if (!en && step.bodySatelliteKo) body = step.bodySatelliteKo;
   }

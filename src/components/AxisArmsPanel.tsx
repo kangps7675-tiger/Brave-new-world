@@ -15,6 +15,7 @@ import {
   armsPanelTitle,
 } from "@/lib/axisArmsI18n";
 import { PanelSkeletonLines } from "@/components/PanelSkeletons";
+import { SIPRI_URL } from "@/lib/licensing/sipriPolicy";
 
 type AxisArmsPanelProps = {
   hubId: AxisHubId;
@@ -134,7 +135,10 @@ export function AxisArmsPanel({
       </div>
       {citationText ? (
         <p className="border-t border-orange-200/10 px-3 py-2 text-micro leading-4 text-orange-100/40">
-          {citationText}
+          {citationText}{" "}
+          <a href={SIPRI_URL} target="_blank" rel="noopener noreferrer" className="underline">
+            sipri.org
+          </a>
         </p>
       ) : null}
     </aside>

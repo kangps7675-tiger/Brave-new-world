@@ -2,13 +2,16 @@ import { describe, expect, it } from "vitest";
 import type { LiveuamapEvent } from "@/lib/liveuamap/types";
 import {
   filterBySea,
+  hasStackLocation,
   isShipIncident,
   mergeStackItems,
   seaForPoint,
   splitShipAndFront,
   stackItemFromCase,
+  stackItemFromFlashHero,
   stackItemFromLiveua,
   stackItemFromUkmto,
+  stackTier,
   type StackItem,
 } from "./build";
 
@@ -240,5 +243,45 @@ describe("incidentStack", () => {
         incident: { place: null, occurredAt: null, occurredAtSource: "none" },
       } as never),
     ).toBeNull();
+  });
+});
+
+describe("RSS 신속속보 → 속보창 한 건", () => {
+  const hero = (over: Record<string, unknown>) =>
+    ({
+      id: "rss-1",
+      title: "Strike reported",
+      titleKo: "타격 보도",
+      link: "https://example.com/a",
+      source: "Reuters",
+      pubDate: "2026-11-13T12:00:00Z",
+      theater: "middle-east",
+      summary: "summary",
+      ...over,
+    }) as never;
+
+  it("좌표가 없으면 NaN으로 두고 hasStackLocation이 false", () => {
+    const it = stackItemFromFlashHero(hero({}), true)!;
+    expect(it.source).toBe("rss");
+    expect(it.title).toBe("타격 보도");
+    expect(hasStackLocation(it)).toBe(false);
+    expect(it.sea).toBeNull();
+    expect(stackTier(it)).toBe("flash");
+  });
+
+  it("좌표가 있으면 해역 분류까지 된다", () => {
+    const it = stackItemFromFlashHero(hero({ lat: 26.5, lng: 56.3 }), false)!;
+    expect(hasStackLocation(it)).toBe(true);
+    expect(it.sea).toBe("hormuz");
+    expect(it.title).toBe("Strike reported");
+  });
+
+  it("liveuamap 출신이나 시각이 깨진 건은 건너뛴다", () => {
+    expect(stackItemFromFlashHero(hero({ flashSource: "liveuamap" }), true)).toBeNull();
+    expect(stackItemFromFlashHero(hero({ pubDate: "nope" }), true)).toBeNull();
+  });
+
+  it("liveua는 field 층", () => {
+    expect(stackTier({ source: "liveua" })).toBe("field");
   });
 });

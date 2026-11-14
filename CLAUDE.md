@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-이 프로젝트(Strait Desk)에서 에이전트가 작업할 때 지켜야 할 규칙.
+이 프로젝트(conflict-view, 임시 서비스명)에서 에이전트가 작업할 때 지켜야 할 규칙.
 
 ## 유저 인사이트 / 브리핑 설명 톤
 
@@ -38,8 +38,8 @@
 ## 새 기능·레이어 추가 기준 (2026-10-17)
 
 새 레이어·패널·모드는 **케이스 파일(기사 확인)의 증거 또는 판정에 연결될 때만** 노출한다.
-연결되지 않으면 `src/lib/layerLab.ts`의 실험실(lab) 목록에 넣어 숨긴다(코드는 지우지 않는다, `NEXT_PUBLIC_LAB=1`로 풀림).
-화면 모드는 지정학 하나이며 위성(세슘)은 사건 카드의 "위성으로 보기"로만 들어간다(`src/lib/viewerModePolicy.ts`).
+발전소·철도·케이블·사일로·국경선처럼 속보의 원본이 아닌 지도 백과는 넣지 않는다. 그 층은 `src/lib/layerLab.ts`에서 항상 꺼 두고, 데이터 파일은 저장소에 두지 않는다. `NEXT_PUBLIC_LAB=1`로 되살리지 않는다.
+화면 모드는 지정학 하나이며, 위성(세슘) 모드는 2026-11-06에 막고 4단계에서 코드까지 없앴다(아래 세슘 제거 항목).
 
 ## 2026-10-20 방향 번복 — 전체 버전 복원
 
@@ -48,24 +48,26 @@
 해역 축소판 코드와 이날 추가된 것(에너지 시설 피격, 양피지, 진영 면 등)은 복원 직전 `main` 커밋 이력에 남아 있다.
 복원하면서 유지한 수정: Google Fonts 로컬화(빌드 안정성), MapLibre 워커의 버전 경로(`/maplibre-gl/<버전>/`).
 
-## 2026-10-21 첫 화면 = 랜딩이 약속한 「해운 위험」
+## 2026-11-11 제품 방향 — 근거로 확인하는 지정학 속보 (첫 화면 = 속보 중심)
 
-랜딩(해운 위험 상황실)에서 들어온 신규 방문자는 지정학 상황판이 아니라 해운 화면을 본다. 전체 지정학 버전은 그대로 있고 메뉴·「무엇을 볼까요」로 바꾼다.
-- 신규 방문 레이어는 `layerPrefs.ts`의 `firstVisitLayerPrefs`(= `firstScreenLayers.ts`의 `FIRST_SCREEN_MARITIME_ON/OFF`)에서 정해진다. 지구본은 마운트 때 `loadLayerPrefs()`만 읽으므로 보기 패키지만 바꿔서는 첫 화면이 안 바뀐다.
-- 기본 패키지 `maritime`(viewPackages.ts), 언어 선택 직후 히어로·「처음 화면으로」도 `buildDomainOverviewPrefs(…, { maritime })`로 같은 레이어.
-- 해운 화면에서는 지정학 개관(핵탄두 수·전략태세 라벨)을 숨기고 길목 콜아웃(`MARITIME_OVERVIEW_CALLOUTS`)을 띄운다. (좌측 「오늘의 GTS」 패널·「오늘의 브리핑」 게이지·「오늘의 등불뉴스」 접힘 탭은 2026-10-22 화면에서 뺐다 — `DashboardOverlayHost`)
-- 랜딩 문구(질문 넷·화면 읽는 법·불꽃)가 약속하는 레이어를 끄거나 실험실로 내리려면 랜딩 문구도 같이 고친다 (`src/lib/maritimeFirstScreen.test.ts`가 막는다).
+「Conflict-view 큰 그림 정리」 문서대로 방향을 바꾼다. 지구본 위에 지정학 속보를 찍고, 소식마다 출처와 확인 상태(확인·유력·자료 없음)를 붙이며, 이메일 브리핑(주 4회)으로 이어 준다. 해운은 폐기하지 않고 첫 연재 주제로 둔다.
+- 랜딩 문구는 이 방향을 말한다. 아직 화면에 없는 것(국가 이니셔티브·분기점·시나리오·직접 판정·주 4회 메일)은 반드시 「준비 중」으로 적고, 이미 있는 것처럼 쓰지 않는다. 무료 범위는 미정이라고 쓴다.
+- 신규 방문자의 첫 지구본 화면은 속보 중심이다(완료). 기본 패키지 `breaking`(`viewPackages.ts`), 레이어는 `firstScreenLayers.ts`의 `FIRST_SCREEN_BREAKING_ON/OFF`. 지구본은 마운트 때 `loadLayerPrefs()`만 읽으므로 레이어는 `layerPrefs.ts`의 `firstVisitLayerPrefs`에서 정해진다. 해운 패키지(`maritime`)와 그 레이어는 「무엇을 볼까요 → 해운 위험」용으로 남아 있다.
+- `src/lib/firstScreen.test.ts`가 랜딩 약속과 첫 화면 레이어를 맞춰 지킨다. 레이어를 바꾸면 랜딩 문구와 이 테스트를 같이 고친다.
+- 새 레이어·패널은 위 「새 기능·레이어 추가 기준」을 그대로 따른다. 케이스 파일의 증거나 판정에 연결될 때만 노출한다.
+- 이메일: 지금 실제로 나가는 것은 매일 한 번의 해운 요약이다(`emailConsent.ts`의 동의 문구도 그 내용). 주 4회 지정학 브리핑 발송을 만들기 전에는 동의 문구와 랜딩 설명을 바꿔 쓰지 않는다.
 
-## 2026-10-21 세슘에는 선박(AIS)을 그리지 않는다
+## 서비스명 = conflict-view (임시, 2026-11-11)
 
-세슘(위성)에는 선박 위치(AIS)를 그리지 않는다. 선박은 Datalastic·AISstream으로 보는 데이터이고, 지도(MapLibre)와 세슘에 둘 다 그리면 GPU가 무거워진다. 항공기·불꽃·해협 오버레이·라벨·사건 콜아웃 등 나머지는 세슘에도 그대로 그린다.
-- 구현: `src/lib/satelliteLayers.ts`의 `cesiumShipProps` — `GlobeMapCanvas`가 세슘에 넘기는 선박 데이터·표시 플래그 6개(`aisVessels`, `disguisedVessels`, `showAis`, `showAisMilitary`, `showAisCommercial`, `showDisguisedVessels`)를 기본에서 비운다. 코드는 지우지 않고 `NEXT_PUBLIC_LAB=1`이면 예전대로 그린다.
-- 아직 안 한 것: 위성 모드일 때 AIS·항공 등을 강제로 폴링하는 훅들(`isSatelliteViewer` 참조 지점 다수)은 그대로다. 선박을 안 그려도 AIS 폴링은 남는다.
+서비스명은 당분간 **conflict-view**다. 확정 이름이 아니므로 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)만 거쳐 쓴다. 옛 이름(Strait Desk·Brave New World·GeoWatch)은 화면에 남기지 않는다.
+- 인프라 식별자는 바꾸지 않는다: localStorage·IndexedDB 키 `straitdesk-*`, 설정 파일 `src/config/straitdesk.config.ts`, 도메인 `straitdesk.app`, 외부 호출 User-Agent `StraitDesk/…`, npm 패키지명 `strait-desk`. 바꾸면 방문자 설정이 초기화된다.
+- 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다. 이름이 정해지면 다시 만든다.
 
-## 서비스명 = Strait Desk (2026-10-23 전면 교체 완료)
+## 2026-11-06 세슘(위성) 제거
 
-서비스명은 **Strait Desk**뿐이다. 옛 이름은 화면·코드·문서·식별자 어디에도 남기지 않는다. 뜻: Strait=해협(길목), Desk=상황실의 데스크.
-- 사용자에게 보이는 이름은 `src/lib/brand.ts`(`BRAND_NAME`)를 쓴다.
-- localStorage·IndexedDB 키는 `straitdesk-*`, 설정 파일은 `src/config/straitdesk.config.ts`, 도메인·UA 연락 URL은 `straitdesk.app`이다. 옛 키로 저장된 방문자 설정은 이어받지 않는다(초기화됨).
-- npm 패키지명은 `strait-desk`. 저장소명·Vercel/Cloudflare 프로젝트명은 대시보드에서 따로 바꿔야 한다.
-- 이미지로 구워진 이름(`public/brand/og-1200x630.png` 등)은 코드로 못 바꾼다 — 디자인 교체가 필요하다.
+세슘은 뺀다. 지금 방향(근거 확인·연결·이니셔티브·시나리오·분기점)에서 세슘이 핵심인 곳이 없고, 번들·성능·유지보수 부담만 남기 때문이다.
+- 1단계(완료): `SATELLITE_ENABLED = false` 스위치로 위성 진입을 전부 막았다(「위성으로 보기」 버튼, 모드 전환·부팅 복원, 진입 게이트·모드 스위처의 위성 항목). 빌드에서 세슘 에셋 복사도 뺐다. 스위치 파일(`satelliteAccess.ts`)은 4단계에서 지웠다.
+- 2단계(완료, 2026-11-12): 묶음 PR로 죽은 코드를 지웠다. A(#426) 세슘 지구본·전용 훅·`satelliteLayers`, B(#428) `cesium` 패키지·에셋 스크립트·그리기 함수.
+- 3단계(2026-11-12): 위성 전용 관측대 UI(하루 스크러버·해협 투어·리플레이·센서 칩·범례)와 녹화(`cesiumRecordClip`)를 지웠다.
+- 4단계(완료): 위성 뷰어 모드 자체를 걷어냈다. `ViewerMode`에서 `"satellite"`를 빼고(`"live"`는 lab용으로 남김), GlobeDashboard와 훅의 `isSatelliteViewer`·`viewerMode === "satellite"` 분기, 세슘 핸들(`satelliteHandle.ts`)·관측 체험/페이월(`observeAccess.ts`, `ObservePaywallOverlay`)·확인 배너(`FlyToConfirmBanner`)를 지웠다. 속보·워치보드의 「위치로 가기」(`switchToObserveAndFly`, 이름만 옛것)는 이제 모드 전환 없이 지도에서 바로 flyTo만 한다. 옛 `?mode=satellite` 링크와 저장된 위성 모드는 지정학으로 열린다. `next.config.mjs`의 `swcMinify: false`도 뺐다(Next 14 기본값 true로 복귀).
+- 4단계 뒤에 남은 것: `satellite-eye` 패키지 id(`viewPackages.ts`), 어디서도 안 쓰이는 `LiveuaFlashToast`·`LiveuaFlashParchment`·`IntelDeskTipCard`·`TheaterSitrepBook`·`LiveuaEventFocusCard` 컴포넌트와 그 상태(`theaterSitrepRegion` 등), 항상 닫히는 `incidentSpace` 사건 창, `docs/` 옛 문서의 위성 설명(문서 상단에 제거 표시를 달았다). 별도 PR로 지운다.

@@ -31,8 +31,11 @@ export type LiveuamapRegionSlot = {
 export const NATO_EAST_DAILY_CAP = 10;
 
 /**
- * 플랜 배분: UA96 Iran40 YE16 Saudi12 Pirates10 LB8 IL6 UAE6 Qatar6 (=200) NATO-E10 TW4 KR4 — 활성 슬롯(번호 있는 것) 합이 200 이하가 되게 맞춘다, 번호가 없는 슬롯은 제외.
- * 위험도 순서 = 호출 우선순위: 우크라이나 → 이란 → 중동(예멘·레바논·이스라엘) → 동유럽(발트 3국).
+ * 플랜 배분: UA96 Iran40 YE16 Saudi12 LB8 IL6 (=178) + TW12 KR10 (=200).
+ * 해운(해적 10, UAE 6, 카타르 6)은 끈다. 그 22번을 대만·한반도로 옮긴다.
+ * 북러 국방협력은 슬롯이 아니다. 한반도 속보의 병력·무기·조약 문장이 외교 칸으로 간다.
+ * 대만·한반도·발트는 지역 번호가 있을 때만 요청이 나간다.
+ * 위험도 순서 = 호출 우선순위: 우크라이나 → 이란 → 중동 → 대만 → 한반도 → 발트.
  * 한 틱에 도는 슬롯 수가 제한돼 있어 배열 순서가 곧 우선순위다.
  * 하이브리드전 분류는 전용 슬롯과 무관하게 모든 슬롯 응답에 적용된다 (hybridWarfare.ts).
  */
@@ -59,9 +62,9 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
     parseControl: true,
   },
   {
-    // 해적·해상 사건 피드(pirates.liveuamap.com) — 페르시아만 나포·피격, 소말리아·기니만. 선박 사건 스택의 핵심 출처.
+    // 해운은 끈다. 번호는 남겨 두되 호출은 0.
     id: "pirates",
-    dailyCap: 10,
+    dailyCap: 0,
     minIntervalMs: 140 * 60_000,
     theater: "middle-east",
     parseControl: false,
@@ -91,38 +94,38 @@ const BUILTIN_SLOTS: Omit<LiveuamapRegionSlot, "resid">[] = [
   },
   {
     id: "emirates",
-    dailyCap: 6,
+    dailyCap: 0,
     minIntervalMs: 4 * 60 * 60_000,
     theater: "middle-east",
     parseControl: false,
   },
   {
     id: "qatar",
-    dailyCap: 6,
+    dailyCap: 0,
     minIntervalMs: 4 * 60 * 60_000,
     theater: "middle-east",
     parseControl: false,
   },
   {
-    id: "nato-east",
-    dailyCap: NATO_EAST_DAILY_CAP,
-    // 하루 10회 — 약 2.4시간에 한 번
-    minIntervalMs: 2 * 60 * 60_000,
-    theater: "russia-ukraine",
-    parseControl: false,
-  },
-  {
     id: "taiwan",
-    dailyCap: 4,
-    minIntervalMs: 6 * 60 * 60_000,
+    dailyCap: 12,
+    minIntervalMs: 2 * 60 * 60_000,
     theater: "china-taiwan",
     parseControl: false,
   },
   {
     id: "korea",
-    dailyCap: 4,
-    minIntervalMs: 6 * 60 * 60_000,
+    dailyCap: 10,
+    minIntervalMs: 144 * 60_000,
     theater: "korea",
+    parseControl: false,
+  },
+  {
+    id: "nato-east",
+    dailyCap: NATO_EAST_DAILY_CAP,
+    // 하루 10회 — 약 2.4시간에 한 번. 대만·한반도 뒤에 둔다.
+    minIntervalMs: 2 * 60 * 60_000,
+    theater: "russia-ukraine",
     parseControl: false,
   },
 ];
@@ -181,7 +184,7 @@ export function getLiveuamapRegionSlots(): LiveuamapRegionSlot[] {
   return BUILTIN_SLOTS.map((slot) => ({
     ...slot,
     resid: resids[slot.id],
-  })).filter((slot) => slot.resid >= 0);
+  })).filter((slot) => slot.resid >= 0 && slot.dailyCap > 0);
 }
 
 export function getRegionSlot(id: LiveuamapRegionId): LiveuamapRegionSlot | null {

@@ -2,7 +2,7 @@
  * Shelved SIPRI summary ↔ public stubs.
  *
  * Usage:
- *   node scripts/publish-axis-arms.js           # restore real DB to public/
+ *   node scripts/publish-axis-arms.js           # restore real DB to src/data/sipri/
  *   node scripts/publish-axis-arms.js --unpublish  # blank stubs (no SIPRI rows)
  */
 const fs = require("fs");
@@ -11,8 +11,8 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const VENDOR = path.join(__dirname, "vendor", "sipri", "axis-arms.json");
 const TARGETS = [
-  path.join(ROOT, "public", "data", "lite", "axis-arms.json"),
-  path.join(ROOT, "public", "data", "full", "axis-arms.json"),
+  // 공개 폴더가 아니라 서버 번들 쪽 — SIPRI 조건(유저가 원본을 내려받지 못해야 함)
+  path.join(ROOT, "src", "data", "sipri", "axis-arms.json"),
 ];
 
 /** Frontend-safe empty payload — no source/citation/SIPRI fields */
@@ -41,4 +41,4 @@ for (const t of TARGETS) {
   fs.writeFileSync(t, raw);
   console.log("published", path.relative(ROOT, t));
 }
-
+

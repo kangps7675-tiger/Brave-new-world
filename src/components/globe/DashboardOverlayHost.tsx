@@ -1,6 +1,7 @@
 "use client";
 
 import { LAB_UI } from "@/lib/labFlag";
+import { AUTO_ENTRY_UX_ALERTS } from "@/lib/entryUxAlerts";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -812,7 +813,9 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
   const [futuresSpikeInsightOffer, setFuturesSpikeInsightOffer] =
     useState<SpikeTelegraphBannerOffer | null>(null);
   const { offer: tickerSpikeOffer, dismiss: dismissTickerSpike } = useDatabentoSpikeOffer(
-    gateClear && !futuresSpikeInsightOffer,
+    // 선물 급등 감지는 해운 사건 확인과 무관한 실험실 기능 — 켜 두면 1초마다 요청을 보낸다
+    // (1분에 약 53건). 첫 화면 요청 수가 91 → 38건으로 준다.
+    LAB_UI && gateClear && !futuresSpikeInsightOffer,
   );
 
   const dismissFuturesSpikeInsight = useCallback(() => {
@@ -1562,7 +1565,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             markWeeklyRecapFolded(weeklyRecap.key);
             recordInterestNews(weeklyRecap.key, weeklyRecap.title || weeklyRecap.key);
             onSetWeeklyRecapCollapsed(true);
-            if (shouldOfferTourInvite()) {
+            if (AUTO_ENTRY_UX_ALERTS && shouldOfferTourInvite()) {
               window.setTimeout(() => onSetShowTourInvite(true), 450);
             }
           }}
@@ -1606,7 +1609,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
             onSetClearanceStatus(resolveClearanceStatus(prefs));
             onSetFoldedPeriodicBriefing(periodicBriefing);
             onSetPeriodicBriefing(null);
-            if (shouldOfferTourInvite()) {
+            if (AUTO_ENTRY_UX_ALERTS && shouldOfferTourInvite()) {
               window.setTimeout(() => onSetShowTourInvite(true), 450);
             }
           }}
@@ -1697,7 +1700,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
               showFirstVisitTour,
           ),
           // 언어 게이트·양피지 준비 중엔 묻지 않는다 (첫 90초 주인공은 지도·속보)
-          ultraLiteOffer: ultraLiteOfferVisible && !showLanguageGate && !showPurposeJobGate && !showLampPreparing,
+          ultraLiteOffer: AUTO_ENTRY_UX_ALERTS && ultraLiteOfferVisible && !showLanguageGate && !showPurposeJobGate && !showLampPreparing,
           isEconomyViewer,
           entryGateOpen: entryGate !== null,
           modePickerOpen: showModePicker,
@@ -1875,7 +1878,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           typewriter={false}
           titleId="ux-guide-brief-title"
           backMark={labelLanguage === "en" ? "Guide" : "안내"}
-          backSub={"Strait Desk"}
+          backSub={"conflict-view"}
           zIndexClass="z-[900]"
         />
       ) : null}
@@ -1888,7 +1891,6 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
           onGoToLocation={onBreakingFlashGoToLocation}
           displayGrade={breakingFlashGrade}
           onDrill={onBreakingFlashDrill}
-          exitToDock={viewerMode === "satellite"}
         />
       ) : null}
 
@@ -1999,8 +2001,7 @@ export function DashboardOverlayHost(props: DashboardOverlayHostProps) {
       {!intelSheetOpen &&
       !isPhoneUi &&
       timeScrubber &&
-      viewerMode !== "history" &&
-      viewerMode !== "satellite" ? (
+      viewerMode !== "history" ? (
         <div
           className={`pointer-events-none flex flex-col items-center gap-2 cv-bottom-chrome-above-stack ${
             isCompactUi

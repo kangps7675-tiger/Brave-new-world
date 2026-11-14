@@ -4,16 +4,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { brandName } from "@/lib/brand";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 
 type Step = "idle" | "reading" | "extracting" | "saving" | "done";
 
-const STEPS: { id: Step; ko: string }[] = [
-  { id: "reading", ko: "기사 읽는 중" },
-  { id: "extracting", ko: "어디서·언제 뽑는 중" },
-  { id: "saving", ko: "결과 카드 만드는 중" },
+const STEPS: { id: Step; ko: string; en: string }[] = [
+  { id: "reading", ko: "기사 읽는 중", en: "Reading the article" },
+  { id: "extracting", ko: "어디서·언제 뽑는 중", en: "Pulling place and time" },
+  { id: "saving", ko: "결과 카드 만드는 중", en: "Building the result card" },
 ];
 
 export function InvestigateForm() {
+  const lang = useLandingLanguage();
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
@@ -26,7 +29,7 @@ export function InvestigateForm() {
     e.preventDefault();
     if (busy) return;
     if (!url.trim() && !text.trim()) {
-      setError("기사 URL 또는 본문을 넣어 주세요");
+      setError(pick(lang, "기사 URL 또는 본문을 넣어 주세요", "Paste an article URL or the body"));
       return;
     }
     setError(null);
@@ -52,7 +55,7 @@ export function InvestigateForm() {
       window.clearTimeout(tick2);
       if (!res.ok || !body.caseId) {
         setStep("idle");
-        setError(body.error || "조사에 실패했습니다");
+        setError(body.error || pick(lang, "조사에 실패했습니다", "The check failed"));
         return;
       }
       setStep("done");
@@ -63,14 +66,14 @@ export function InvestigateForm() {
       window.clearTimeout(tick);
       window.clearTimeout(tick2);
       setStep("idle");
-      setError(err instanceof Error ? err.message : "네트워크 오류");
+      setError(err instanceof Error ? err.message : pick(lang, "네트워크 오류", "Network error"));
     }
   };
 
   return (
     <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-5">
       <label className="block">
-        <span className="text-sm font-medium text-slate-200">기사 URL</span>
+        <span className="text-sm font-medium text-slate-200">{pick(lang, "기사 URL", "Article URL")}</span>
         <input
           type="url"
           inputMode="url"
@@ -85,14 +88,14 @@ export function InvestigateForm() {
 
       <label className="block">
         <span className="text-sm font-medium text-slate-200">
-          또는 본문 붙여넣기
+          {pick(lang, "또는 본문 붙여넣기", "Or paste the body")}
         </span>
         <textarea
           value={text}
           disabled={busy}
           onChange={(e) => setText(e.target.value)}
           rows={7}
-          placeholder="속보·기사 본문을 그대로 붙여 넣으세요"
+          placeholder={pick(lang, "속보·기사 본문을 그대로 붙여 넣으세요", "Paste the breaking story as it is")}
           className="mt-1.5 w-full resize-y rounded-md border border-white/15 bg-black/40 px-3 py-3 text-base leading-relaxed text-white placeholder:text-white/30 focus:border-rose-400/50 focus:outline-none focus:ring-1 focus:ring-rose-400/30 disabled:opacity-50"
         />
       </label>
@@ -124,7 +127,7 @@ export function InvestigateForm() {
                         : "bg-white/25"
                   }`}
                 />
-                {s.ko}
+                {pick(lang, s.ko, s.en)}
               </li>
             );
           })}
@@ -142,22 +145,44 @@ export function InvestigateForm() {
         disabled={busy}
         className="min-h-[48px] rounded-md border border-rose-400/50 bg-rose-500/25 px-4 py-3 text-base font-semibold text-rose-50 transition hover:bg-rose-500/35 disabled:cursor-wait disabled:opacity-55"
       >
-        {busy ? "조사 중…" : "지도로 확인하기"}
+        {busy ? pick(lang, "조사 중…", "Checking…") : pick(lang, "지도로 확인하기", "Check on the map")}
       </button>
 
       <p className="text-sm leading-relaxed text-slate-400">
-        {brandName("ko")}는 기사를 사실로 단정하지 않습니다. 장소·시각을 뽑고,
-        지도 근거가 있으면 확인·일부 확인으로 나눕니다. 근거가 없으면{" "}
-        <strong className="font-medium text-slate-300">확인 못 함</strong>으로
-        남깁니다.
+        {lang === "en" ? (
+          <>
+            {brandName("en")} does not treat an article as fact. It pulls place and time, then splits what the map can
+            confirm from what it cannot. Without evidence it stays{" "}
+            <strong className="font-medium text-slate-300">not confirmed</strong>.
+          </>
+        ) : (
+          <>
+            {brandName("ko")}는 기사를 사실로 단정하지 않습니다. 장소·시각을 뽑고,
+            지도 근거가 있으면 확인·일부 확인으로 나눕니다. 근거가 없으면{" "}
+            <strong className="font-medium text-slate-300">확인 못 함</strong>으로
+            남깁니다.
+          </>
+        )}
       </p>
 
       <p className="text-sm text-slate-500">
-        이미 있는 결과 링크가 있으면{" "}
-        <Link href="/" className="text-rose-200/80 underline underline-offset-2">
-          지구본으로
-        </Link>
-        돌아가 사건을 이어서 볼 수 있습니다.
+        {lang === "en" ? (
+          <>
+            If you already have a result link, go back to the{" "}
+            <Link href="/" className="text-rose-200/80 underline underline-offset-2">
+              globe
+            </Link>{" "}
+            and keep reading the case.
+          </>
+        ) : (
+          <>
+            이미 있는 결과 링크가 있으면{" "}
+            <Link href="/" className="text-rose-200/80 underline underline-offset-2">
+              지구본으로
+            </Link>
+            돌아가 사건을 이어서 볼 수 있습니다.
+          </>
+        )}
       </p>
     </form>
   );

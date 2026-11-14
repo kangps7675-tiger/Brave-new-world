@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 
 /**
  * 랜딩을 "힙하게" 만드는 조각들.
  *  - Grain: 화면 전체에 깔리는 필름 노이즈 + 아주 옅은 주사선
- *  - MegaMarquee: 해협 이름이 거대한 외곽선 글자로 흐르고, 스크롤 속도에 따라 빨라지며 기운다
+ *  - MegaMarquee: 속보 확인 단계가 거대한 외곽선 글자로 흐르고, 스크롤 속도에 따라 빨라지며 기운다
  *  - Magnetic: 버튼이 커서 쪽으로 끌려온다
  *  - StraitRail: 세로 스크롤을 가로 이동으로 바꿔 해협 카드를 한 장씩 넘긴다(고정 + 가로 스크롤)
  * 모두 CSS 변수·transform만 바꾼다. 동작 줄이기 설정이면 전부 멈추거나 일반 배치로 돌아간다.
@@ -41,18 +43,18 @@ export function Grain() {
   return <div aria-hidden="true" className="landing-grain pointer-events-none fixed inset-[-12%]" />;
 }
 
-/** 랜딩 아래 해협 카드(StraitRail)와 같은 6곳 — 영문은 크게, 한글 이름은 옆에 작게 */
+/** 속보가 확인되기까지의 말들 — 영문은 크게, 한글 뜻은 옆에 작게 */
 const MEGA: { en: string; ko: string }[] = [
-  { en: "HORMUZ", ko: "호르무즈 해협" },
-  { en: "BAB EL-MANDEB", ko: "바브엘만데브 해협" },
-  { en: "SUEZ", ko: "수에즈 운하" },
-  { en: "MALACCA", ko: "말라카 해협" },
-  { en: "TAIWAN STRAIT", ko: "대만해협" },
-  { en: "BOSPORUS", ko: "튀르키예 해협 · 흑해 입구" },
+  { en: "BREAKING", ko: "속보" },
+  { en: "SOURCE", ko: "출처" },
+  { en: "CROSS-CHECK", ko: "교차검증" },
+  { en: "CONFIRMED", ko: "확인" },
+  { en: "LIKELY", ko: "유력" },
+  { en: "NO DATA", ko: "자료 없음" },
 ];
 
 /**
- * 거대한 외곽선 글자 띠 = 서비스가 지켜보는 해운 길목 이름. 무엇인지 알 수 있게 위에 제목, 단어마다 한글 이름을 붙인다.
+ * 거대한 외곽선 글자 띠 = 속보가 확인되는 순서의 말들. 위에 한 줄 설명을 달고, 단어마다 한글 뜻을 붙인다.
  * 기본으로 천천히 흐르고, 스크롤을 빨리 할수록 빨라지며 진행 방향으로 기운다.
  */
 export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
@@ -88,18 +90,26 @@ export function MegaMarquee({ reverse = false }: { reverse?: boolean }) {
     s.lastTop = top;
     s.vel = Math.max(-2, Math.min(2, s.vel + d * 0.004));
   });
+  const lang = useLandingLanguage();
   const words = [...MEGA, ...MEGA];
   return (
     <div className="py-6">
       <p className="mx-auto mb-3 max-w-[1200px] px-6 text-sm font-semibold text-[#8fa3b1]">
-        <span className="text-[#f5c451]">●</span> Strait Desk가 지켜보는 해운 길목 6곳 — {MEGA.map((m) => m.ko.split(" · ")[0]).join(", ")}
+        <span className="text-[#f5c451]">●</span>{" "}
+        {pick(
+          lang,
+          "속보가 들어오면 출처를 모으고, 서로 맞춰 보고, 확인 상태를 붙입니다",
+          "An alert comes in, sources are gathered and compared, and a status is attached",
+        )}
       </p>
       <div aria-hidden="true" className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
         <div ref={trackRef} className="flex w-max will-change-transform">
           {words.map((w, i) => (
             <span key={`${w.en}-${i}`} className="flex items-center whitespace-nowrap pr-10">
               <span className="landing-outline text-[clamp(56px,10vw,150px)] font-black uppercase leading-none tracking-[0.01em]">{w.en}</span>
-              <span className="ml-4 self-end pb-[0.6em] text-[clamp(15px,1.4vw,20px)] font-bold text-[#c9d5dd]">{w.ko}</span>
+              {lang === "ko" ? (
+                <span className="ml-4 self-end pb-[0.6em] text-[clamp(15px,1.4vw,20px)] font-bold text-[#c9d5dd]">{w.ko}</span>
+              ) : null}
               <span className="ml-10 inline-block h-4 w-4 rounded-full bg-[#f5c451]" />
             </span>
           ))}
@@ -142,6 +152,7 @@ export type StraitCard = { slug: string; name: string; en: string; what: string;
  * 휴대폰·동작 줄이기에서는 그냥 가로로 넘겨 보는 목록이다.
  */
 export function StraitRail({ cards, heading }: { cards: StraitCard[]; heading: ReactNode }) {
+  const lang = useLandingLanguage();
   const outerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [pin, setPin] = useState(false);
@@ -178,7 +189,7 @@ export function StraitRail({ cards, heading }: { cards: StraitCard[]; heading: R
               <Link
                 key={c.slug}
                 href={`/chokepoints/${c.slug}`}
-                data-reticle="열기"
+                data-reticle={pick(lang, "열기", "Open")}
                 className="group relative flex h-[min(56vh,420px)] w-[min(78vw,380px)] flex-none snap-start flex-col justify-between overflow-hidden rounded-2xl border border-white/12 bg-[#0a141f] p-7 text-white no-underline transition-colors hover:border-[#f5c451]/70"
               >
                 <span aria-hidden="true" className="landing-outline pointer-events-none absolute -bottom-8 -right-3 text-[170px] font-black leading-none opacity-30 transition-opacity group-hover:opacity-70">
@@ -192,7 +203,7 @@ export function StraitRail({ cards, heading }: { cards: StraitCard[]; heading: R
                   <span className="block text-[17px] font-semibold text-[#f5c451]">{c.stat}</span>
                   <span className="mt-2 block text-[15px] leading-relaxed text-[#a3b3bf]">{c.what}</span>
                   <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-white">
-                    해협 안내 열기 <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+                    {pick(lang, "전선 안내 열기", "Open the front brief")} <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
                   </span>
                 </span>
               </Link>

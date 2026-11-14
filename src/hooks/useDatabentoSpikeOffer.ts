@@ -40,6 +40,8 @@ export function useDatabentoSpikeOffer(enabled: boolean): {
 
   const refresh = useCallback(async () => {
     if (!enabledRef.current) return;
+    // 탭이 가려져 있으면 폴링하지 않는다
+    if (typeof document !== "undefined" && document.hidden) return;
     try {
       const res = await fetch("/api/stock-tickers/futures-live", {
         cache: "no-store",
@@ -47,11 +49,17 @@ export function useDatabentoSpikeOffer(enabled: boolean): {
       const payload = (await res.json()) as FuturesLiveResponse;
       if (!res.ok || payload.available === false) return;
       if (Array.isArray(payload.tickers) && payload.tickers.length > 0) {
-        setTickers(
-          payload.tickers.map((t) => ({
-            symbol: t.symbol,
-            changePercent: t.changePercent,
-          })),
+        const next = payload.tickers.map((t) => ({
+          symbol: t.symbol,
+          changePercent: t.changePercent,
+        }));
+        // 값이 그대로면 상태를 바꾸지 않는다 — 매초 리렌더 방지
+        setTickers((prev) =>
+          prev &&
+          prev.length === next.length &&
+          prev.every((p, i) => p.symbol === next[i]!.symbol && p.changePercent === next[i]!.changePercent)
+            ? prev
+            : next,
         );
       }
     } catch {

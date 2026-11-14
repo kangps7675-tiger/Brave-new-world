@@ -1,5 +1,6 @@
 "use client";
 
+import type { MissileRangeFeatureCollection } from "@/lib/missileRange";
 import type { MutableRefObject } from "react";
 import type { FeatureCollection } from "geojson";
 import type { PausedMapGlobeProps } from "@/components/globe/PausedMapGlobeView";
@@ -153,6 +154,8 @@ export interface UseGlobeMapGlobePropsParams {
   ultraLite: boolean;
   mapInteractiveLayerIds: readonly string[];
   showIslandChains: boolean;
+  /** 열린 속보의 미사일 사거리(발사 글에서 기종이 읽힐 때만) */
+  missileRangeFc: MissileRangeFeatureCollection | null;
   configureGlobe: () => void;
   handleGlobeMouseMove: (coords: { lat: number; lng: number } | null) => void;
   tensionHeatmaps: TensionHeatmapLayer[];
@@ -163,6 +166,8 @@ export interface UseGlobeMapGlobePropsParams {
   eventCallout: unknown;
   onDismissEventCallout: () => void;
   onLiveuaStrikeClick: (item: unknown) => void;
+  flashNeonData: unknown[];
+  onFlashNeonClick: (id: string) => void;
   viewState: ViewState;
   basemapTone: BasemapTone;
   firmsCombatFireIds: string[];
@@ -251,6 +256,7 @@ export function useGlobeMapGlobeProps(
     ultraLite,
     mapInteractiveLayerIds,
     showIslandChains,
+    missileRangeFc,
     configureGlobe,
     handleGlobeMouseMove,
     tensionHeatmaps,
@@ -261,6 +267,8 @@ export function useGlobeMapGlobeProps(
     eventCallout,
     onDismissEventCallout,
     onLiveuaStrikeClick,
+    flashNeonData,
+    onFlashNeonClick,
     viewState,
     basemapTone,
     firmsCombatFireIds,
@@ -343,6 +351,7 @@ export function useGlobeMapGlobeProps(
     showCityLabels: historyOn ? false : showCityLabels,
     interactiveLayerIds: mapInteractiveLayerIds,
     showIslandChains: historyOn ? false : showIslandChains,
+    missileRangeFc: historyOn ? null : missileRangeFc,
     onGlobeReady: configureGlobe,
     onGlobeMouseMove: handleGlobeMouseMove,
     heatmapsData: historyOn ? [] : tensionHeatmaps,
@@ -365,6 +374,8 @@ export function useGlobeMapGlobeProps(
     firmsFiresData: historyOn ? [] : firmsDisplayPoints,
     liveuaStrikesData: historyOn ? [] : liveuaStrikesMapData,
     onLiveuaStrikeClick,
+    flashNeonData: historyOn ? [] : flashNeonData,
+    onFlashNeonClick,
     eventCallout,
     onDismissEventCallout,
     firmsLat: (fire: FirmsFireGlobePoint) => fire.lat,

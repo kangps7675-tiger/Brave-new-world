@@ -1,6 +1,6 @@
 # Data license policy
 
-Strait Desk separates its data into three classes.
+conflict-view separates its data into three classes.
 The catalog field is `dataLicense` in `src/data/sourceCatalog.ts`.
 
 | Class | `dataLicense` | What it covers |

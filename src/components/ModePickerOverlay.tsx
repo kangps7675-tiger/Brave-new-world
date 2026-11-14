@@ -27,7 +27,7 @@ type ModePickerOverlayProps = {
   onCancel?: () => void;
 };
 
-const MODES: ViewerMode[] = ["conflict", "satellite", "economy"];
+const MODES: ViewerMode[] = ["conflict", "economy"];
 
 function layerHoverTitle(
   mode: ViewerMode,
@@ -119,7 +119,7 @@ export function ModePickerOverlay({
         </p>
 
         {!lockMode ? (
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {MODES.map((m) => {
               const preset = MODE_PICKER_CHROME[m][lang];
               const active = mode === m;
@@ -128,13 +128,9 @@ export function ModePickerOverlay({
                   ? active
                     ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-50"
                     : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500"
-                  : m === "satellite"
-                    ? active
-                      ? "border-teal-400/50 bg-teal-500/10 text-teal-50"
-                      : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500"
-                    : active
-                      ? "border-rose-400/50 bg-rose-500/10 text-rose-50"
-                      : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500";
+                  : active
+                    ? "border-rose-400/50 bg-rose-500/10 text-rose-50"
+                    : "border-slate-700/80 bg-black/20 text-slate-200 hover:border-slate-500";
               return (
                 <button
                   key={m}
@@ -152,9 +148,7 @@ export function ModePickerOverlay({
                           className={
                             m === "economy"
                               ? "text-emerald-300/80"
-                              : m === "satellite"
-                                ? "text-teal-300/80"
-                                : "text-rose-300/80"
+                              : "text-rose-300/80"
                           }
                         >
                           ·

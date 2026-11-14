@@ -34,6 +34,15 @@ export const WAR_RISK_REGION_LABEL_KO: Record<WarRiskRegionId, string> = {
   other: "기타 해역",
 };
 
+export const WAR_RISK_REGION_LABEL_EN: Record<WarRiskRegionId, string> = {
+  "red-sea": "Red Sea · Gulf of Aden",
+  hormuz: "Hormuz · Gulf",
+  "black-sea": "Black Sea",
+  "taiwan-strait": "Taiwan Strait",
+  malacca: "Malacca",
+  other: "Other waters",
+};
+
 /** 해역 → 초크포인트 문서 페이지 */
 export const WAR_RISK_REGION_PAGE: Partial<Record<WarRiskRegionId, string>> = {
   "red-sea": "/chokepoints/bab-el-mandeb",

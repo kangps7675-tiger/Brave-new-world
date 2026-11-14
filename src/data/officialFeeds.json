@@ -1,0 +1,244 @@
+[
+  {
+    "issuerId": "us",
+    "url": "https://www.state.gov/rss-feed/press-releases/feed/",
+    "label": "미국 국무부 보도자료·성명"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.whitehouse.gov/news/feed/",
+    "label": "백악관 발표·팩트시트"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=9&Site=945&max=10",
+    "label": "미국 국방부 발표·회담 요약 (본문은 직접 입력)"
+  },
+  {
+    "issuerId": "ru",
+    "url": "http://en.kremlin.ru/events/president/news/feed",
+    "label": "크렘린 대통령 일정·발표"
+  },
+  {
+    "issuerId": "tr",
+    "url": "https://www.mfa.gov.tr/en.rss.mfa?ad9093da-8e71-4678-a1b6-05f297baadc4",
+    "label": "튀르키예 외교부 성명·공동성명"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.auswaertiges-amt.de/static/includes/rss_en/RSS_Pressemitteilungen_Reden.xml",
+    "label": "독일 외무부 보도자료·연설"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.auswaertiges-amt.de/static/includes/rss_en/RSS_Aktuelle_Artikel.xml",
+    "label": "독일 외무부 기사"
+  },
+  {
+    "issuerId": "it",
+    "url": "https://www.esteri.it/en/feed/",
+    "label": "이탈리아 외무부 발표"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Btype%5D%5B%5D=PRESDOCU&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 대통령 문서(행정명령·포고문·메모)",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=foreign-assets-control-office&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 재무부 해외자산통제국(OFAC) 제재·지정",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=industry-and-security-bureau&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 상무부 산업안보국(BIS) 수출통제·엔티티 리스트",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=state-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 국무부 고시·제재",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=defense-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 국방부 규칙·고시",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=justice-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 법무부 규칙·고시",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bagencies%5D%5B%5D=homeland-security-department&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 국토안보부 규칙·고시",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "in",
+    "url": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3",
+    "label": "인도 PIB · 전 부처 보도자료"
+  },
+  {
+    "issuerId": "gb",
+    "url": "https://www.gov.uk/government/organisations/foreign-commonwealth-development-office.atom",
+    "label": "영국 외무·영연방·개발부(FCDO)"
+  },
+  {
+    "issuerId": "gb",
+    "url": "https://www.gov.uk/government/organisations/ministry-of-defence.atom",
+    "label": "영국 국방부"
+  },
+  {
+    "issuerId": "gb",
+    "url": "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street.atom",
+    "label": "영국 총리실"
+  },
+  {
+    "issuerId": "eu",
+    "url": "https://www.europarl.europa.eu/rss/doc/press-releases/en.xml",
+    "label": "유럽의회 보도자료"
+  },
+  {
+    "issuerId": "eu",
+    "url": "https://ec.europa.eu/commission/presscorner/api/rss?language=en",
+    "label": "유럽집행위 프레스코너"
+  },
+  {
+    "issuerId": "un",
+    "url": "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
+    "label": "유엔 뉴스"
+  },
+  {
+    "issuerId": "iaea",
+    "url": "https://www.iaea.org/feeds/topnews",
+    "label": "IAEA 주요 소식"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=semiconductor&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 반도체 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=advanced%20computing&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 첨단 컴퓨팅·AI 칩 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=critical%20minerals&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 핵심광물 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=defense%20industrial%20base&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 방위산업 기반 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=export%20controls&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 수출통제 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=foreign%20adversary&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 적성국(ICTS·커넥티드카·통신장비) 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=outbound%20investment&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 대외투자 심사 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=unmanned%20aircraft%20systems&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 드론 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=Section%20232&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 232조 안보 관세 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "us",
+    "url": "https://www.federalregister.gov/api/v1/documents.json?per_page=40&order=newest&conditions%5Bterm%5D=shipbuilding&fields%5B%5D=title&fields%5B%5D=html_url&fields%5B%5D=publication_date&fields%5B%5D=abstract&fields%5B%5D=type&fields%5B%5D=agencies",
+    "label": "미국 연방관보 · 조선 관련 문서",
+    "format": "federal-register"
+  },
+  {
+    "issuerId": "ua",
+    "url": "https://www.president.gov.ua/en/rss/news/all.rss",
+    "label": "우크라이나 대통령실 · 전체 소식"
+  },
+  {
+    "issuerId": "ua",
+    "url": "https://www.president.gov.ua/en/rss/documents/all.rss",
+    "label": "우크라이나 대통령실 · 대통령령·문서"
+  },
+  {
+    "issuerId": "ua",
+    "url": "https://www.president.gov.ua/en/rss/news/speeches.rss",
+    "label": "우크라이나 대통령 연설"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.bundesregierung.de/service/rss/breg-de/1151242/feed.xml",
+    "label": "독일 연방정부 · 보도자료·기사·연설 모음"
+  },
+  {
+    "issuerId": "de",
+    "url": "https://www.bundesregierung.de/service/rss/breg-de/1151244/feed.xml",
+    "label": "독일 연방정부 · 보도자료"
+  },
+  {
+    "issuerId": "ru",
+    "url": "https://www.mid.ru/en/rss.php",
+    "label": "러시아 외무부 영문 Atom 피드"
+  },
+  {
+    "issuerId": "au",
+    "url": "https://www.foreignminister.gov.au/rss.xml",
+    "label": "호주 외교장관(페니 웡) 보도자료"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://president.ir/en/rss/all",
+    "label": "이란 대통령실 소식(영문)"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://en.irna.ir/rss",
+    "label": "이란 국영통신 IRNA(영문, 국영 매체 보도)"
+  },
+  {
+    "issuerId": "lv",
+    "url": "https://www.mfa.gov.lv/en/rss/articles",
+    "label": "라트비아 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "fi",
+    "url": "https://um.fi/o/rss?dctype=asset&lang=en_US&aid=gc654PySnjTX&plid=709011",
+    "label": "핀란드 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "md",
+    "url": "https://mfa.gov.md/en/press/feed.xml",
+    "label": "몰도바 외교부 보도자료(영문)"
+  }
+]

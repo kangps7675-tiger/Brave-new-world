@@ -102,6 +102,20 @@ export function seaStateKo(hsM: number | null): string | null {
   return "극심한 바다";
 }
 
+/** Douglas sea state in English, same bands as seaStateKo. */
+export function seaStateEn(hsM: number | null): string | null {
+  if (hsM == null || !Number.isFinite(hsM)) return null;
+  if (hsM < 0.1) return "calm";
+  if (hsM < 0.5) return "smooth";
+  if (hsM < 1.25) return "slight";
+  if (hsM < 2.5) return "moderate";
+  if (hsM < 4) return "rough";
+  if (hsM < 6) return "very rough";
+  if (hsM < 9) return "high";
+  if (hsM < 14) return "very high";
+  return "phenomenal";
+}
+
 /** 보퍼트 풍력 계급 (m/s) */
 export function beaufort(windMs: number | null): number | null {
   if (windMs == null || !Number.isFinite(windMs)) return null;

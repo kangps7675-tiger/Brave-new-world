@@ -7,7 +7,7 @@ import { t } from "@/lib/uiStrings";
 import { zc } from "@/lib/uiStack";
 
 /** 언어 직후 목적(Job) — ViewerMode id와 맞추되 ask/browse는 별도 */
-export type PurposeJobId = "maritime" | "conflict" | "satellite" | "economy" | "ask" | "browse";
+export type PurposeJobId = "maritime" | "conflict" | "economy" | "ask" | "browse";
 
 type PurposeJobOverlayProps = {
   lang: LabelLanguage;
@@ -20,10 +20,9 @@ type PurposeJobOverlayProps = {
 const JOBS: Array<{
   id: Exclude<PurposeJobId, "browse">;
   icon: string;
-  titleKey: "purposeJobConflict" | "purposeJobSatellite" | "purposeJobEconomy" | "purposeJobAsk";
+  titleKey: "purposeJobConflict" | "purposeJobEconomy" | "purposeJobAsk";
   hintKey:
     | "purposeJobConflictHint"
-    | "purposeJobSatelliteHint"
     | "purposeJobEconomyHint"
     | "purposeJobAskHint";
 }> = [
@@ -32,12 +31,6 @@ const JOBS: Array<{
     icon: "⚔",
     titleKey: "purposeJobConflict",
     hintKey: "purposeJobConflictHint",
-  },
-  {
-    id: "satellite",
-    icon: "🛰",
-    titleKey: "purposeJobSatellite",
-    hintKey: "purposeJobSatelliteHint",
   },
   {
     id: "economy",

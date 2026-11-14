@@ -5,10 +5,8 @@ import type { TrackedAircraft } from "@/lib/adsbClient";
 import {
   AIR_RAID_FLY_MS,
   AIR_RAID_SIREN_MS,
-  playAirRaidSirenAfterFly,
 } from "@/lib/airRaidFocus";
 import { emergencySquawkLabel, normalizeSquawk } from "@/lib/adsbEmergency";
-import { readSoundEnabled } from "@/lib/soundPrefs";
 import { visibleInterval } from "@/lib/visibleInterval";
 
 export type AdsbEmergencyOffer = {
@@ -35,7 +33,6 @@ type Options = {
    * 아무것도 안 보이므로, 자동 fly·사이렌 없이 배너만 띄우고 "관측 모드로 이동"은
    * GlobeDashboard가 배너의 액션 버튼으로 처리한다.
    */
-  isSatelliteViewer: boolean;
   /** Optional: open aircraft in analysis panel */
   onSelectAircraft?: (aircraft: TrackedAircraft) => void;
 };
@@ -49,7 +46,6 @@ const POLL_MS = 45_000;
 export function useAdsbEmergencyAlert({
   paused,
   flyTo,
-  isSatelliteViewer,
   onSelectAircraft,
 }: Options) {
   const [offer, setOffer] = useState<AdsbEmergencyOffer | null>(null);
@@ -58,8 +54,6 @@ export function useAdsbEmergencyAlert({
   const busyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flyToRef = useRef(flyTo);
   flyToRef.current = flyTo;
-  const isSatelliteViewerRef = useRef(isSatelliteViewer);
-  isSatelliteViewerRef.current = isSatelliteViewer;
   const onSelectRef = useRef(onSelectAircraft);
   onSelectRef.current = onSelectAircraft;
 
@@ -108,17 +102,6 @@ export function useAdsbEmergencyAlert({
         busyRef.current = true;
 
         const squawk = normalizeSquawk(fresh.squawk) ?? "7700";
-
-        // 관측(Cesium) 모드일 때만 즉시 fly+사이렌 — 다른 모드에선 엔티티가 안 보여서
-        // 카메라만 움직이는 건 의미가 없다. 배너의 "관측 모드로 이동" 버튼이 대신한다.
-        if (isSatelliteViewerRef.current) {
-          flyToRef.current(fresh.lat, fresh.lng, 0.55, AIR_RAID_FLY_MS, {
-            pitch: 42,
-            bearing: -8,
-          });
-          playAirRaidSirenAfterFly("tzeva", AIR_RAID_FLY_MS, () => readSoundEnabled());
-          onSelectRef.current?.(fresh);
-        }
 
         setOffer({
           key: `${fresh.hex}-${Date.now()}`,

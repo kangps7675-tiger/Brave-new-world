@@ -1,4 +1,4 @@
-# Strait Desk 종합 프로젝트 리포트
+# conflict-view 종합 프로젝트 리포트
 
 > 작성일: 2026-09-06 · 작성 근거: 저장소 `Confilct-view-dev`(nested repo, `github.com/kangps7675-tiger/Strait-Desk`) 코드·문서 실측 + 프로젝트 메모리 7건 종합
 > 목적: 여기저기 흩어져 있던 구상(코드 주석, docs/*.md 30여 건, 세션별 결정)을 타깃 · DB · UI/UX · 킬러콘텐츠 · 기능 축으로 한 번에 정리한다.
@@ -26,7 +26,7 @@
 | 항목 | 내용 |
 |---|---|
 | npm 패키지명 | `strait-desk` (v0.2.0) |
-| 사용자 브랜드 | Strait Desk |
+| 사용자 브랜드 | conflict-view |
 | 저장소 | `Confilct-view-dev/Confilct-view-dev`(중첩 폴더, 바깥쪽은 구버전 잔재) · GitHub `kangps7675-tiger/Strait-Desk` |
 | 스택 | Next.js 14.2 (App Router) · React 18 · TypeScript · MapLibre GL 6 + react-map-gl 8 · deck.gl 9(GL 오버레이) · Tailwind CSS |
 | 배포 | Cloudflare Workers (`opennextjs-cloudflare` 빌드) — Workers 이름 `confilct-view` |

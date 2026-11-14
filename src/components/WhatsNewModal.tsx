@@ -42,7 +42,7 @@ export function WhatsNewModal({ lang, update, onDismiss, onCta }: Props) {
           : "You can open play anytime from the ▶ button bottom-right."
       }
       backMark={ko ? "새 소식" : "What's new"}
-      backSub={"Strait Desk"}
+      backSub={"conflict-view"}
       ctaLabel={
         wantsPlay
           ? ko

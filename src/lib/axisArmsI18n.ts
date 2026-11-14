@@ -1,4 +1,5 @@
 import { AXIS_NODES } from "@/data/axisNetwork";
+import { ARMS_NON_STATE_ACTORS } from "@/data/armsActors";
 import type { LabelLanguage } from "@/lib/layerPrefs";
 
 /** SIPRI Trade Register 카테고리 → 한국어 */
@@ -51,6 +52,8 @@ const CITATION_EN =
   "SIPRI Arms Transfers Database © SIPRI. https://www.sipri.org/databases/armstransfers · Hub-filtered summary; cross-check SIPRI originals for research.";
 
 export function armsCountryName(code: string, lang: LabelLanguage): string {
+  const actor = ARMS_NON_STATE_ACTORS[code];
+  if (actor) return lang === "en" ? actor.nameEn : actor.nameKo;
   const node = AXIS_NODES[code];
   if (!node) return code;
   return lang === "en" ? node.nameEn : node.nameKo;

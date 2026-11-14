@@ -107,7 +107,7 @@ function PhotoNewsLampParchment({
   const parchmentStack =
     lang === "en"
       ? "var(--font-intel)"
-      : 'var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang", serif';
+      : 'var(--font-letter-hand), "Nanum Myeongjo", Batang, serif';
   /** 등불 글자 — 전부 검정 */
   const articleInk = "#000000";
   const articleInkMuted = "#000000";

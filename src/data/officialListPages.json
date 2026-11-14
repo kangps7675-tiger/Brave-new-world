@@ -1,0 +1,147 @@
+[
+  {
+    "issuerId": "nato",
+    "url": "https://www.nato.int/cps/en/natohq/official_texts.htm",
+    "label": "나토 공식 문서 목록"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://en.mofa.gov.tw/",
+    "label": "대만 외교부 첫 화면 소식"
+  },
+  {
+    "issuerId": "fr",
+    "url": "https://www.diplomatie.gouv.fr/en/press/news",
+    "label": "프랑스 외교부 소식"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.mofa.go.kr/eng/brd/m_5676/list.do",
+    "label": "한국 외교부 영문 보도자료"
+  },
+  {
+    "issuerId": "jp",
+    "url": "https://japan.kantei.go.jp/",
+    "label": "일본 총리관저 성명·연설"
+  },
+  {
+    "issuerId": "fr",
+    "url": "https://www.elysee.fr/toutes-les-actualites",
+    "label": "프랑스 대통령실(엘리제) 소식"
+  },
+  {
+    "issuerId": "cn",
+    "url": "https://www.fmprc.gov.cn/eng/xw/zyxw/",
+    "label": "중국 외교부 주요 소식(Top Stories)"
+  },
+  {
+    "issuerId": "ir",
+    "url": "https://en.mfa.ir/portal/newsarchive/699",
+    "label": "이란 외무부 성명(Statements) 보관함"
+  },
+  {
+    "issuerId": "jp",
+    "url": "https://www.mofa.go.jp/press/release/index.html",
+    "label": "일본 외무성 보도발표"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.mofa.go.kr/www/brd/m_4080/list.do",
+    "label": "한국 외교부 국문 보도자료"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.mnd.go.kr/mnd/167/subview.do",
+    "label": "한국 국방부 보도자료"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://www.mnd.gov.tw/en/news/PlaactList",
+    "label": "대만 국방부 · 중국 군 활동 일일 발표"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://www.mnd.gov.tw/en/news/PressReleaseList",
+    "label": "대만 국방부 보도자료"
+  },
+  {
+    "issuerId": "kr",
+    "url": "https://www.jcs.mil.kr/jcs2/4752/subview.do",
+    "label": "한국 합참 보도자료"
+  },
+  {
+    "issuerId": "jp",
+    "url": "https://www.mod.go.jp/j/press/news/index.html",
+    "label": "일본 방위성 새 소식"
+  },
+  {
+    "issuerId": "cn",
+    "url": "http://www.mod.gov.cn/gfbw/xwfyr/fyrthhdjzw/index.html",
+    "label": "중국 국방부 대변인 담화·기자 질문 답변(중문)"
+  },
+  {
+    "issuerId": "cn",
+    "url": "https://www.mfa.gov.cn/eng/xw/fyrbt/lxjzh/",
+    "label": "중국 외교부 정례 브리핑(Regular Press Conferences)"
+  },
+  {
+    "issuerId": "in",
+    "url": "https://www.mea.gov.in/FrontEnd/FetchPublicationListingData?publicationId=51&KeywordName=&SortBy=new&page=1&PageSize=20&DateRange=&IsInternalMEA=false&PLngId=1",
+    "label": "인도 외교부(MEA) 보도자료"
+  },
+  {
+    "issuerId": "au",
+    "url": "https://www.defence.gov.au/news-events/releases",
+    "label": "호주 국방부 보도자료"
+  },
+  {
+    "issuerId": "sa",
+    "url": "https://www.mofa.gov.sa/en/ministry/statements/Pages/default.aspx",
+    "label": "사우디 외교부 성명"
+  },
+  {
+    "issuerId": "sa",
+    "url": "https://www.mofa.gov.sa/en/ministry/news/Pages/default.aspx",
+    "label": "사우디 외교부 소식(장관 면담·회담)"
+  },
+  {
+    "issuerId": "pk",
+    "url": "https://mofa.gov.pk/press-releases",
+    "label": "파키스탄 외교부 보도자료·대변인 브리핑"
+  },
+  {
+    "issuerId": "qa",
+    "url": "https://mofa.gov.qa/en/latest-articles/statements",
+    "label": "카타르 외교부 성명"
+  },
+  {
+    "issuerId": "qa",
+    "url": "https://mofa.gov.qa/en/all-mofa-news",
+    "label": "카타르 외교부 소식(총리 겸 외교장관 면담·회담)"
+  },
+  {
+    "issuerId": "ua",
+    "url": "https://mfa.gov.ua/timeline?&type=posts",
+    "label": "우크라이나 외교부 소식(우크라이나어)"
+  },
+  {
+    "issuerId": "pl",
+    "url": "https://www.gov.pl/web/diplomacy/news-",
+    "label": "폴란드 외교부 소식(영문)"
+  },
+  {
+    "issuerId": "pl",
+    "url": "https://www.gov.pl/web/national-defence/news",
+    "label": "폴란드 국방부 소식(영문)"
+  },
+  {
+    "issuerId": "tw",
+    "url": "https://english.president.gov.tw/",
+    "label": "대만 총통부 소식(영문 첫 화면)"
+  },
+  {
+    "issuerId": "cn",
+    "url": "https://english.mofcom.gov.cn/api-gateway/jpaas-publish-server/front/page/build/unit?parseType=bulidstatic&webId=6c75aaf37b20474fb2ff8831451b51a0&tplSetId=coGxHOTsUcFSE5XydHHhN&pageType=column&tagId=%E4%BF%A1%E6%81%AF%E5%88%97%E8%A1%A8&editType=null&pageId=MUKS1cCFmT39NDRQgDYop",
+    "label": "중국 상무부 대변인 발표(Spokesman's Remarks)"
+  }
+]

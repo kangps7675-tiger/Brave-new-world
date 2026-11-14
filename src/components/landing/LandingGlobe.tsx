@@ -3,14 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { geoGraticule10, geoInterpolate, geoOrthographic, geoPath, type GeoPermissibleObjects } from "d3-geo";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 import { useScrollProgress } from "@/components/landing/LandingMotion";
 
 /**
- * 랜딩 첫 화면의 돌아가는 지구본 — One Page Love의 DCS AML(천천히 도는 지구본)과
- * World Pollution(누를 수 있는 지점)을 섞었다.
+ * 랜딩 첫 화면의 돌아가는 지구본 — 세계 곳곳의 분쟁 구도를 보여 주고,
+ * 3초마다 콜아웃이 다른 사건을 조준한다(영토·전선·분쟁 지역 예시).
  *
- * 해운 길목 6곳을 차례로 찾아가며 그 바다에서 지구본이 무엇을 보여 주는지 카드로 설명한다.
  * 점을 누르거나 아래 칩을 누르면 그곳으로 돌아가고, 끌어서 직접 돌릴 수도 있다.
+ * 실제 속보 데이터가 아니라 대표 분쟁 지역을 고른 연출이다(캡션에 밝힌다).
  *
  * WebGL이 아니라 2D 캔버스다. 이 랜딩은 실제 지구본(MapLibre)이 아래에서 부팅하는 동안 덮여 있으므로
  * GPU를 다투지 않게 가볍게 그린다. 화면 밖이거나 탭이 숨으면 멈춘다.
@@ -19,64 +21,143 @@ import { useScrollProgress } from "@/components/landing/LandingMotion";
 export type Hotspot = {
   id: string;
   name: string;
+  kind: string;
   lng: number;
   lat: number;
   why: string;
   see: string;
 };
 
+/** 대표 분쟁 지역 8곳. 설명은 시점이 바뀌어도 틀리지 않을 구조적 사실만 적는다. */
 export const HOTSPOTS: Hotspot[] = [
   {
-    id: "hormuz",
-    name: "호르무즈 해협",
-    lng: 56.3,
-    lat: 26.6,
-    why: "페르시아만 원유·LNG가 나가는 사실상 유일한 출구입니다. 세계 원유 소비량의 약 5분의 1이 지나갑니다.",
-    see: "유조선 위치 · 해상 피습 경보 · 걸프 정유소에 떨어진 드론·미사일",
+    id: "ukraine",
+    name: "우크라이나 동부 전선",
+    kind: "전선",
+    lng: 37.8,
+    lat: 48.0,
+    why: "2022년 전면전 이후 양쪽이 참호와 드론으로 맞서는 전선입니다. 어느 마을을 누가 쥐고 있는지가 속보마다 바뀝니다.",
+    see: "점령 지역 붉은 면 · 타격 불꽃 · 전선 속보",
   },
   {
-    id: "bab",
-    name: "바브엘만데브 해협",
-    lng: 43.4,
-    lat: 12.6,
-    why: "홍해와 수에즈 운하로 들어가는 입구입니다. 이곳이 위험해지면 배들이 희망봉으로 돌아가 1~2주가 더 걸립니다.",
-    see: "후티 공격 경보 · 주변 상선과 군함 · 전쟁위험 보험료 보도",
+    id: "gaza",
+    name: "가자·레바논 접경",
+    kind: "무력 충돌",
+    lng: 34.6,
+    lat: 31.5,
+    why: "이스라엘과 무장세력이 좁은 땅을 사이에 두고 공습과 로켓을 주고받는 곳입니다. 주변국으로 번질지가 늘 관건입니다.",
+    see: "공습·로켓 속보 · 주변 군 움직임",
   },
   {
-    id: "blacksea",
-    name: "흑해",
-    lng: 34.5,
-    lat: 43.6,
-    why: "우크라이나와 러시아의 곡물·원유가 세계로 나가는 바다입니다.",
-    see: "항구·유조선 타격 불꽃 · 우크라이나 점령 지역 · 해상 드론 속보",
+    id: "sudan",
+    name: "수단 내전",
+    kind: "내전",
+    lng: 32.5,
+    lat: 15.6,
+    why: "정부군과 준군사조직이 수도 하르툼을 비롯한 도시를 두고 싸우는 내전입니다. 피란민 규모가 세계에서 손꼽힙니다.",
+    see: "교전 지역 속보 · 열 감지 위성 불꽃",
   },
   {
-    id: "suez",
-    name: "수에즈 운하",
-    lng: 32.4,
-    lat: 30.5,
-    why: "아시아와 유럽을 잇는 가장 짧은 바닷길입니다. 홍해 쪽 위험이 그대로 이어집니다.",
-    see: "운하 접근 해역의 배 위치 · 홍해 사건과 같은 흐름",
+    id: "kashmir",
+    name: "카슈미르",
+    kind: "영토 분쟁",
+    lng: 75.3,
+    lat: 34.0,
+    why: "인도·파키스탄·중국이 서로 다른 국경선을 주장하는 산악 지대입니다. 정식 국경이 아니라 실제 통제선을 사이에 두고 맞섭니다.",
+    see: "영토분쟁 카드 · 통제선 부근 속보",
   },
   {
-    id: "malacca",
-    name: "말라카 해협",
-    lng: 100.9,
-    lat: 2.6,
-    why: "중동 원유가 한국·중국·일본으로 오는 가장 짧은 길입니다.",
-    see: "배 위치 신호 · 해적·나포 소식",
+    id: "korea",
+    name: "한반도 군사분계선",
+    kind: "대치",
+    lng: 127.2,
+    lat: 38.0,
+    why: "1953년 휴전 이후 70년 넘게 군사분계선을 사이에 두고 대치하는 곳입니다. 미사일 발사 소식이 이어집니다.",
+    see: "미사일 발사 기록 · 주변 군용기 · 한반도 속보",
+  },
+  {
+    id: "scs",
+    name: "남중국해 스프래틀리",
+    kind: "영토 분쟁",
+    lng: 114.0,
+    lat: 10.2,
+    why: "중국·필리핀·베트남 등이 암초와 섬의 영유권을 서로 주장합니다. 해경선 대치가 반복되는 곳입니다.",
+    see: "영토분쟁 카드 · 해상 대치 속보 · 군용기 움직임",
   },
   {
     id: "taiwan",
     name: "대만해협",
-    lng: 119.6,
+    kind: "긴장",
+    lng: 120.2,
     lat: 24.2,
-    why: "동아시아 컨테이너선이 많이 지나고, 첨단 반도체 생산이 몰린 대만을 끼고 있습니다.",
+    why: "중국은 대만을 자국 영토로 보고, 대만은 이를 거부합니다. 중국 군용기·군함의 훈련이 소식의 대부분입니다.",
     see: "중국 군용기·군함 움직임 · 군사훈련 구역",
+  },
+  {
+    id: "yemen",
+    name: "예멘·홍해",
+    kind: "무력 충돌",
+    lng: 44.2,
+    lat: 15.4,
+    why: "후티 무장세력이 영토 일부를 통제하며 미사일과 드론으로 홍해 쪽을 공격합니다. 해운이 첫 연재 주제인 이유입니다.",
+    see: "후티 공격 경보 · 주변 상선과 군함 · 전쟁위험 보험료 보도",
   },
 ];
 
+const HOTSPOT_EN: Record<string, Pick<Hotspot, "name" | "kind" | "why" | "see">> = {
+  ukraine: {
+    name: "Eastern Ukraine front",
+    kind: "Front line",
+    why: "Since the 2022 full-scale invasion, both sides face off with trenches and drones. Which village is held by whom changes from report to report.",
+    see: "Occupied ground in red · strike flames · front-line alerts",
+  },
+  gaza: {
+    name: "Gaza and the Lebanon border",
+    kind: "Armed conflict",
+    why: "Israel and armed groups trade airstrikes and rockets across small strips of land. Whether it spreads to neighbors is always the question.",
+    see: "Airstrike and rocket alerts · nearby military movement",
+  },
+  sudan: {
+    name: "Sudan civil war",
+    kind: "Civil war",
+    why: "The army and a paramilitary force fight over Khartoum and other cities. The number of displaced people is among the largest in the world.",
+    see: "Fighting-area alerts · satellite heat detections",
+  },
+  kashmir: {
+    name: "Kashmir",
+    kind: "Territorial dispute",
+    why: "A mountain region where India, Pakistan, and China claim different borders. They face each other across a line of actual control, not a formal border.",
+    see: "Territorial dispute card · alerts near the line of control",
+  },
+  korea: {
+    name: "Korean Peninsula DMZ",
+    kind: "Standoff",
+    why: "Since the 1953 armistice the two sides have faced each other across the military demarcation line for over 70 years. Missile launches keep making news.",
+    see: "Missile launch records · nearby military aircraft · peninsula alerts",
+  },
+  scs: {
+    name: "South China Sea, Spratlys",
+    kind: "Territorial dispute",
+    why: "China, the Philippines, Vietnam, and others claim the same reefs and islands. Coast guard standoffs repeat here.",
+    see: "Territorial dispute card · standoff alerts · military aircraft movement",
+  },
+  taiwan: {
+    name: "Taiwan Strait",
+    kind: "Tension",
+    why: "Beijing treats Taiwan as its territory and Taipei rejects that. Most of the news is Chinese military flights and ships on exercises.",
+    see: "Chinese military flights and ships · exercise zones",
+  },
+  yemen: {
+    name: "Yemen and the Red Sea",
+    kind: "Armed conflict",
+    why: "The Houthi armed group holds part of the country and attacks toward the Red Sea with missiles and drones. This is why shipping is the first series.",
+    see: "Houthi attack alerts · nearby merchant ships and warships · reported war-risk premiums",
+  },
+};
+
 type Land = GeoPermissibleObjects;
+
+const TARGET_LAT_SHIFT = 6;
 
 /**
  * 연출용 바닷길 — 배 점이 이 길을 따라 흐른다. 실제 AIS가 아니라 대표 항로를 그린 것이다(캡션에 밝힌다).
@@ -84,18 +165,20 @@ type Land = GeoPermissibleObjects;
 const LANES: [number, number][][] = [
   [[56.4, 26.3], [60, 22], [72, 12], [80, 6], [95, 5.5], [100.9, 2.6]],
   [[100.9, 2.6], [105, 3], [110, 10], [116, 18], [119.6, 24.2], [123, 30]],
+  [[119.6, 24.2], [125, 28], [132, 32], [140, 35]],
   [[32.4, 30.5], [33.6, 27.5], [37, 22], [40.5, 16], [43.4, 12.6], [50, 12.5], [56, 14], [60, 20], [56.4, 26.3]],
   [[29, 41.1], [26, 39.5], [24, 36], [28, 34], [32.4, 31.3]],
   [[29, 41.1], [31, 42.5], [34.5, 43.6], [37.8, 44.7]],
   [[32.4, 31.3], [20, 34], [10, 37.5], [-5.6, 36]],
+  [[-5.6, 36], [-20, 40], [-45, 43], [-70, 41]],
 ];
 
-type Incident = { lng: number; lat: number };
-
-const TRAVEL_MS = 1500;
-const HOLD_MS = 3800;
+/** 콜아웃이 다음 사건으로 넘어가는 주기 — 3초 */
+const CYCLE_MS = 3000;
+const TRAVEL_MS = 1200;
 
 export function LandingGlobe() {
+  const lang = useLandingLanguage();
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [land, setLand] = useState<Land | null>(null);
@@ -103,14 +186,13 @@ export function LandingGlobe() {
   const activeRef = useRef(0);
   activeRef.current = active;
   const [reduced, setReduced] = useState(false);
-  const rotRef = useRef<[number, number, number]>([-HOTSPOTS[0].lng, -HOTSPOTS[0].lat + 8, 0]);
+  const rotRef = useRef<[number, number, number]>([-HOTSPOTS[0].lng, -HOTSPOTS[0].lat + TARGET_LAT_SHIFT, 0]);
   const travelRef = useRef<{ from: [number, number]; to: [number, number]; start: number } | null>(null);
   const dragRef = useRef<{ x: number; y: number; rot: [number, number, number] } | null>(null);
   const pausedUntilRef = useRef(0);
   const visibleRef = useRef(true);
   const hotspotScreenRef = useRef<{ i: number; x: number; y: number }[]>([]);
-  const incidentsRef = useRef<Incident[]>([]);
-  const [incidentCount, setIncidentCount] = useState<number | null>(null);
+  const calloutRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const scroll = useScrollProgress(stageRef);
 
@@ -123,23 +205,6 @@ export function LandingGlobe() {
         if (alive && g) setLand(g as Land);
       })
       .catch(() => undefined);
-    // 실제 최근 해상 피습 경보(UKMTO) — 60일 안의 것만 붉은 점으로
-    fetch("/api/ukmto", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((p: { incidents?: Array<{ lat?: number; lng?: number; utcDateOfIncident?: string | null }> } | null) => {
-        if (!alive || !p?.incidents) return;
-        const cutoff = Date.now() - 60 * 86_400_000;
-        const pts = p.incidents
-          .filter((x) => Number.isFinite(x.lat) && Number.isFinite(x.lng))
-          .filter((x) => {
-            const t = x.utcDateOfIncident ? Date.parse(x.utcDateOfIncident) : Number.NaN;
-            return Number.isFinite(t) && t >= cutoff;
-          })
-          .map((x) => ({ lng: x.lng as number, lat: x.lat as number }));
-        incidentsRef.current = pts;
-        setIncidentCount(pts.length);
-      })
-      .catch(() => undefined);
     return () => {
       alive = false;
     };
@@ -149,7 +214,7 @@ export function LandingGlobe() {
   const goTo = useCallback((i: number) => {
     const h = HOTSPOTS[i];
     const [lam, phi] = rotRef.current;
-    travelRef.current = { from: [-lam, -phi], to: [h.lng, h.lat - 8], start: performance.now() };
+    travelRef.current = { from: [-lam, -phi], to: [h.lng, h.lat - TARGET_LAT_SHIFT], start: performance.now() };
     setActive(i);
   }, []);
 
@@ -163,10 +228,10 @@ export function LandingGlobe() {
         const next = (cur + 1) % HOTSPOTS.length;
         const h = HOTSPOTS[next];
         const [lam, phi] = rotRef.current;
-        travelRef.current = { from: [-lam, -phi], to: [h.lng, h.lat - 8], start: performance.now() };
+        travelRef.current = { from: [-lam, -phi], to: [h.lng, h.lat - TARGET_LAT_SHIFT], start: performance.now() };
         return next;
       });
-    }, TRAVEL_MS + HOLD_MS);
+    }, CYCLE_MS);
     return () => window.clearInterval(id);
   }, [reduced]);
 
@@ -272,9 +337,9 @@ export function LandingGlobe() {
         );
       };
 
-      // 바닷길(연출) + 그 위를 흐르는 배
+      // 바닷길(연출) + 그 위를 흐르는 배 — 분쟁 지역 사이로 상선이 오간다는 맥락만 준다
       ctx.setLineDash([2, 4]);
-      ctx.strokeStyle = "rgba(147,197,253,0.22)";
+      ctx.strokeStyle = "rgba(147,197,253,0.2)";
       ctx.lineWidth = 0.9;
       LANES.forEach((lane) => {
         ctx.beginPath();
@@ -301,29 +366,36 @@ export function LandingGlobe() {
         }
       });
 
-      // 실제 최근 UKMTO 경보
+      // 분쟁 지역 주변의 작은 사건 점들 — 깜빡이며 "여러 곳에서 동시에 벌어진다"는 느낌만 준다
       const ping = (now % 1600) / 1600;
-      incidentsRef.current.forEach((pt, n) => {
-        if (!front(pt.lng, pt.lat)) return;
-        const q = projection([pt.lng, pt.lat]);
-        if (!q) return;
-        const ph = (ping + n * 0.13) % 1;
-        if (!reduced) {
-          ctx.strokeStyle = `rgba(248,113,113,${0.7 * (1 - ph)})`;
-          ctx.lineWidth = 1.2;
+      HOTSPOTS.forEach((h, hi) => {
+        for (let k = 0; k < 5; k++) {
+          const ang = hi * 2.1 + k * 1.37;
+          const rad = 1.2 + ((hi * 7 + k * 3) % 5) * 0.55;
+          const lng = h.lng + Math.cos(ang) * rad * 1.3;
+          const lat = h.lat + Math.sin(ang) * rad;
+          if (!front(lng, lat)) continue;
+          const q = projection([lng, lat]);
+          if (!q) continue;
+          const ph = (ping + (hi * 5 + k) * 0.13) % 1;
+          if (!reduced) {
+            ctx.strokeStyle = `rgba(248,113,113,${0.55 * (1 - ph)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(q[0], q[1], 2 + ph * 9, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          ctx.fillStyle = "rgba(248,113,113,0.9)";
           ctx.beginPath();
-          ctx.arc(q[0], q[1], 3 + ph * 12, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.arc(q[0], q[1], 1.8, 0, Math.PI * 2);
+          ctx.fill();
         }
-        ctx.fillStyle = "#f87171";
-        ctx.beginPath();
-        ctx.arc(q[0], q[1], 2.4, 0, Math.PI * 2);
-        ctx.fill();
       });
 
-      // 길목 점
+      // 분쟁 지역 점 + 활성 지점 조준선
       const screen: { i: number; x: number; y: number }[] = [];
       const pulse = (now % 2000) / 2000;
+      const callout: { at: { x: number; y: number } | null } = { at: null };
       HOTSPOTS.forEach((h, i) => {
         // 뒤편은 그리지 않는다
         const dLng = ((h.lng - center[0] + 540) % 360) - 180;
@@ -354,8 +426,43 @@ export function LandingGlobe() {
         ctx.beginPath();
         ctx.arc(x, y, on ? 3.6 : 2.6, 0, Math.PI * 2);
         ctx.fill();
+        if (on) {
+          // 조준선 — 천천히 도는 네 귀퉁이 괄호
+          const rr = 14 + Math.sin(now / 260) * 1.5;
+          const spin = reduced ? 0 : now / 1800;
+          ctx.strokeStyle = "rgba(255,226,140,0.95)";
+          ctx.lineWidth = 1.6;
+          for (let c = 0; c < 4; c++) {
+            const a0 = spin + (c * Math.PI) / 2 + 0.25;
+            ctx.beginPath();
+            ctx.arc(x, y, rr, a0, a0 + 0.9);
+            ctx.stroke();
+          }
+          callout.at = { x, y };
+        }
       });
       hotspotScreenRef.current = screen;
+
+      // 콜아웃 카드와 지시선을 조준한 점에 붙인다
+      const el = calloutRef.current;
+      const calloutAt = callout.at;
+      if (el) {
+        if (calloutAt) {
+          const left = calloutAt.x > size * 0.55;
+          const bx = calloutAt.x + (left ? -22 : 22);
+          const by = calloutAt.y - 26;
+          ctx.strokeStyle = "rgba(245,196,81,0.85)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(calloutAt.x + (left ? -12 : 12), calloutAt.y - 10);
+          ctx.lineTo(bx, by);
+          ctx.stroke();
+          el.style.opacity = "1";
+          el.style.transform = `translate(${left ? `calc(${bx}px - 100%)` : `${bx}px`}, ${by}px) translateY(-100%)`;
+        } else {
+          el.style.opacity = "0";
+        }
+      }
     };
     raf = requestAnimationFrame(draw);
 
@@ -391,7 +498,9 @@ export function LandingGlobe() {
     dragRef.current = null;
   };
 
-  const h = HOTSPOTS[active];
+  const raw = HOTSPOTS[active];
+  const en = HOTSPOT_EN[raw.id];
+  const h = lang === "en" && en ? { ...raw, ...en } : raw;
 
   return (
     <div
@@ -407,33 +516,47 @@ export function LandingGlobe() {
         <canvas
           ref={canvasRef}
           role="img"
-          aria-label={`지구본. 지금 ${h.name}을 보여 주고 있습니다.`}
+          aria-label={
+            lang === "en"
+              ? `Globe. Now showing ${h.name}.`
+              : `지구본. 지금 ${h.name}을 보여 주고 있습니다.`
+          }
           className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         />
-        {/* 지금 보는 곳 카드 */}
+        {/* 조준한 사건 콜아웃 — 위치는 그리기 루프가 정한다 */}
         <div
-          key={h.id}
+          ref={calloutRef}
           aria-live="polite"
-          className="pointer-events-none absolute bottom-2 left-1/2 w-[min(92%,380px)] -translate-x-1/2 rounded-lg border border-white/12 bg-[#05080d]/88 px-4 py-3 backdrop-blur motion-safe:animate-[landing-card_0.5s_ease-out]"
+          className="pointer-events-none absolute left-0 top-0 w-[min(60%,260px)] rounded-lg border border-[#f5c451]/50 bg-[#05080d]/92 px-3.5 py-2.5 opacity-0 shadow-[0_0_24px_rgba(245,196,81,0.12)] backdrop-blur"
         >
-          <p className="m-0 text-[15px] font-bold text-[#f5c451]">{h.name}</p>
-          <p className="mb-0 mt-1 text-sm leading-snug text-[#d7e0e6]">{h.why}</p>
-          <p className="mb-0 mt-1.5 text-caption leading-snug text-[#8fa3b1]">지구본에서 보는 것 · {h.see}</p>
+          <div key={h.id} className="motion-safe:animate-[landing-card_0.4s_ease-out]">
+            <p className="m-0 text-caption font-semibold text-[#f87171]">{h.kind}</p>
+            <p className="m-0 mt-0.5 text-base font-bold leading-snug text-[#f5c451]">{h.name}</p>
+            <p className="mb-0 mt-1 text-caption leading-snug text-[#d7e0e6]">{h.why}</p>
+            <p className="mb-0 mt-1.5 text-caption leading-snug text-[#8fa3b1]">
+              {pick(lang, "지구본에서 보는 것", "On the globe")} · {h.see}
+            </p>
+          </div>
         </div>
       </div>
       <p className="m-0 text-center text-caption text-[#7d8f9c]">
         <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#f87171] align-middle" />
-        {incidentCount != null && incidentCount > 0
-          ? `붉은 점: 최근 60일 실제 UKMTO 해상 경보 ${incidentCount}건`
-          : "붉은 점: 최근 UKMTO 해상 경보"}
-        <span className="mx-2 text-white/20">|</span>흐르는 배와 점선 항로는 이해를 돕는 연출입니다
+        {pick(
+          lang,
+          "붉은 점은 대표 분쟁 지역을 고른 예시입니다. 실제 지구본에서는 속보가 들어오는 자리마다 찍혀요.",
+          "Red dots are a sample of well-known conflict areas. On the real globe, a dot appears wherever an alert comes in.",
+        )}
+        <span className="mx-2 text-white/20">|</span>
+        {pick(lang, "흐르는 파란 점과 점선 항로는 이해를 돕는 연출입니다", "Moving blue dots and dotted routes are illustrations, not live tracks")}
       </p>
-      <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label="길목 고르기">
-        {HOTSPOTS.map((s, i) => (
+      <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label={pick(lang, "분쟁 지역 고르기", "Choose a conflict area")}>
+        {HOTSPOTS.map((s, i) => {
+          const label = lang === "en" ? (HOTSPOT_EN[s.id]?.name ?? s.name) : s.name;
+          return (
           <button
             key={s.id}
             type="button"
@@ -448,9 +571,10 @@ export function LandingGlobe() {
                 : "border-white/15 bg-transparent text-[#a3b3bf] hover:border-white/40 hover:text-white"
             }`}
           >
-            {s.name}
+            {label}
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

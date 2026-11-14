@@ -12,15 +12,15 @@ import { prefersReducedMotion } from "@/hooks/useReducedMotion";
  */
 const NAME_LINES = [
   "여기 있는 데이터들은 가상이 아닌 현실입니다.",
-  "Strait는 해협, Desk는 상황실입니다.",
-  "홍해·호르무즈·말라카 같은 바다의 길목을, 한 지구본 위에서 지켜봅니다.",
+  "속보는 빠르게, 근거는 직접 확인하세요.",
+  "소식마다 출처와 확인 상태가 붙어 있습니다.",
 ];
 
 const NAME_LINE_HOLD_MS = 3400;
 const NAME_LINE_FADE_MS = 480;
-/** 환영 편지와 같은 바탕. 모노·네온은 점수판처럼 보인다. */
+/** 상황실 고딕. 모노·네온은 점수판처럼 보인다. */
 const LOADING_PROSE_FONT =
-  'var(--font-letter-hand), "RIDIBatang", Georgia, "Times New Roman", serif';
+  'var(--font-wanted), var(--font-ui), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
 const LOADING_FIGURE_FONT =
   'var(--font-wanted), var(--font-ui), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
 

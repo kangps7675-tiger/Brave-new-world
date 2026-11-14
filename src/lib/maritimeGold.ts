@@ -1,7 +1,15 @@
 import type { GoldStrike } from "@/data/gold/maritimeStrikes";
 
 /** 우리 판정이 「확인」 또는 「유력」으로 낸 피격 한 건 */
-export type PredictedStrike = { vessel: string | null; at: string };
+export type PredictedStrike = { vessel: string | null; at: string; lat?: number; lng?: number };
+
+const GEO_MATCH_NM = 40;
+
+function distNm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const h = Math.sin(toRad(bLat - aLat) / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(toRad(bLng - aLng) / 2) ** 2;
+  return 2 * 3440.065 * Math.asin(Math.sqrt(h));
+}
 
 export type GoldScore = {
   goldCount: number;
@@ -46,7 +54,13 @@ export function scoreAgainstGold(
   const missed: string[] = [];
   let matched = 0;
   for (const x of g) {
-    const i = inRange.findIndex((p, idx) => !used.has(idx) && p.vessel !== null && norm(p.vessel) === norm(x.vessel) && sameDate(x.date, p.at));
+    const byName = (p: PredictedStrike) => p.vessel !== null && norm(p.vessel) === norm(x.vessel) && sameDate(x.date, p.at);
+    // UKMTO는 선명을 가리는 일이 많다 — 정답 쪽에 좌표가 있으면 같은 날(일 단위 정답만) 40해리 안이면 같은 사건으로 본다
+    const byGeo = (p: PredictedStrike) =>
+      x.date.length === 10 &&
+      x.lat !== undefined && x.lng !== undefined && p.lat !== undefined && p.lng !== undefined &&
+      sameDate(x.date, p.at) && distNm(x.lat, x.lng, p.lat, p.lng) <= GEO_MATCH_NM;
+    const i = inRange.findIndex((p, idx) => !used.has(idx) && (byName(p) || byGeo(p)));
     if (i >= 0) {
       used.add(i);
       matched++;

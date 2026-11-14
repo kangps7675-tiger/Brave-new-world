@@ -78,8 +78,8 @@ export const RED_SEA_HOUTHI_STACK: HotTheaterLayerPatch = {
   showNavareaWarnings: true,
 };
 
-/** @deprecated 입구 자동 홍해 fly는 제거됨. 좌표 맵 참조용으로만 유지. */
-export const CONFLICT_ENTRY_MARITIME_FLY = ENTITY_FLY["choke-bab-el-mandeb"]!;
+/** 해운 장면이 날아가는 곳. 피격이 몰린 호르무즈. */
+export const CONFLICT_ENTRY_MARITIME_FLY = ENTITY_FLY["choke-hormuz"]!;
 
 const RED_SEA_CHOKE_IDS = new Set([
   "choke-bab-el-mandeb",

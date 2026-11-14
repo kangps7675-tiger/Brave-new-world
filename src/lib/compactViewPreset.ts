@@ -88,12 +88,12 @@ export const COMPACT_ECONOMY_PRESETS: CompactChipDef[] = [
 ];
 
 export function compactPresetsForMode(mode: ViewerMode): CompactChipDef[] {
-  if (mode === "satellite" || mode === "live") return [];
+  if (mode === "live") return [];
   return mode === "economy" ? COMPACT_ECONOMY_PRESETS : COMPACT_CONFLICT_PRESETS;
 }
 
 export function defaultCompactChipId(mode: ViewerMode): CompactChipId {
-  if (mode === "satellite" || mode === "live") return "frontline";
+  if (mode === "live") return "frontline";
   // 경제·물류 진입 시 진영 폴리곤(lanes 칩 = FIRST_SCREEN) 기본
   return mode === "economy" ? "lanes" : "frontline";
 }

@@ -64,8 +64,12 @@
   /* 양피지 EN Merriweather */
   --font-parchment-en: var(--font-merriweather), var(--font-wanted), Georgia, "Times New Roman",
     serif;
-  /* 데이터 JetBrains Mono */
+  /* 데이터 JetBrains Mono — 좌표·수치 */
   --font-data-mono: var(--font-jetbrains-mono), var(--font-geist-mono), ui-monospace, monospace;
+  /* 예전 장식 서체 이름. 파일은 안 싣고, 상황실 고딕·기기 명조로 잇는다. */
+  --font-pretendard: "Pretendard", var(--font-wanted);
+  --font-gmarket: var(--font-wanted);
+  --font-letter-hand: "Nanum Myeongjo", "Apple Myungjo", Batang, Georgia, "Times New Roman", serif;
 }
 
 body {
@@ -297,17 +301,16 @@ html[data-device="tablet"] .cv-tablet-hide-sitrep {
   font-style: normal;
 }
 
-/** 분쟁 외교사 11개 에피소드(역사 양피지) — RIDI Batang 명조 */
+/** 분쟁 외교사 11개 에피소드(역사 양피지) — 기기에 있는 명조 */
 .parchment-letter--history {
-  font-family: var(--font-letter-hand), "RIDI Batang", "Gowun Batang", "Nanum Myeongjo", "Batang",
-    serif;
+  font-family: var(--font-letter-hand), "Nanum Myeongjo", Batang, serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
 
 /** 역사 지도 영토 명칭 — 명조 필체 (한글 직립 · 라틴 이탤릭) */
 .history-polity-atlas-label {
-  font-family: var(--font-letter-hand), "RIDI Batang", var(--font-merriweather), Merriweather,
+  font-family: var(--font-letter-hand), var(--font-merriweather), Merriweather,
     "Nanum Myeongjo", "Gowun Batang", "Palatino Linotype", Palatino, serif;
   font-style: italic;
   font-weight: 400;
@@ -333,26 +336,23 @@ html[data-device="tablet"] .cv-tablet-hide-sitrep {
   letter-spacing: 0.08em;
 }
 
-/** 뉴스 헤드라인 — Gmarket Sans (신속속보·배너) */
+/** 뉴스 헤드라인 — Wanted Sans (상황실 고딕) */
 .font-news-headline {
-  font-family: var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo",
-    "Noto Sans KR", sans-serif;
+  font-family: var(--font-wanted), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-/** 신속속보 양피지 — 헤드라인 Gmarket, 본문 Pretendard/Inter */
+/** 신속속보 양피지 — 헤드라인·본문 모두 상황실 고딕, 영문은 Inter */
 .parchment-letter--news-flash {
-  font-family: var(--font-pretendard), "Pretendard", var(--font-wanted), "Wanted Sans Variable",
-    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-family: var(--font-wanted), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }
 
 .parchment-letter--news-flash .welcome-letter-title,
 .parchment-letter--news-flash .welcome-letter-kicker {
-  font-family: var(--font-gmarket), var(--font-wanted), "Wanted Sans Variable", "Apple SD Gothic Neo",
-    "Noto Sans KR", sans-serif;
+  font-family: var(--font-wanted), "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 /** 영문 UI — Inter 우선, Wanted 폴백 */
@@ -378,7 +378,7 @@ main[data-ui-lang="en"] .parchment-letter--news-flash {
 
 main[data-ui-lang="en"] .parchment-letter--news-flash .welcome-letter-title,
 main[data-ui-lang="en"] .parchment-letter--news-flash .welcome-letter-kicker {
-  font-family: var(--font-gmarket), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), var(--font-wanted), ui-sans-serif, system-ui, sans-serif;
 }
 
 main[data-viewer="economy"] .font-en,
@@ -386,7 +386,7 @@ main[data-viewer="economy"] .font-en,
   font-family: var(--font-ui-en);
 }
 
-/** EN 양피지 — Merriweather (RIDI 필체·Intel UI·신속속보 제외) */
+/** EN 양피지 — Merriweather (역사 명조·Intel UI·신속속보 제외) */
 main[data-ui-lang="en"]
   .parchment-letter:not(.parchment-letter--history):not(.parchment-letter--intel):not(
     .parchment-letter--news-flash
@@ -2468,4 +2468,63 @@ html.map-moving .neptun-threat-marker--flying .neptun-threat-marker__ring {
 @media (prefers-reduced-motion: reduce) {
   .landing-pen { stroke-dashoffset: 0; animation: none; }
   .landing-stamp { animation: none; opacity: 0.88; transform: rotate(-4deg); }
+}
+
+
+/* 속보 양피지가 열릴 때 가장자리에서 미끄러져 들어온다. 지구본 영역은 건드리지 않는 오버레이 전환이다. */
+@keyframes flash-desk-enter {
+  from {
+    transform: translate3d(2.5rem, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.flash-desk-enter {
+  animation: flash-desk-enter 280ms cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-desk-enter {
+    animation: none;
+  }
+}
+
+/* 속보 근거 창 — 사건을 열면 근거 묶음과 항목이 위에서 아래로 차례로 펼쳐진다(촤르륵). */
+@keyframes evidence-cascade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.evidence-cascade > * {
+  transform-origin: top;
+  animation: evidence-cascade-in 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.evidence-cascade > *:nth-child(1) { animation-delay: 0ms; }
+.evidence-cascade > *:nth-child(2) { animation-delay: 110ms; }
+.evidence-cascade > *:nth-child(3) { animation-delay: 220ms; }
+.evidence-cascade > *:nth-child(4) { animation-delay: 330ms; }
+.evidence-cascade > *:nth-child(5) { animation-delay: 440ms; }
+.evidence-cascade > *:nth-child(n + 6) { animation-delay: 550ms; }
+.evidence-cascade li {
+  transform-origin: top;
+  animation: evidence-cascade-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.evidence-cascade li:nth-child(1) { animation-delay: 180ms; }
+.evidence-cascade li:nth-child(2) { animation-delay: 260ms; }
+.evidence-cascade li:nth-child(3) { animation-delay: 340ms; }
+.evidence-cascade li:nth-child(n + 4) { animation-delay: 420ms; }
+@media (prefers-reduced-motion: reduce) {
+  .evidence-cascade > *,
+  .evidence-cascade li {
+    animation: none;
+  }
 }

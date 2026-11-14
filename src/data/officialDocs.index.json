@@ -1,0 +1,60 @@
+[
+  {
+    "id": "us-gb-de-fr-it-jp-ca-20261111-2f5b4f",
+    "issuerIds": [
+      "us",
+      "gb",
+      "de",
+      "fr",
+      "it",
+      "jp",
+      "ca"
+    ],
+    "kind": "joint-statement",
+    "weight": "agreed",
+    "title": "Joint declaration following the G7 Foreign Ministers' Meeting in Paris",
+    "publishedAt": "2026-11-11",
+    "sourceUrl": "https://www.gov.uk/government/news/joint-declaration-following-the-g7-foreign-ministers-meeting-in-paris",
+    "fetchedAt": "2026-11-11",
+    "sha256": "2f5b4f734d141cfeeeaa15c9f25192095f3322f4edb9dc2c87de2f6eca9a6bad",
+    "language": "en",
+    "keywords": [
+      "g7 foreign ministers",
+      "g7 declaration"
+    ],
+    "relatedTags": [],
+    "terms": "Open Government Licence v3.0 (gov.uk 게시물, 출처 표시 조건으로 재사용 허용). 원문 출처: 영국 외무영연방개발부(FCDO)"
+  },
+  {
+    "id": "au-ca-fr-de-it-jp-nl-nz-kr-gb-us-eu-20261029-1cba47",
+    "issuerIds": [
+      "au",
+      "ca",
+      "fr",
+      "de",
+      "it",
+      "jp",
+      "nl",
+      "nz",
+      "kr",
+      "gb",
+      "us",
+      "eu"
+    ],
+    "kind": "joint-statement",
+    "weight": "agreed",
+    "title": "Joint Statement on Democratic People’s Republic of Korea (DPRK) Sanctions",
+    "publishedAt": "2026-10-29",
+    "sourceUrl": "https://www.government.nl/documents/2026/10/29/joint-statement-on-democratic-peoples-republic-of-korea-dprk-sanctions",
+    "fetchedAt": "2026-11-11",
+    "sha256": "1cba472a55fa41faa7c2d6623f7fc770f8e124914beda03472f27acd30289e67",
+    "language": "en",
+    "keywords": [
+      "dprk sanctions",
+      "north korea sanctions",
+      "dprk-russia cooperation"
+    ],
+    "relatedTags": [],
+    "terms": "CC0 1.0 (government.nl 게시 텍스트, 자유 재사용). 원문 출처: 네덜란드 정부 게시본"
+  }
+]

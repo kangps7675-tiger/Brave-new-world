@@ -1,12 +1,12 @@
-# Strait Desk
+# conflict-view
 
 **해협을 지켜보는 해운 위험 상황실.** 홍해·호르무즈·말라카 같은 해운 길목에서 어느 배가 맞았는지, 그 바다가 지금 얼마나 위험한지, 전쟁위험 보험료와 날씨가 어느 쪽으로 움직이는지를 3D 지구본 한 화면에 모았습니다.
 
 > 피격 경보가 뜬 직후 "이 바다는 지금 다닐 만한가"라는 질문에 근거를 갖춘 답을 가장 먼저 건네는 것이 목표입니다.
 
 - **상태:** 베타 — 지금은 가입 없이 볼 수 있습니다. 정식 출시 후 알림·해역 판단 같은 일부 기능은 유료가 될 예정입니다.
-- **이름:** Strait Desk. 패키지명 `strait-desk`, localStorage 키 `straitdesk-*`, 설정 파일 `straitdesk.config.ts`.
-- **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · Cesium(위성 보기) · Tailwind CSS
+- **이름:** conflict-view(임시). 인프라 식별자는 옛 이름 그대로 둔다: 패키지명 `strait-desk`, localStorage 키 `straitdesk-*`, 설정 파일 `straitdesk.config.ts`.
+- **스택:** Next.js 14 · React 18 · TypeScript · MapLibre GL · Tailwind CSS
 - **언어:** UI 기본 한국어, 레이어 패널에서 English 전환
 - **출처 표기 의무:** [출처 표기 · 라이선스 공개 의무](#출처-표기--라이선스-공개-의무) · 앱 「출처」 패널 · [`docs/copyright-checklist.md`](docs/copyright-checklist.md)
 
@@ -42,7 +42,7 @@
 
 - **첫 화면:** 신규 방문자는 해운 화면으로 들어옵니다. 선박(AIS)·해협 길목 콜아웃·피격 사건이 켜지고, 지정학 개관(핵탄두 수 등)은 숨깁니다. 레이어 기본값은 `src/lib/firstScreenLayers.ts` (`FIRST_SCREEN_MARITIME_ON/OFF`)가 정합니다.
 - **전체 지정학 버전:** 메뉴·「무엇을 볼까요」로 바꿀 수 있습니다. 무료로 넓게 보여주는 층이고, 그 위에 해역 판단·알림 같은 프리미엄을 얹는 구조입니다.
-- **사건 카드:** 피격 사건 카드에서 선박 사진·제원, 지도, 「위성으로 보기」(Cesium으로 수백 미터 상공까지 하강)로 들어갑니다. 위성 화면에는 선박(AIS)을 그리지 않습니다.
+- **사건 카드:** 피격 사건 카드에서 선박 사진·제원, 지도로 들어갑니다. (위성 보기는 제거 중입니다.)
 - **페이지:** `/strikes`(피격 목록·판정), `/chokepoints/[slug]`(해협별 상황)
 - **새 레이어 기준:** 케이스 파일(기사 확인)의 증거·판정에 연결될 때만 노출하고, 아니면 `src/lib/layerLab.ts` 실험실로 숨깁니다(`NEXT_PUBLIC_LAB=1`로 해제).
 
@@ -147,7 +147,7 @@ src/
     brand.ts            # 서비스명 SSOT
     strikeMatch/        # 피격 선박 매칭 (확인/유력/가능)
     firstScreenLayers.ts · layerLab.ts · viewerModePolicy.ts
-    liveRenderGuard.ts · cesiumObserveDescend.ts
+    liveRenderGuard.ts
 docs/                   # 설계·체크리스트
 public/data/            # stub 시드
 ```

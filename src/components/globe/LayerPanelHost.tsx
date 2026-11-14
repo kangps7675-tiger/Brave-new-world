@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Metric } from "@/components/globe/Metric";
 import { LoadErrorBanner } from "@/components/LoadErrorBanner";
 import { NeptunLayerPanel } from "@/components/NeptunLayerPanel";
@@ -18,6 +18,7 @@ import { formatDateTime } from "@/components/globe/formatters";
 import { buildLayerInfoHoverContent } from "@/lib/layerInfoHover";
 import { t } from "@/lib/uiStrings";
 import type { LabelLanguage, LayerPrefs } from "@/lib/layerPrefs";
+import type { ScenarioPreset, ScenarioPresetId } from "@/lib/scenarioPresets";
 import type { NeptunAlerts, NeptunLiveThreat } from "@/lib/neptun";
 import type { NeptunStreamStatus } from "@/hooks/useNeptunStream";
 import type { NeptunRenderMode } from "@/lib/neptunLod";
@@ -56,6 +57,9 @@ export type LayerPanelHostProps = {
   draftPrefs: LayerPrefs;
   onOpenModePicker: () => void;
   onResetCheckboxSettings: () => void;
+  /** 주제 프리셋 칩 — 비어 있거나 핸들러가 없으면 기존 체크박스 화면 그대로 */
+  scenarioPresets?: ScenarioPreset[];
+  onApplyScenarioPreset?: (id: ScenarioPresetId) => void;
   frozenPanelCategories: LayerCategory[] | null;
   layerPanelSessionKey: number;
   batchPending: boolean;
@@ -99,6 +103,25 @@ export type LayerPanelHostProps = {
   loadError: string | null;
 };
 
+/** 프리셋이 있을 때만 체크박스 목록을 「직접 고르기」 서랍 안으로 접는다. 없으면 그대로 펼쳐 둔다. */
+function AdvancedLayerDrawer({
+  enabled,
+  label,
+  children,
+}: {
+  enabled: boolean;
+  label: string;
+  children: ReactNode;
+}) {
+  if (!enabled) return <>{children}</>;
+  return (
+    <details className="mt-3 rounded-lg border border-slate-800 bg-black/20 px-3 py-2" data-testid="layer-panel-advanced">
+      <summary className="cursor-pointer select-none text-xs text-slate-300">{label}</summary>
+      {children}
+    </details>
+  );
+}
+
 /** 좌측 레이어 패널 — GlobeDashboard에서 추출 (분리 5단계) */
 export function LayerPanelHost({
   isCompactUi,
@@ -120,6 +143,8 @@ export function LayerPanelHost({
   draftPrefs,
   onOpenModePicker,
   onResetCheckboxSettings,
+  scenarioPresets,
+  onApplyScenarioPreset,
   frozenPanelCategories,
   layerPanelSessionKey,
   batchPending,
@@ -166,6 +191,12 @@ export function LayerPanelHost({
   const tab = activeTab ?? internalTab;
   const setTab = setInternalTab;
   const [layerInfoHover, setLayerInfoHover] = useState<LayerInfoHoverTarget | null>(null);
+  const [activePresetId, setActivePresetId] = useState<ScenarioPresetId | null>(null);
+  const hasPresets = (scenarioPresets?.length ?? 0) > 0 && Boolean(onApplyScenarioPreset);
+  // 체크박스를 직접 만지면 프리셋 강조는 더 이상 맞지 않는다
+  useEffect(() => {
+    if (layerPanelDirty) setActivePresetId(null);
+  }, [layerPanelDirty]);
   const clearHoverTimerRef = useRef<number | null>(null);
 
   const clearHoverTimer = useCallback(() => {
@@ -387,6 +418,42 @@ export function LayerPanelHost({
           {t("layers", labelLanguage)}
         </p>
         <p className="mt-1 text-meta text-slate-600">{t("layerDraftHint", labelLanguage)}</p>
+        {hasPresets ? (
+          <div className="mt-3" data-testid="layer-panel-scenario-presets">
+            <p className="text-xs text-slate-400">
+              {labelLanguage === "en" ? "Pick a topic" : "주제를 고르세요"}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {scenarioPresets!.map((preset) => {
+                const active = activePresetId === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    title={labelLanguage === "en" ? preset.hintEn : preset.hintKo}
+                    aria-pressed={active}
+                    onClick={() => {
+                      setActivePresetId(preset.id);
+                      onApplyScenarioPreset?.(preset.id);
+                    }}
+                    className={`min-h-[var(--tap-target-min)] rounded-full border px-3 text-caption font-medium transition ${
+                      active
+                        ? "border-sky-300/60 bg-sky-500/25 text-sky-50"
+                        : "border-slate-700/80 bg-black/20 text-slate-300 hover:border-slate-500 hover:text-white"
+                    }`}
+                  >
+                    {labelLanguage === "en" ? preset.labelEn : preset.labelKo}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-meta text-slate-500">
+              {labelLanguage === "en"
+                ? "Choosing a topic turns on only its layers. Open “Pick layers yourself” below to adjust."
+                : "주제를 고르면 그 주제에 맞는 레이어만 켜집니다. 직접 고르려면 아래 「직접 고르기」를 여세요."}
+            </p>
+          </div>
+        ) : null}
         <div className="mt-3 grid gap-2" data-testid="layer-panel-maritime-links">
           <a href="/strikes" target="_blank" rel="noopener noreferrer"
             className="block rounded-lg border border-sky-400/30 bg-sky-950/20 px-3 py-2 text-xs text-sky-200 hover:bg-sky-950/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-300">
@@ -412,6 +479,10 @@ export function LayerPanelHost({
             </span>
           </a>
         ) : null}
+        <AdvancedLayerDrawer
+          enabled={hasPresets}
+          label={labelLanguage === "en" ? "Pick layers yourself (advanced)" : "직접 고르기 (고급)"}
+        >
         <div className="mt-3 text-sm">
           {frozenPanelCategories ? (
             <LayerCategoryDraftHost
@@ -439,6 +510,7 @@ export function LayerPanelHost({
             </p>
           )}
         </div>
+        </AdvancedLayerDrawer>
         {showNeptun ? (
           <div className="mt-3">
             <NeptunLayerPanel

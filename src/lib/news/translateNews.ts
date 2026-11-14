@@ -44,11 +44,40 @@ async function translateHero(
   return { ...hero, ...base };
 }
 
+/** 한국어 화면에서 읽을 수 없는 문자(히브리·아랍·키릴·태국·데바나가리)가 그대로 남은 제목 */
+const UNREADABLE_SCRIPT_RE = /[\u0590-\u05FF\u0600-\u06FF\u0400-\u04FF\u0E00-\u0E7F\u0900-\u097F]/;
+
+function koDisplayTitle(item: Pick<NewsStreamItem, "title" | "titleKo">): string {
+  return item.titleKo?.trim() || item.title;
+}
+
+/** 번역이 실패해 한국어 칸에 외국어 원문이 남은 속보인가 */
+export function isUntranslatedForKorean(item: Pick<NewsStreamItem, "title" | "titleKo">): boolean {
+  const shown = koDisplayTitle(item);
+  return UNREADABLE_SCRIPT_RE.test(shown) && !isMostlyKorean(shown);
+}
+
+/**
+ * 한국어 화면의 머리기사에서, 번역이 안 된 외국어 원문 속보를 뺀다.
+ * 머리기사가 걸리면 번역된 다음 속보로 대신하고, 없으면 비운다. 목록(verified 등)은 건드리지 않는다.
+ */
+export function dropUntranslatedHeroes(payload: NewsStreamPayload): NewsStreamPayload {
+  const flash = payload.flashHeroes?.filter((h) => !isUntranslatedForKorean(h));
+  const flashChanged = (payload.flashHeroes?.length ?? 0) !== (flash?.length ?? 0);
+  const heroBad = payload.hero ? isUntranslatedForKorean(payload.hero) : false;
+  if (!heroBad && !flashChanged) return payload;
+  return {
+    ...payload,
+    hero: heroBad ? (flash?.[0] ?? null) : payload.hero,
+    flashHeroes: flashChanged ? flash : payload.flashHeroes,
+  };
+}
+
 export async function translateNewsStreamPayload(
   payload: NewsStreamPayload,
   lang: LabelLanguage = "ko",
 ): Promise<NewsStreamPayload> {
-  if (!isTranslationEnabled()) return payload;
+  if (!isTranslationEnabled()) return lang === "ko" ? dropUntranslatedHeroes(payload) : payload;
 
   const verified = await mapPool(payload.verified, (item) => translateNewsItem(item, lang), 6);
   const stateMedia = await mapPool(payload.stateMedia, (item) => translateNewsItem(item, lang), 4);
@@ -57,13 +86,14 @@ export async function translateNewsStreamPayload(
     ? await mapPool(payload.flashHeroes, (item) => translateHero(item, lang), 4)
     : payload.flashHeroes;
 
-  return {
+  const translated = {
     ...payload,
     hero,
     flashHeroes,
     verified,
     stateMedia,
   };
+  return lang === "ko" ? dropUntranslatedHeroes(translated) : translated;
 }
 
 function collectTitles(payload: NewsStreamPayload): string[] {
@@ -82,7 +112,7 @@ function collectTitles(payload: NewsStreamPayload): string[] {
 export async function ensureKoreanNewsPayload(
   payload: NewsStreamPayload,
 ): Promise<NewsStreamPayload> {
-  if (!isTranslationEnabled()) return payload;
+  if (!isTranslationEnabled()) return dropUntranslatedHeroes(payload);
   const titles = collectTitles(payload);
   if (titles.length === 0) return payload;
   if (titles.every((t) => isMostlyKorean(t))) return payload;

@@ -38,8 +38,8 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
   {
     title: "이 화면은 무엇인가요",
     steps: [
-      "해운사·화주·보험 실무자가 「이 바다는 지금 지나다닐 만한가」를 한 화면에서 판단하도록 만든 해운 위험 상황실입니다.",
-      "배가 맞았는지, 그 해역이 얼마나 위험한지, 주변에 군함·군용기가 있는지를 지구본 위에 겹쳐 보여 줍니다.",
+      "지구본 위에 지정학 속보를 찍고, 소식마다 출처와 확인 상태(확인·유력·자료 없음)를 붙여서 그 소식이 믿을 만한지 근거를 보고 직접 따져 볼 수 있게 만든 화면입니다.",
+      "속보를 누르면 그 소식의 원문 출처, 당사국이 낸 공식 문서, 관련 분석과 기사가 한곳에 모입니다. 해운(홍해·호르무즈)은 그중 첫 연재 주제입니다.",
       "모든 판정에는 근거와 한계를 같이 적습니다. 자료가 없는 구간은 「배가 없었다」가 아니라 「자료가 없다」로 표시합니다.",
     ],
   },
@@ -60,7 +60,7 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
       "창 안 왼쪽 목록은 타격 · 선박 · 정세 · 전선으로 묶여 있고, 묶음 안에서는 최신순입니다. 새로 들어온 건 NEW 표시가 붙습니다.",
       "목록에서 항목을 누르면 그 사건 하나에 대한 사진·본문·근거가 큰 양피지로 열리고, 지도는 그 지역으로 날아가 머뭅니다. 이전·다음 버튼과 위아래 방향키로 넘길 수 있습니다.",
       "사진은 속보 원문 사진을 먼저 쓰고, 없으면 같은 사건을 다룬 기사 사진을 출처와 함께 붙입니다. 현장 사진이 아닐 수 있는 경우에는 그렇다고 적습니다.",
-      "「위성으로 보기」를 누르면 같은 자리를 위성 지도로 봅니다. 한글 모드에서는 속보창의 제목·본문·근거가 모두 한글로 나옵니다.",
+      "한글 모드에서는 속보창의 제목·본문·근거가 모두 한글로 나옵니다.",
     ],
   },
   {
@@ -96,13 +96,6 @@ const GUIDE_SECTIONS_KO: GuideSection[] = [
     ],
   },
   {
-    title: "위성 · 3D 건물",
-    steps: [
-      "사건 카드의 「위성으로 보기」를 누르면 위성 지도로 들어갑니다. 위성 화면에는 선박 항적을 그리지 않습니다(지도가 무거워지는 것을 막기 위해서입니다). 항공기·불꽃·사건 표시는 그대로입니다.",
-      "위성 화면에서 충분히 가까이 확대하면 구글의 3D 건물·지형이 기본으로 켜집니다. 끄는 설정은 위성 화면 안에 있습니다.",
-    ],
-  },
-  {
     title: "휴대폰에서",
     steps: [
       "휴대폰 첫 화면은 실시간 속보 피드입니다. 목록에서 사건을 누르면 사진, 근거, 가까운 해협·시설, 관련 기사가 한 카드에 나옵니다.",
@@ -132,8 +125,8 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
   {
     title: "What is this screen?",
     steps: [
-      "A shipping-risk desk for carriers, shippers, and insurance staff to answer one question: is this sea passable right now?",
-      "It stacks, on one globe, which ship was hit, how risky the area is, and whether warships or military aircraft are nearby.",
+      "A globe that pins geopolitical alerts, each with its sources and a status (confirmed, likely, no data), so you can judge from the evidence whether an alert holds up.",
+      "Open an alert and its original sources, official documents from the parties involved, and related analysis and press reports are gathered in one place. Shipping (the Red Sea, Hormuz) is the first series topic.",
       "Every judgement shows its basis and its limits. A stretch with no signal reads “no data”, never “no ship was there”.",
     ],
   },
@@ -154,7 +147,7 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
       "The list on its left is grouped into Strike · Ship · Posture · Front, newest first inside each group. New arrivals carry a NEW tag.",
       "Click an item to open one big parchment for that single event — photos, text, and basis — while the map flies there and stays. Use Previous / Next or the arrow keys to move through the list.",
       "Photos come from the original flash first; if none, a photo from an article on the same event is used with its source. When it may not be a scene photo, it says so.",
-      "“View on satellite” shows the same spot on the satellite map. In Korean mode everything in the desk is shown in Korean.",
+      "In Korean mode everything in the desk is shown in Korean.",
     ],
   },
   {
@@ -187,13 +180,6 @@ const GUIDE_SECTIONS_EN: GuideSection[] = [
     steps: [
       "The Northern Sea Route (along Russia's north coast) and the Northwest Passage (through Canada's northern islands) are drawn as lane lines. They are approximate and may differ slightly from real transit paths.",
       "Few receivers cover the Arctic, so AIS and aircraft signals are sparse. Empty means “no data”, not “no ship”.",
-    ],
-  },
-  {
-    title: "Satellite · 3D buildings",
-    steps: [
-      "「View on satellite」 on an event card opens the satellite map. Ship tracks are not drawn there, to keep it light. Aircraft, flames, and event markers stay.",
-      "Zoom in close on satellite and Google's 3D buildings and terrain turn on by default. The setting to turn them off is inside the satellite view.",
     ],
   },
   {
@@ -355,76 +341,6 @@ const ECONOMY_GUIDE_SECTIONS_EN: GuideSection[] = [
   },
 ];
 
-const SATELLITE_GUIDE_SECTIONS_KO: GuideSection[] = [
-  {
-    title: "관측대란?",
-    steps: [
-      "실시간 3D 관측 창입니다. 항적·전선·화재·해상 경보를 한자리에서 봅니다.",
-      "비밀 정보가 아닙니다. 공개 소식 중 서로 맞춰진 것만 크게 보여 줍니다.",
-    ],
-  },
-  {
-    title: "오늘 볼 안건",
-    steps: [
-      "오른쪽 목록은 레이어 스위치가 아닙니다. 전황 보고서·해상 경보 중 읽을 만한 것만 모은 짧은 목록입니다.",
-      "제목을 누르면 보고서가 열립니다. 「왜?」는 왜 지금 보면 좋은지·얼마나 믿을지를 말해 줍니다.",
-      "「모으는 중」은 사라진 게 아닙니다 — 출처가 더 쌓이면 위로 올라옵니다.",
-      "관심 주제는 오늘 특히 지켜보는 창(우크라·홍해 등)과 얼마나 이어지는지입니다.",
-    ],
-  },
-  {
-    title: "전선 속보 · 누가 어디를 잡았나",
-    steps: [
-      "LiveUA 속보 양피지에서는 이전·다음으로 같은 지역의 다른 핀을 넘길 수 있습니다.",
-      "전선·통제면은 우크라만이 아닙니다. 이란·예멘·레바논·이스라엘/팔 전장도 같이 봅니다.",
-      "속보 아래 「이 소식이 건드릴 수 있는 곳」은 시세·회랑 참고용입니다. 투자 권유가 아닙니다.",
-    ],
-  },
-  {
-    title: "사건 파일 · 공습·항적",
-    steps: [
-      "「사건」탭에서 기사·좌표로 초안을 만들고, 화재·공습 이력·선박·군용기 항적을 근거로 붙일 수 있습니다.",
-      "항적·전선·화재·공중 위협 칩으로 지도 레이어를 빠르게 켜고 끕니다.",
-      "아래 시간으로 하루 중 시각을 돌려 볼 수 있습니다. 공식 경보 앱이 아니니 참고용으로만 보세요.",
-    ],
-  },
-];
-
-const SATELLITE_GUIDE_SECTIONS_EN: GuideSection[] = [
-  {
-    title: "What is the Observatory?",
-    steps: [
-      "A live 3D desk for tracks, fronts, fires, and maritime alerts.",
-      "Not secret intel — we highlight open-source items that cross-check.",
-    ],
-  },
-  {
-    title: "Today's watch items",
-    steps: [
-      "The list on the right is not a layer switch — a short reading queue of theater reports and maritime alerts.",
-      "Tap a title for the report. Why? explains why it matters now and how solid it looks.",
-      "Waiting items are not deleted — they move up when more sources arrive.",
-      "Priority topics show how an item ties to today's windows (Ukraine, Red Sea, etc.).",
-    ],
-  },
-  {
-    title: "Frontline flashes · who holds the ground",
-    steps: [
-      "On a LiveUA flash parchment, use Previous / Next to flip other pins in the same theater.",
-      "Control layers are not Ukraine-only — Iran, Yemen, Lebanon, and Israel/Palestine too.",
-      "“Where this may show up next” is market/corridor context — not investment advice.",
-    ],
-  },
-  {
-    title: "Case file · air raids · tracks",
-    steps: [
-      "In the Case tab, draft from an article or coordinates, then attach fires, air-raid history, ships, or military tracks as evidence.",
-      "Use track / front / fire / air-threat chips to toggle map layers quickly.",
-      "The day scrubber moves the clock through the day. Reference only — not an official alert app.",
-    ],
-  },
-];
-
 export function FeatureGuidePanel({
   open,
   viewerMode = "conflict",
@@ -443,13 +359,9 @@ export function FeatureGuidePanel({
       ? en
         ? ECONOMY_GUIDE_SECTIONS_EN
         : ECONOMY_GUIDE_SECTIONS_KO
-      : viewerMode === "satellite"
-        ? en
-          ? SATELLITE_GUIDE_SECTIONS_EN
-          : SATELLITE_GUIDE_SECTIONS_KO
-        : en
-          ? GUIDE_SECTIONS_EN
-          : GUIDE_SECTIONS_KO;
+      : en
+        ? GUIDE_SECTIONS_EN
+        : GUIDE_SECTIONS_KO;
   const sections = [...base, ...accountGuideSections(lang)];
 
   return (

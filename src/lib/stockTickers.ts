@@ -308,7 +308,7 @@ export const ECONOMY_TICKER_STRIP_CORE: string[] = [
  */
 export function mergeTickerStripSymbols(
   highlightSymbols: string[] = [],
-  mode: "conflict" | "economy" | "satellite" | "live" = "conflict",
+  mode: "conflict" | "economy" | "live" = "conflict",
 ): string[] {
   const core =
     mode === "economy" ? ECONOMY_TICKER_STRIP_CORE : CONFLICT_TICKER_STRIP_CORE;
@@ -459,7 +459,7 @@ export const THEATER_RELATED_SYMBOLS: Record<TheaterMarketFilter, string[]> = {
 export function pickRelatedTickers(
   all: StockTickerItem[],
   filter: TheaterMarketFilter,
-  mode: "conflict" | "economy" | "satellite" | "live" = "conflict",
+  mode: "conflict" | "economy" | "live" = "conflict",
 ): StockTickerItem[] {
   const order = theaterAssetSymbols(filter, mode);
   const bySymbol = new Map(all.map((t) => [t.symbol, t]));
@@ -468,7 +468,7 @@ export function pickRelatedTickers(
 
 export function theaterMarketBlurb(
   filter: TheaterMarketFilter,
-  mode: "conflict" | "economy" | "satellite" | "live" = "conflict",
+  mode: "conflict" | "economy" | "live" = "conflict",
 ): string {
   return theaterAssetNote(filter, "ko", mode);
 }

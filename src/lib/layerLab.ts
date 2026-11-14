@@ -2,15 +2,11 @@ import { LAB_UI } from "@/lib/labFlag";
 import type { LayerPrefs } from "@/lib/layerPrefs";
 
 /**
- * 실험실(lab) 레이어 — 해운·전쟁위험 담당자의 사건 확인에 증거·맥락으로 쓰이지 않는 레이어.
- * 코드는 남기고 화면 노출만 막는다(`NEXT_PUBLIC_LAB=1`이면 풀림). 분류: docs/layer-triage-2026-10-14.md
- *
- * 전쟁·교전 구역(showWarZones, 이란·우크라 위 빨간 빗금 박스)과 항로(showShippingLanes)·병목해역(showLogisticsRisk)은 핵심 화면(AIS·ADS-B·피격 사건)에 방해라 2026-10-18에 실험실로 내렸다.
- *
- * 문서의 실험실 96개 중 아래는 일부러 뺐다.
- * - showConflictTheater* 13개: 전장별 사건 핀(useIncidentMarkers)을 가르는 스위치라 끄면 핀이 사라진다.
- * - showUsCarriers: 해상 사건 맥락으로 쓰므로 맥락 등급으로 올림.
- * - showAlliedBlocs · showAxisNetwork: 지정학 프리셋(동맹 블록·CRINK 축)에 필요해 맥락 등급으로 올림.
+ * 지도 백과 레이어 — 2026-11-10 제품에서 뺐다.
+ * 발전소·철도·케이블·사일로·국경선처럼 속보와 맞춰 볼 원본이 아닌 층이다.
+ * 데이터 파일은 저장소에서 지웠고, `NEXT_PUBLIC_LAB=1`로도 다시 켜지지 않는다.
+ * 대만·북한 미사일 같은 미시 속보 핀 스위치도 체크박스에서는 숨긴다.
+ * 소식 자체는 전장 핀(showConflictTheater*)으로 남긴다. 그 스위치는 여기 없다.
  */
 export const LAB_LAYER_KEYS = [
   "showAiDataCenters",
@@ -110,9 +106,9 @@ export function isLabLayerKey(key: string): boolean {
   return LAB_SET.has(key);
 }
 
-/** 실험실 레이어는 강제 OFF. 바뀔 게 없으면 원본을 그대로 돌려준다. */
-export function enforceLabTier(prefs: LayerPrefs, lab: boolean = LAB_UI): LayerPrefs {
-  if (lab) return prefs;
+/** 뺀 레이어는 항상 강제 OFF. lab 플래그로 되살리지 않는다. */
+export function enforceLabTier(prefs: LayerPrefs, _lab: boolean = LAB_UI): LayerPrefs {
+  void _lab;
   const rec = prefs as unknown as Record<string, unknown>;
   if (!LAB_LAYER_KEYS.some((k) => rec[k] === true)) return prefs;
   const next = { ...rec };
@@ -138,8 +134,10 @@ const LAB_PANEL_ITEM_IDS: ReadonlySet<string> = new Set([
   "military-bases-rok", "military-bases-japan", "military-bases-taiwan",
   "military-bases-philippines", "military-bases-australia", "military-bases-eastern-nato",
   "shipping", "logistics-risk", "war-zones", "oil-pipelines", "gas-pipelines", "lng-terminals", "nuclear", "critical-nodes", "east-asia-adiz",
+  "rail", "intel", "economic",
 ]);
 
-export function isLabPanelItem(id: string, lab: boolean = LAB_UI): boolean {
-  return !lab && LAB_PANEL_ITEM_IDS.has(id);
+export function isLabPanelItem(id: string, _lab: boolean = LAB_UI): boolean {
+  void _lab;
+  return LAB_PANEL_ITEM_IDS.has(id);
 }

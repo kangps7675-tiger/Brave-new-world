@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { pick } from "@/components/landing/landingCopy";
+import { useLandingLanguage } from "@/lib/landingLanguage";
 import { prefersReducedMotion } from "@/hooks/useReducedMotion";
 
 /**
@@ -41,6 +43,7 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
 }
 
 export function SectionDots({ sections }: { sections: { id: string; label: string }[] }) {
+  const lang = useLandingLanguage();
   const [current, setCurrent] = useState(sections[0]?.id ?? "");
   useEffect(() => {
     const els = sections.map((s) => document.getElementById(s.id)).filter((el): el is HTMLElement => Boolean(el));
@@ -56,7 +59,7 @@ export function SectionDots({ sections }: { sections: { id: string; label: strin
     return () => io.disconnect();
   }, [sections]);
   return (
-    <nav aria-label="섹션 이동" className="fixed right-5 top-1/2 hidden -translate-y-1/2 flex-col gap-3 xl:flex">
+    <nav aria-label={pick(lang, "섹션 이동", "Jump to a section")} className="fixed right-5 top-1/2 hidden -translate-y-1/2 flex-col gap-3 xl:flex">
       {sections.map((s) => {
         const on = s.id === current;
         return (
@@ -80,26 +83,51 @@ export function SectionDots({ sections }: { sections: { id: string; label: strin
 }
 
 const DEMO_STEPS = [
-  { t: "경보가 뜹니다", d: "UKMTO가 상선 피격을 보고하면 오른쪽 '선박 사건'에 새 카드가 올라오고, 지도에 그 자리가 표시됩니다." },
-  { t: "주변 배가 보입니다", d: "그 시각 근처를 지나던 배들의 위치 신호(AIS)가 함께 떠서, 어떤 배들이 그 바다에 있었는지 봅니다." },
-  { t: "그 바다의 위험이 겹칩니다", d: "항행경보 구역과 근처 항구·정유소에 떨어진 드론·미사일 불꽃이 같은 화면에 겹칩니다." },
-  { t: "보험료 흐름을 확인합니다", d: "기사에 보도된 전쟁위험 보험료를 날짜순으로, 출처 문장과 함께 봅니다." },
+  {
+    t: ["경보가 뜹니다", "An alert appears"],
+    d: [
+      "전선에서 공격이 보고되면 오른쪽에 새 카드가 올라오고, 지도에 그 자리가 표시됩니다.",
+      "When an attack is reported on a front, a new card appears and the spot is marked on the map.",
+    ],
+  },
+  {
+    t: ["그 땅을 누가 쥐는지 보입니다", "Who holds the ground appears"],
+    d: [
+      "점령 지역과 무장세력 통제 구역이 같은 화면에 겹쳐, 그 전선을 누가 쥐고 있는지 봅니다.",
+      "Occupied ground and armed-group control stack on the same view, so you can see who holds that front.",
+    ],
+  },
+  {
+    t: ["그 바다의 위험이 겹칩니다", "The risks on that sea stack up"],
+    d: [
+      "항행경보 구역과 근처 항구·정유소에 떨어진 드론·미사일 불꽃이 같은 화면에 겹칩니다.",
+      "Navigational-warning zones and drone or missile strikes on nearby ports and plants stack on the same view.",
+    ],
+  },
+  {
+    t: ["다음 일정을 확인합니다", "Check the next date"],
+    d: [
+      "그 나라의 다음 선거나 당대회를, 근거가 된 공식 글과 함께 봅니다.",
+      "That country’s next election or party congress, with the official text it comes from.",
+    ],
+  },
 ];
 
 /**
  * 경보 데모 그림 — shown 단계까지의 표시가 차례로 켜진다.
  */
 function AlertVisual({ shown, reduced }: { shown: number; reduced: boolean }) {
+  const lang = useLandingLanguage();
   const at = (n: number) => shown >= n;
   return (
   <figure className="m-0 min-w-0">
     <div className="overflow-hidden rounded-xl border border-white/12 bg-[#081420]">
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5 text-caption text-[#8fa3b1]">
-        <span>홍해 남부 · 예시 화면</span>
-        <span>실제 데이터 아님</span>
+        <span>{pick(lang, "홍해 남부 · 예시 화면", "Southern Red Sea · example")}</span>
+        <span>{pick(lang, "실제 데이터 아님", "Not live data")}</span>
       </div>
       <div className="relative">
-        <svg viewBox="0 0 480 300" className="block h-auto w-full" role="img" aria-label="경보가 뜬 뒤 지구본에 순서대로 나타나는 것들의 예시 그림">
+        <svg viewBox="0 0 480 300" className="block h-auto w-full" role="img" aria-label={pick(lang, "경보가 뜬 뒤 지구본에 순서대로 나타나는 것들의 예시 그림", "Example of what appears on the globe after an alert")}>
           <defs>
             <pattern id="demo-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
               <rect width="6" height="6" fill="#e5484d" fillOpacity="0.16" />
@@ -115,58 +143,64 @@ function AlertVisual({ shown, reduced }: { shown: number; reduced: boolean }) {
           {/* 해안선: 왼쪽 아프리카, 오른쪽 아라비아 */}
           <path d="M0 0 L150 0 C140 60 120 110 128 160 C136 210 110 250 92 300 L0 300 Z" fill="#1f3d52" stroke="#3b6378" />
           <path d="M300 0 L480 0 L480 300 L360 300 C350 250 372 210 356 170 C340 130 320 70 300 0 Z" fill="#1f3d52" stroke="#3b6378" />
-          <text x="20" y="40" fill="#6d8797" fontSize="12">에리트레아</text>
-          <text x="400" y="40" fill="#6d8797" fontSize="12">예멘</text>
+          <text x="20" y="280" fill="#6d8797" fontSize="12">{pick(lang, "에리트레아", "Eritrea")}</text>
+          <text x="420" y="28" fill="#6d8797" fontSize="12">{pick(lang, "예멘", "Yemen")}</text>
 
           {/* 3: 항행경보 구역 */}
           <g style={{ opacity: at(2) ? 1 : 0, transition: reduced ? "none" : "opacity .6s" }}>
             <path d="M190 90 L300 80 L320 200 L200 215 Z" fill="url(#demo-hatch)" stroke="#ff6b6f" strokeDasharray="4 3" />
-            <text x="198" y="108" fill="#ff9a9d" fontSize="11">항행경보 구역</text>
+            <text x="198" y="108" fill="#ff9a9d" fontSize="11">{pick(lang, "항행경보 구역", "Nav warning")}</text>
+            <text x="338" y="182" fill="#ffd25a" fontSize="10">{pick(lang, "항구·정유소 타격", "Port or refinery hit")}</text>
             <circle cx="368" cy="150" r="16" fill="url(#demo-fire)" />
             <path d="M368 138 C369.3 142 373 144.6 373 149.4 C373 152.8 370.8 155.4 368 155.4 C365.2 155.4 363 152.8 363 149.4 C363 146.4 365.4 144.6 366.4 142 C367 143.2 367.4 143.4 367.8 142.9 C368.1 141.5 368 139.7 368 138 Z" fill="#ffd25a" />
           </g>
 
-          {/* 2: 주변 배 */}
-          <g style={{ opacity: at(1) ? 1 : 0, transition: reduced ? "none" : "opacity .6s" }} fill="#93c5fd">
-            {[
-              [205, 70, 160],
-              [232, 230, 340],
-              [290, 120, 200],
-              [180, 180, 20],
-              [270, 265, 330],
-            ].map(([x, y, r]) => (
-              <path key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${r})`} d="M0 -7 L4 4 L0 2 L-4 4 Z" />
-            ))}
+          {/* 2: 그 땅을 누가 쥐는지 — 무장세력 통제 구역(예시) */}
+          <g style={{ opacity: at(1) ? 1 : 0, transition: reduced ? "none" : "opacity .6s" }}>
+            <path
+              d="M312 44 L480 44 L480 222 L362 216 C352 190 350 160 340 130 C330 100 322 72 312 44 Z"
+              fill="#e5484d"
+              fillOpacity="0.24"
+              stroke="#ff6b6f"
+              strokeDasharray="5 3"
+            />
+            <text x="372" y="84" fill="#ffb4b6" fontSize="11">{pick(lang, "무장세력 통제 구역", "Armed-group control")}</text>
+            <text x="372" y="99" fill="#d9a3a5" fontSize="9">{pick(lang, "예시 · 경계는 단순화", "example · simplified edge")}</text>
           </g>
 
           {/* 1: 경보 위치 */}
           <g style={{ opacity: at(0) ? 1 : 0, transition: reduced ? "none" : "opacity .4s" }}>
             <circle cx="252" cy="160" r="34" fill="none" stroke="#f87171" strokeWidth="1.6" strokeDasharray="4 4" />
             <circle cx="252" cy="160" r="5" fill="#f87171" />
-            <path transform="translate(252 160)" d="M-9 -2 L9 -2 L6 3 L-6 3 Z M-4 -2 L-4 -8 L3 -8 L5 -2" fill="#fff" />
+            <circle cx="252" cy="160" r="12" fill="none" stroke="#fca5a5" strokeWidth="1.2" strokeOpacity="0.8" />
           </g>
         </svg>
 
-        {/* 1: 선박 사건 카드 */}
+        {/* 1: 전선 속보 카드 */}
         <div
-          className={`absolute right-3 top-3 w-[min(56%,230px)] rounded-md border border-[#f87171]/50 bg-[#05080d]/90 px-3 py-2 transition-all duration-500 ${
+          className={`absolute left-3 top-3 w-[min(46%,210px)] rounded-md border border-[#f87171]/50 bg-[#05080d]/90 px-3 py-2 transition-all duration-500 ${
             at(0) ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
           }`}
         >
-          <p className="m-0 text-caption font-bold text-[#fca5a5]">새 선박 사건 · UKMTO</p>
-          <p className="mb-0 mt-0.5 text-caption leading-snug text-[#d7e0e6]">홍해 남부에서 상선이 공격받았다는 보고</p>
+          <p className="m-0 text-caption font-bold text-[#fca5a5]">{pick(lang, "새 전선 속보", "New front-line alert")}</p>
+          <p className="mb-0 mt-0.5 text-caption leading-snug text-[#d7e0e6]">
+            {pick(lang, "홍해 남부에서 공격이 보고되었습니다", "An attack was reported in the southern Red Sea")}
+          </p>
         </div>
 
-        {/* 4: 보험료 줄 */}
+        {/* 4: 다음 일정 줄 */}
         <div
           className={`absolute bottom-3 left-3 right-3 rounded-md border border-white/12 bg-[#05080d]/90 px-3 py-2 transition-all duration-500 ${
             at(3) ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
           }`}
         >
           <p className="m-0 text-caption text-[#d7e0e6]">
-            <b className="text-white">전쟁위험 보험료(보도 기준)</b> 홍해·아덴만 <span className="text-[#f5c451]">[요율] ▲</span>
+            <b className="text-white">{pick(lang, "다음 공식 일정", "Next official date")}</b>{" "}
+            {pick(lang, "예멘", "Yemen")} <span className="text-[#f5c451]">{pick(lang, "확인된 공식 일정 없음 · 자료 없음", "no confirmed official date · no data")}</span>
           </p>
-          <p className="mb-0 mt-0.5 text-micro text-[#8fa3b1]">출처: 해운 매체 기사 · 근거 문장 함께 표시</p>
+          <p className="mb-0 mt-0.5 text-micro text-[#8fa3b1]">
+            {pick(lang, "공식 글에서 날짜를 찾지 못하면 지어내지 않고 이렇게 적습니다. 예시 화면", "If no official text gives a date, it says so instead of guessing. Example screen")}
+          </p>
         </div>
       </div>
     </div>
@@ -179,6 +213,7 @@ function AlertVisual({ shown, reduced }: { shown: number; reduced: boolean }) {
  * 그림은 sticky로 붙어 있다. 동작 줄이기 설정이면 마지막 장면(전부 켜진 상태)으로 고정한다.
  */
 export function AlertScrolly() {
+  const lang = useLandingLanguage();
   const [shown, setShown] = useState(0);
   const [reduced, setReduced] = useState(false);
   const stepRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -213,7 +248,7 @@ export function AlertScrolly() {
       <ol className="m-0 flex min-w-0 list-none flex-col p-0 lg:flex-[1_1_300px]">
         {DEMO_STEPS.map((s, i) => (
           <li
-            key={s.t}
+            key={s.t[0]}
             ref={(el) => {
               stepRefs.current[i] = el;
             }}
@@ -224,8 +259,8 @@ export function AlertScrolly() {
               <span className={`block text-sm font-bold ${i === shown ? "text-[#f5c451]" : "text-[#8fa3b1]"}`}>
                 {String(i + 1).padStart(2, "0")} / {String(DEMO_STEPS.length).padStart(2, "0")}
               </span>
-              <span className="mt-2 block text-[clamp(22px,2.4vw,30px)] font-bold leading-snug text-white">{s.t}</span>
-              <span className="mt-3 block max-w-[440px] text-[16px] leading-relaxed text-[#a3b3bf]">{s.d}</span>
+              <span className="mt-2 block text-[clamp(22px,2.4vw,30px)] font-bold leading-snug text-white">{pick(lang, s.t[0], s.t[1])}</span>
+              <span className="mt-3 block max-w-[440px] text-[16px] leading-relaxed text-[#a3b3bf]">{pick(lang, s.d[0], s.d[1])}</span>
             </div>
           </li>
         ))}
@@ -270,7 +305,10 @@ const SCRAMBLE = "가나다라마바사아자차카타파하01#%/<>[]·";
 export function DecodeText({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) {
   const [out, setOut] = useState(text);
   useEffect(() => {
+    setOut(text);
     if (prefersReducedMotion()) return;
+    const latin = /^[\x00-\x7F]*$/.test(text);
+    const pool = latin ? "ABCDEFGHJKLMNPQRSTUVWXYZ01#%/<>[]·" : SCRAMBLE;
     const chars = [...text];
     const start = performance.now() + delay;
     const DUR = 900;
@@ -278,14 +316,14 @@ export function DecodeText({ text, className = "", delay = 0 }: { text: string; 
     const tick = (now: number) => {
       const t = (now - start) / DUR;
       if (t < 0) {
-        setOut(chars.map((c) => (c === " " || c === "\n" ? c : SCRAMBLE[Math.floor(Math.random() * SCRAMBLE.length)])).join(""));
+        setOut(chars.map((c) => (c === " " || c === "\n" ? c : pool[Math.floor(Math.random() * pool.length)])).join(""));
         raf = requestAnimationFrame(tick);
         return;
       }
       const fixed = Math.floor(Math.min(1, t) * chars.length);
       setOut(
         chars
-          .map((c, i) => (i < fixed || c === " " || c === "\n" ? c : SCRAMBLE[Math.floor(Math.random() * SCRAMBLE.length)]))
+          .map((c, i) => (i < fixed || c === " " || c === "\n" ? c : pool[Math.floor(Math.random() * pool.length)]))
           .join(""),
       );
       if (t < 1) raf = requestAnimationFrame(tick);
@@ -364,59 +402,42 @@ export function TiltCard({ children, className = "" }: { children: ReactNode; cl
   );
 }
 
-type TickerItem = { id: string; text: string };
+type TickerItem = { id: string; tone: "ok" | "warn" | "bad"; status: [string, string]; text: [string, string] };
 
-/**
- * 실제 UKMTO 최근 경보를 흐르는 띠로 보여 준다. 못 받아 오면 지구본이 지켜보는 것들의 목록으로 대신한다.
- */
+const TICKER_TONE = {
+  ok: "border-[#0f766e]/60 bg-[#0f766e]/12 text-[#5eead4]",
+  warn: "border-[#a16207]/60 bg-[#a16207]/14 text-[#fcd34d]",
+  bad: "border-[#b91c1c]/60 bg-[#b91c1c]/14 text-[#fca5a5]",
+};
+
+/** 가상의 예시 속보. 소식마다 확인 상태가 붙는 모양을 흐르는 띠로 보여 준다. */
+const TICKER_ITEMS: TickerItem[] = [
+  { id: "a", tone: "ok", status: ["확인", "Confirmed"], text: ["○○ 지역 정유시설 폭발 — 공식 발표와 현장 영상이 일치", "Refinery blast in ○○ — official statement and footage match"] },
+  { id: "b", tone: "warn", status: ["유력", "Likely"], text: ["○○ 해협 상선 피격 — 당시 근처 선박 1척으로 좁혀짐", "Merchant ship hit near ○○ strait — narrowed to one vessel nearby"] },
+  { id: "c", tone: "bad", status: ["자료 없음", "No data"], text: ["○○ 상공 드론 격추 주장 — 확인할 자료가 없음", "Drone shoot-down claimed over ○○ — nothing to verify it with"] },
+  { id: "d", tone: "ok", status: ["확인", "Confirmed"], text: ["○○ 국경 검문소 폐쇄 — 두 나라 정부가 모두 인정", "Border crossing at ○○ closed — both governments acknowledge it"] },
+  { id: "e", tone: "warn", status: ["유력", "Likely"], text: ["○○ 항구 인근 폭발음 — 출처 두 곳이 같은 시각을 가리킴", "Explosions near ○○ port — two sources point to the same time"] },
+];
+
+/** 예시 속보와 확인 상태가 흐르는 띠. 실제 속보가 아니라 모양을 보여 주는 연출이다. */
 export function LiveTicker() {
-  const [items, setItems] = useState<TickerItem[] | null>(null);
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/ukmto", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((p: { incidents?: Array<Record<string, unknown>> } | null) => {
-        if (!alive) return;
-        const rows = (p?.incidents ?? []).slice(0, 12).map((x, i) => {
-          const when = typeof x.utcDateOfIncident === "string" ? x.utcDateOfIncident.slice(0, 10) : "";
-          const kind = typeof x.incidentTypeName === "string" ? x.incidentTypeName : "Incident";
-          const where = (typeof x.place === "string" && x.place) || (typeof x.region === "string" && x.region) || "";
-          return { id: String(x.id ?? i), text: ["UKMTO", when, kind, where].filter(Boolean).join(" · ") };
-        });
-        setItems(rows);
-      })
-      .catch(() => alive && setItems([]));
-    return () => {
-      alive = false;
-    };
-  }, []);
-  const live = items && items.length > 0;
-  const list: TickerItem[] = live
-    ? items
-    : [
-        "해상 피습 경보",
-        "선박 위치 신호(AIS)",
-        "군용기 위치 신호(ADS-B)",
-        "항구·정유소 타격",
-        "국제 항행경보",
-        "전쟁위험 보험료 보도",
-        "위성 화재 감지",
-        "전선 속보",
-      ].map((t) => ({ id: t, text: t }));
+  const lang = useLandingLanguage();
+  const label = pick(lang, "속보마다 확인 상태가 붙습니다 · 가상 예시", "Every alert carries a status · invented examples");
   return (
-    <div className="relative overflow-hidden border-y border-white/10 bg-[#070d14] py-3" aria-label={live ? "최근 UKMTO 경보" : "지구본이 지켜보는 것"}>
+    <div className="relative overflow-hidden border-y border-white/10 bg-[#070d14] py-3" aria-label={label}>
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#070d14] to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#070d14] to-transparent" />
-      <div className="flex w-max motion-safe:animate-[landing-marquee_48s_linear_infinite] hover:[animation-play-state:paused]">
+      <div className="flex w-max motion-safe:animate-[landing-marquee_60s_linear_infinite] hover:[animation-play-state:paused]">
         {[0, 1].map((dup) => (
           <ul key={dup} aria-hidden={dup === 1 ? "true" : undefined} className="m-0 flex list-none items-center gap-10 p-0 pr-10">
             <li className="flex items-center gap-2 text-sm font-bold text-[#f87171]">
               <span className="inline-block h-2 w-2 rounded-full bg-[#f87171] motion-safe:animate-pulse" />
-              {live ? "최근 UKMTO 경보 · 실제 데이터" : "지구본이 지켜보는 것"}
+              {label}
             </li>
-            {list.map((it) => (
-              <li key={`${dup}-${it.id}`} className="whitespace-nowrap text-sm text-[#c9d5dd]">
-                {it.text}
+            {TICKER_ITEMS.map((it) => (
+              <li key={`${dup}-${it.id}`} className="flex items-center gap-2 whitespace-nowrap text-sm text-[#c9d5dd]">
+                <span className={`rounded-full border px-2 py-0.5 text-caption font-bold ${TICKER_TONE[it.tone]}`}>{lang === "en" ? it.status[1] : it.status[0]}</span>
+                {lang === "en" ? it.text[1] : it.text[0]}
               </li>
             ))}
           </ul>

@@ -13,6 +13,7 @@ import {
   FIRST_SCREEN_CONFLICT_ON,
   FIRST_SCREEN_ECONOMY_ON,
   FIRST_SCREEN_LIVE_ON,
+  FIRST_SCREEN_BREAKING_ON,
   FIRST_SCREEN_MARITIME_ON,
 } from "@/lib/firstScreenLayers";
 
@@ -37,11 +38,11 @@ export const ENTRY_GATE: {
   /**
    * 적도 중심 — pitch 0 이면 구 실루엣(남극 포함)이 한 화면에 들어온다.
    */
-  // 전역 궤도의 중심 — 홍해·아덴만·걸프·흑해·동지중해가 한 화면 정면에 오도록 (확대는 하지 않는다).
-  // 예전 (0, 25)는 아프리카 한가운데라 랜딩이 말하는 바다들이 가장자리로 밀렸다.
+  // 전역 궤도의 중심 — 구 전체 크기는 유지하고, 정면은 호르무즈·걸프.
+  // 최근 피격이 홍해가 아니라 호르무즈에 몰려 있다.
   bootLookAt: {
-    lat: 20,
-    lng: 45,
+    lat: 26.2,
+    lng: 56.4,
   },
   /** 정면. 틸트하면 남반구가 잘려 "지구 전체"가 안 보인다. */
   bootPitch: 0,
@@ -93,9 +94,14 @@ const ECONOMY_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_ECONOMY_ON,
 };
 
-/** 해운 위험 첫 화면 — 랜딩이 약속한 화면 (UKMTO·항행경보·AIS·항모·군용기·불꽃) */
+/** 해운 연재 화면 — 「무엇을 볼까요 → 해운 위험」을 고른 사람 (UKMTO·항행경보·AIS·항모·군용기·불꽃) */
 const MARITIME_HERO_ON: Partial<LayerPrefs> = {
   ...FIRST_SCREEN_MARITIME_ON,
+};
+
+/** 속보 중심 첫 화면 — 랜딩이 약속한 화면 (속보 핀·불꽃·붉은 면·빛나는 선·항모·군용기) */
+const BREAKING_HERO_ON: Partial<LayerPrefs> = {
+  ...FIRST_SCREEN_BREAKING_ON,
 };
 
 /** 항적 첫 화면 — ADS-B · AIS · GPSJam */
@@ -117,6 +123,8 @@ export function buildDomainOverviewPrefs(
     ultraLite?: boolean;
     /** 지정학(conflict) 모드지만 해운 위험 첫 화면으로 — 신규 방문·해운 패키지 사용자 */
     maritime?: boolean;
+    /** 지정학(conflict) 모드지만 속보 중심 첫 화면으로 — 신규 방문 */
+    breaking?: boolean;
   },
 ): LayerPrefs {
   const labelLanguage = options?.labelLanguage ?? DEFAULT_LAYER_PREFS.labelLanguage;
@@ -125,6 +133,8 @@ export function buildDomainOverviewPrefs(
   const hero =
     mode === "conflict" && options?.maritime
       ? MARITIME_HERO_ON
+      : mode === "conflict" && options?.breaking
+      ? BREAKING_HERO_ON
       : mode === "conflict"
       ? CONFLICT_HERO_ON
       : mode === "economy"

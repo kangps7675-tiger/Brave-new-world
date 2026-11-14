@@ -8,7 +8,7 @@ export type StrikeCandidateView = {
   verdict: Verdict;
   score: number;
   distanceKm: number;
-  signals: Array<{ key: string; ko: string }>;
+  signals: Array<{ key: string; ko: string; en?: string }>;
 };
 
 export type ReportedNameView = {

@@ -3,6 +3,10 @@
 
 export type IngestEnv = {
   DB: D1Database;
+  /** 공식 문서 원본 파일(PDF) 보관용 R2. 웹앱과 같은 버킷(conflict-view-data)의 official-docs/ 아래에 둔다. 없으면 파일 보관만 건너뛴다. */
+  DATA_BUCKET?: R2Bucket;
+  /** Cloudflare Browser Rendering. 공식 문서의 웹페이지를 PDF로 찍을 때만 쓴다(미·영 문서). 없으면 그 단계만 건너뛴다. */
+  BROWSER?: Fetcher;
   /** NASA FIRMS map key ??set via `wrangler secret put NASA_FIRMS_API_KEY` */
   NASA_FIRMS_API_KEY?: string;
   FIRMS_MAP_KEY?: string;
@@ -192,7 +196,7 @@ export type IngestEnv = {
    * 비어 있으면 구독 접수·발송을 하지 않는다.
    */
   RESEND_API_KEY?: string;
-  /** 예: Strait Desk <digest@example.com> — secret 또는 vars */
+  /** 예: conflict-view <digest@example.com> — secret 또는 vars */
   EMAIL_FROM?: string;
   /**
    * 확인·해지 링크의 공개 주소 (끝 슬래시 없이).
