@@ -3875,7 +3875,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
             />
           </Source>
         ) : null}
-        {eventCallout ? (
+        {eventCallout && Number.isFinite(eventCallout.lat) && Number.isFinite(eventCallout.lng) ? (
           <Marker
             longitude={eventCallout.lng}
             latitude={eventCallout.lat}
