@@ -39,6 +39,10 @@ export default function IncidentFlatMap({
   places = [],
   interactive = false,
 }: Props) {
+  // 방어: 좌표가 유한하지 않으면 그리지 않는다(Marker.setLngLat(NaN) 예외 방지)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  dots = dots.filter((d) => Number.isFinite(d.lat) && Number.isFinite(d.lng));
+  places = places.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
   return (
     <Map
       key={`${lat.toFixed(3)}:${lng.toFixed(3)}`}

@@ -34,12 +34,30 @@ export function IncidentMiniMap({ item, others = [], lang, kindLabel, heightClas
   const dots = useMemo(
     () =>
       others
-        .filter((o) => o.id !== item.id && Math.abs(o.lat - item.lat) < 8 && Math.abs(o.lng - item.lng) < 12)
+        .filter(
+          (o) =>
+            o.id !== item.id &&
+            Number.isFinite(o.lat) &&
+            Number.isFinite(o.lng) &&
+            Math.abs(o.lat - item.lat) < 8 &&
+            Math.abs(o.lng - item.lng) < 12,
+        )
         .slice(0, 20)
         .map((o) => ({ id: o.id, lat: o.lat, lng: o.lng })),
     [others, item.id, item.lat, item.lng],
   );
   const place = item.place && !/^[a-z-]+$/.test(item.place) ? item.place : (places[0]?.name ?? "");
+  // 좌표 없는 속보(위치 미상)는 지도를 그리지 않는다 — NaN이 <Marker>로 가면 지구본 전체가 에러 경계로 리마운트된다.
+  if (!Number.isFinite(item.lat) || !Number.isFinite(item.lng)) {
+    return (
+      <div
+        className={`${heightClass} flex w-full items-center justify-center rounded-md border border-white/10 bg-[#0b1724] text-micro text-stone-400`}
+        data-incident-mini-map
+      >
+        {lang === "en" ? "Location unknown" : "위치 정보 없음"}
+      </div>
+    );
+  }
   return (
     <div className={`${heightClass} w-full overflow-hidden rounded-md border border-white/10`} data-incident-mini-map>
       <IncidentFlatMap
