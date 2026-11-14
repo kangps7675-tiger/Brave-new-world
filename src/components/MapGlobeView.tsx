@@ -451,6 +451,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
   const mapContainerRef = useRef<HTMLDivElement>(null);
   /** WebGL 컨텍스트 유실 상태 (P0-2) */
   const [contextLost, setContextLost] = useState(false);
+  /** 속보 점 위에 마우스가 있으면 손 모양 커서로 "눌린다"는 걸 알려 준다 */
+  const [overFlashDot, setOverFlashDot] = useState(false);
   /**
    * 지도가 "한 번도" 뜨지 못한 경우 (2026-08-31, 리포트 2번).
    * `contextLost`(뜬 적은 있는데 GPU 리셋)와 달리 자동 복구를 기대할 수
@@ -790,6 +792,8 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
     if (showIslandChains && !base.includes("island-chains-bases")) {
       base.push("island-chains-bases");
     }
+    // 속보 점의 눌림 영역(보이지 않는 큰 원). 점 자체는 3~5px라 손가락·마우스로 맞추기 어렵다.
+    if (!base.includes("flash-neon-hit")) base.push("flash-neon-hit");
     return base;
   }, [props.interactiveLayerIds, showIslandChains]);
 
@@ -1789,7 +1793,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       if (layerId === "liveua-strikes") {
         return liveuaStrikesData[index] ?? null;
       }
-      if (layerId === "flash-neon") {
+      if (layerId === "flash-neon" || layerId === "flash-neon-hit") {
         return flashNeonData[index] ?? null;
       }
       if (isMapPathsLayer(layerId)) return deferredPathsData[index] ?? null;
@@ -1828,21 +1832,26 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
        * 속보 네온 점은 반지름이 3~5px라 정확히 그 픽셀을 눌러야만 잡힌다 — 빗나가면 면(국가) 클릭으로 처리돼
        * 속보 창이 안 열렸다. 정확히 맞은 점·항공기·선박 등이 없으면, 주변 12px 안의 네온 중 가장 가까운 것을 연다.
        */
-      const flashHit = features.find((f) => f.layer?.id === "flash-neon");
+      const flashHit = features.find((f) => f.layer?.id === "flash-neon" || f.layer?.id === "flash-neon-hit");
+      // 선·고리·면은 넓게 깔려 있어 점 근처를 눌러도 같이 잡힌다. 그런 것들은 "정확히 맞았다"로 치지 않는다.
       const preciseHit = features.some((f) => {
         const id = f.layer?.id;
-        return id != null && id !== "map-polygons-fill" && !id.endsWith("-countries-fill");
+        if (id == null) return false;
+        if (id === "map-polygons-fill" || id.endsWith("-countries-fill") || id.endsWith("-fill")) return false;
+        if (id.startsWith("map-paths") || id.startsWith("map-rings")) return false;
+        if (id.startsWith("flash-neon")) return false;
+        return true;
       });
       if (!flashHit && !preciseHit && event.point && onFlashNeonClick) {
         const map = mapRef.current?.getMap();
-        if (map?.getLayer("flash-neon")) {
+        if (map?.getLayer("flash-neon-hit")) {
           const { x, y } = event.point;
           const near = map.queryRenderedFeatures(
             [
-              [x - 12, y - 12],
-              [x + 12, y + 12],
+              [x - 8, y - 8],
+              [x + 8, y + 8],
             ],
-            { layers: ["flash-neon"] },
+            { layers: ["flash-neon-hit"] },
           );
           let best: { index: number; d: number } | null = null;
           for (const f of near) {
@@ -1884,7 +1893,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
           onLiveuaStrikeClick?.(item as LiveuaStrikeMapItem);
           return;
         }
-        if (layerId === "flash-neon") {
+        if (layerId === "flash-neon" || layerId === "flash-neon-hit") {
           onFlashNeonClick?.((item as FlashNeonPoint).id);
           return;
         }
@@ -1944,6 +1953,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
       }
 
       const features = event.features ?? [];
+      setOverFlashDot(features.some((f) => f.layer?.id === "flash-neon-hit" || f.layer?.id === "flash-neon"));
       let baseHit: string | null = null;
       for (const feature of features) {
         if (feature.layer?.id === "island-chains-bases") {
@@ -2700,7 +2710,7 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
         onMouseLeave={handleMapMouseLeave}
-        cursor="grab"
+        cursor={overFlashDot ? "pointer" : "grab"}
       >
         {/* DEM — 상시 소스, exaggeration만 모드별로 조절 */}
         <Source
@@ -3737,6 +3747,17 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
         {flashNeonGeoJson.features.length > 0 ? (
           <Source id="flash-neon-source" type="geojson" data={flashNeonGeoJson}>
             {/* 속보 지점 네온 — 범주 색 후광 + 밝은 점. 최근 6시간(fresh)은 크고 밝게 깜빡이고, 오래된 건 작고 흐리게 남는다. */}
+            {/* 눌림 영역 — 투명하지만 눌림 판정은 받는다. 반지름 14px(손가락 끝 크기). 다른 레이어 아래에 두어 모양엔 영향이 없다. */}
+            <Layer
+              id="flash-neon-hit"
+              type="circle"
+              paint={{
+                "circle-color": "#000000",
+                "circle-radius": 14,
+                "circle-opacity": 0,
+                "circle-pitch-alignment": "viewport",
+              }}
+            />
             <Layer
               id="flash-neon-glow"
               type="circle"
@@ -3765,10 +3786,10 @@ export const MapGlobeView = forwardRef<MapGlobeMethods, MapGlobeViewProps>(funct
               type="circle"
               paint={{
                 "circle-color": ["get", "color"],
-                "circle-radius": ["case", ["==", ["get", "fresh"], 1], 5, 3.2],
+                "circle-radius": ["case", ["==", ["get", "fresh"], 1], 5, 4],
                 "circle-stroke-color": "rgba(255,255,255,0.85)",
                 "circle-stroke-width": ["case", ["==", ["get", "fresh"], 1], 1.2, 0.6],
-                "circle-opacity": ["case", ["==", ["get", "fresh"], 1], 1, 0.5],
+                "circle-opacity": ["case", ["==", ["get", "fresh"], 1], 1, 0.75],
                 "circle-pitch-alignment": "viewport",
               }}
             />
